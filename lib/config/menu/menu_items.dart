@@ -53,6 +53,6 @@ const appHomeOptionItems = <MenuItem>[
   MenuItem(
       title: 'Opción 4',
       subTitle: '',
-      link: '/splash',
+      link: '/template',
       icon: Icons.rocket_launch_outlined),
 ];

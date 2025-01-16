@@ -6,14 +6,14 @@ import 'package:monalisa_app_001/features/auth/domain/dtos/role_dto.dart';
 import 'package:monalisa_app_001/features/auth/domain/dtos/warehouse_dto.dart';
 import '../infrastructure.dart';
 
-class AuthRepositoryImpl extends AuthRepository {
+class AuthRepositoryImpl implements AuthRepository {
   final AuthDataSource dataSource;
 
   AuthRepositoryImpl({AuthDataSource? dataSource})
       : dataSource = dataSource ?? AuthDataSourceImpl();
 
   @override
-  Future<User> checkAuthStatus(String token) {
+  Future<String> checkAuthStatus(String token) {
     return dataSource.checkAuthStatus(token);
   }
 

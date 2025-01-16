@@ -11,11 +11,6 @@ class Client {
     );
   }
 
-  @override
-  String toString() {
-    return 'Client{id: $id, name: $name}';
-  }
-
   Map<String, dynamic> toJson() {
     return {
       'id': id,

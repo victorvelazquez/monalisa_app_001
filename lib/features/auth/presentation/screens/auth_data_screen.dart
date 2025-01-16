@@ -9,7 +9,7 @@ import '../../domain/entities/role.dart';
 import '../../domain/entities/warehouse.dart';
 import '../providers/auth_provider.dart';
 
-class AuthDataScreen extends ConsumerWidget {
+class AuthDataScreen extends StatelessWidget {
   const AuthDataScreen({super.key});
 
   void showSnackbar(BuildContext context) {
@@ -19,13 +19,12 @@ class AuthDataScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Scaffold(
           appBar: AppBar(
             title: const Text('Seleccionar Rol'),
-            centerTitle: true,
           ),
           body: _RoleView(),
         ));
@@ -86,7 +85,7 @@ class _RoleView extends ConsumerWidget {
                 text: 'Confirmar',
                 icon: Icon(Icons.check),
                 textColor: Colors.white,
-                buttonColor: primaryColor,
+                buttonColor: colorSeed,
               ),
               CustomFilledButton(
                 onPressed: () {

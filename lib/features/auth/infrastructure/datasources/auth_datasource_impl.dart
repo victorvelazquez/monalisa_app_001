@@ -6,7 +6,6 @@ import 'package:monalisa_app_001/features/auth/domain/dtos/login_dto.dart';
 import 'package:monalisa_app_001/features/auth/domain/dtos/organization_dto.dart';
 import 'package:monalisa_app_001/features/auth/domain/dtos/role_dto.dart';
 import 'package:monalisa_app_001/features/auth/domain/dtos/warehouse_dto.dart';
-import 'package:monalisa_app_001/features/auth/infrastructure/infrastructure.dart';
 import 'package:monalisa_app_001/features/auth/infrastructure/mappers/auth_data_mapper.dart';
 import 'package:monalisa_app_001/features/auth/infrastructure/mappers/login_mapper.dart';
 import 'package:monalisa_app_001/features/auth/infrastructure/mappers/organization_mapper.dart';
@@ -15,7 +14,7 @@ import 'package:monalisa_app_001/features/shared/shared.dart';
 
 import '../mappers/warehouse_mapper.dart';
 
-class AuthDataSourceImpl extends AuthDataSource {
+class AuthDataSourceImpl implements AuthDataSource {
   late final Dio dio;
 
   AuthDataSourceImpl() {
@@ -44,15 +43,15 @@ class AuthDataSourceImpl extends AuthDataSource {
   }
 
   @override
-  Future<User> checkAuthStatus(String token) async {
+  Future<String> checkAuthStatus(String token) async {
     try {
-      final response = await dio.get('/auth/check-status',
-          options: Options(headers: {
-            'Authorization': 'Bearer $token',
-          }));
+      // final response = await dio.get('/auth/check-status',
+      //     options: Options(headers: {
+      //       'Authorization': 'Bearer $token',
+      //     }));
 
-      final user = UserMapper.userJsonToEntity(response.data);
-      return user;
+      final newToken = '';
+      return newToken;
     } on DioException catch (e) {
       throw CustomErrorDioException(e);
     } catch (e) {

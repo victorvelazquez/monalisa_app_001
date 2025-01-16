@@ -1,14 +1,13 @@
 import 'package:monalisa_app_001/features/auth/domain/dtos/auth_data.dart';
 import 'package:monalisa_app_001/features/auth/domain/dtos/login_dto.dart';
 
-import '../domain.dart';
 import '../dtos/organization_dto.dart';
 import '../dtos/role_dto.dart';
 import '../dtos/warehouse_dto.dart';
 
 abstract class AuthRepository {
   Future<LoginDto> login(String userName, String password);
-  Future<User> checkAuthStatus(String token);
+  Future<String> checkAuthStatus(String token);
   Future<RoleDto> getRoles(int clientId, String token);
   Future<OrganizationDto> getOrganizations(
       int clientId, int roleId, String token);

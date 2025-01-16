@@ -105,10 +105,10 @@ class SideMenuState extends ConsumerState<SideMenu> {
                   onPressed: () {
                     ref.read(authProvider.notifier).loadAuthData();
                   },
-                  text: 'Cambiar Rol',
+                  text: 'Rol',
                   icon: Icon(Icons.assignment_ind_rounded),
                   textColor: Colors.white,
-                  buttonColor: primaryColor,
+                  buttonColor: colorSeed,
                 ),
                 CustomFilledButton(
                   onPressed: () {

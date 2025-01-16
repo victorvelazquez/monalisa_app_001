@@ -11,11 +11,6 @@ class Organization {
     );
   }
 
-  @override
-  String toString() {
-    return 'Organization{id: $id, name: $name}';
-  }
-
   Map<String, dynamic> toJson() {
     return {
       'id': id,

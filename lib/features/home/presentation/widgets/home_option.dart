@@ -30,11 +30,11 @@ class HomeOption extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 36, color: primaryColor),
+              Icon(icon, size: 36, color: colorSeed),
               const SizedBox(height: 10),
               Text(
                 title,
-                style: TextStyle(fontSize: 16, color: primaryColor, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 16, color: colorSeed, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
             ],
