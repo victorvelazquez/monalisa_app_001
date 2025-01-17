@@ -12,12 +12,6 @@ import '../providers/auth_provider.dart';
 class AuthDataScreen extends StatelessWidget {
   const AuthDataScreen({super.key});
 
-  void showSnackbar(BuildContext context) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Producto Actualizado')));
-  }
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(

@@ -31,8 +31,8 @@ class LoginScreen extends StatelessWidget {
               ),
               const SizedBox(height: 100),
               Container(
-                height:
-                    size.height - 370, // 150 + 100 los dos SizedBox y 120 la imagen
+                height: size.height -
+                    370, // 150 + 100 los dos SizedBox y 120 la imagen
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: loginBackgroundColor,
@@ -63,7 +63,7 @@ class _LoginFormState extends ConsumerState<_LoginForm> {
   bool isRoleSelected = false;
 
   void showSnackbar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
   }
