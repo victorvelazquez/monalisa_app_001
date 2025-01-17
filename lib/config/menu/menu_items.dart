@@ -51,8 +51,23 @@ const appHomeOptionItems = <MenuItem>[
       link: '/splash',
       icon: Icons.people_alt_outlined),
   MenuItem(
-      title: 'Opción 4',
+      title: 'Templates',
       subTitle: '',
-      link: '/template',
-      icon: Icons.rocket_launch_outlined),
+      link: '/templateHome',
+      icon: Icons.widgets),
 ];
+
+const appTemplateMenuItems = <MenuItem>[
+  MenuItem(
+      title: 'Botones',
+      subTitle: 'Varios Botones en Flutter',
+      link: '/templateButtons',
+      icon: Icons.smart_button_outlined),
+      
+  MenuItem(
+      title: 'Tarjetas',
+      subTitle: 'Un contenedor estilizado',
+      link: '/templateCards',
+      icon: Icons.credit_card),
+];
+

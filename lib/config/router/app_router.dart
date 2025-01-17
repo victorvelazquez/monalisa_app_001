@@ -4,7 +4,9 @@ import 'package:monalisa_app_001/config/router/app_router_notifier.dart';
 import 'package:monalisa_app_001/features/auth/auth.dart';
 import 'package:monalisa_app_001/features/auth/presentation/providers/auth_provider.dart';
 import 'package:monalisa_app_001/features/home/presentation/screens/home_screen.dart';
-import 'package:monalisa_app_001/features/template/presentation/screens/template_screen.dart';
+import 'package:monalisa_app_001/features/template/presentation/screens/template_buttons_screen.dart';
+import 'package:monalisa_app_001/features/template/presentation/screens/template_cards_screen.dart';
+import 'package:monalisa_app_001/features/template/presentation/screens/template_home_screen.dart';
 import '../../features/auth/presentation/screens/auth_data_screen.dart';
 
 final goRouterProvider = Provider((ref) {
@@ -39,8 +41,16 @@ final goRouterProvider = Provider((ref) {
 
       ///* Template Routes
       GoRoute(
-        path: '/template',
-        builder: (context, state) => const TemplateScreen(),
+        path: '/templateHome',
+        builder: (context, state) => const TemplateHomeScreen(),
+      ),
+      GoRoute(
+        path: '/templateButtons',
+        builder: (context, state) => const TemplateButtonsScreen(),
+      ),
+      GoRoute(
+        path: '/templateCards',
+        builder: (context, state) => const TemplateCardsScreen(),
       ),
 
     ],
