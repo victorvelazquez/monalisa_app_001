@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 const scaffoldBackgroundColor = Colors.white;
-const loginBackgroundColor = Color.fromARGB(255, 220, 220, 220);
+final backgroundColor = Colors.grey[300];
 const colorSeed = Color.fromRGBO(0, 19, 91, 1);
 
 const cancelButtonColor = Color.fromRGBO(169, 169, 169, 1);

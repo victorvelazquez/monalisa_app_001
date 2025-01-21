@@ -35,7 +35,7 @@ class LoginScreen extends StatelessWidget {
                     370, // 150 + 100 los dos SizedBox y 120 la imagen
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: loginBackgroundColor,
+                  color: backgroundColor,
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(30),
                     topRight: Radius.circular(30),

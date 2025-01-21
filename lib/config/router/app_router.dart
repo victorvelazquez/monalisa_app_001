@@ -4,6 +4,7 @@ import 'package:monalisa_app_001/config/router/app_router_notifier.dart';
 import 'package:monalisa_app_001/features/auth/auth.dart';
 import 'package:monalisa_app_001/features/auth/presentation/providers/auth_provider.dart';
 import 'package:monalisa_app_001/features/home/presentation/screens/home_screen.dart';
+import 'package:monalisa_app_001/features/shipment/presentation/screens/shipment_screen.dart';
 import 'package:monalisa_app_001/features/template/presentation/screens/template_buttons_screen.dart';
 import 'package:monalisa_app_001/features/template/presentation/screens/template_cards_screen.dart';
 import 'package:monalisa_app_001/features/template/presentation/screens/template_home_screen.dart';
@@ -37,6 +38,12 @@ final goRouterProvider = Provider((ref) {
       GoRoute(
         path: '/home',
         builder: (context, state) => const HomeScreen(),
+      ),
+
+      ///* Shipment Routes
+      GoRoute(
+        path: '/shipment',
+        builder: (context, state) => const ShipmentScreen(),
       ),
 
       ///* Template Routes
