@@ -1,90 +1,141 @@
-// Provider para manejar la lista de códigos de barras
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/barcode.dart';
 
+// Provider para manejar el estado de la lista de códigos de barras
 final barcodeListProvider =
-    StateNotifierProvider<BarcodeListNotifier, List<Barcode>>((ref) {
+    StateNotifierProvider<BarcodeListNotifier, BarcodeListStatus>((ref) {
   return BarcodeListNotifier();
 });
 
-// Clase para manejar el estado de la lista de códigos de barras
-class BarcodeListNotifier extends StateNotifier<List<Barcode>> {
+// Clase para manejar la lógica y estado
+class BarcodeListNotifier extends StateNotifier<BarcodeListStatus> {
   final ScrollController barcodeListScrollController = ScrollController();
-  int _uniqueCodes = 0;
-  int _totalCodes = 0;
-  BarcodeListNotifier() : super([]);
 
-  int get uniqueCodes => _uniqueCodes;
-  int get totalCodes => _totalCodes;
+  BarcodeListNotifier()
+      : super(
+          BarcodeListStatus(
+            barcodeListTotal: [],
+            barcodeListUnique: [],
+            uniqueView: false,
+          ),
+        );
+
+  // Método para alternar entre vista única o completa
+  void setUniqueView(bool value) {
+    state = state.copyWith(uniqueView: value);
+  }
 
   // Método para agregar un código de barras
   void addBarcode(String code) {
     if (code.trim().isEmpty) return;
 
-    // Contar cuántas veces existe el código actualmente
-    final repetitionsCount =
-        state.where((barcode) => barcode.code == code).length;
+    // Copia de la lista actual para trabajar con ella
+    final List<Barcode> updatedTotalList = [...state.barcodeListTotal];
 
-    if (repetitionsCount > 0) {
-      // Si ya existe, actualizamos todas las ocurrencias con el nuevo valor de repeticiones
-      final updatedRepetitions = repetitionsCount + 1;
-      state = [
-        for (final barcode in state)
-          if (barcode.code == code)
-            barcode.copyWith(repetitions: updatedRepetitions)
-          else
-            barcode,
-        // Agregar el nuevo código al final con el contador actualizado
+    // Buscar códigos existentes en la lista total
+    final existingBarcodes =
+        updatedTotalList.where((barcode) => barcode.code == code).toList();
+
+    if (existingBarcodes.isNotEmpty) {
+      // Si ya existe, actualizar todas las repeticiones
+      final int newRepetitions = existingBarcodes.first.repetitions + 1;
+
+      // Actualizar todos los códigos existentes con el nuevo número de repeticiones
+      for (int i = 0; i < updatedTotalList.length; i++) {
+        if (updatedTotalList[i].code == code) {
+          updatedTotalList[i] =
+              updatedTotalList[i].copyWith(repetitions: newRepetitions);
+        }
+      }
+
+      // Agregar uno nuevo al final con el nuevo número de repeticiones
+      updatedTotalList.add(
         Barcode(
-          index: state.length + 1,
+          index: updatedTotalList.length + 1,
           code: code,
-          repetitions: updatedRepetitions,
+          repetitions: newRepetitions,
         ),
-      ];
+      );
     } else {
-      // Si no existe, lo agregamos como nuevo
-      state = [
-        ...state,
+      // Si no existe, agregar como nuevo
+      updatedTotalList.add(
         Barcode(
-          index: state.length + 1,
+          index: updatedTotalList.length + 1,
           code: code,
           repetitions: 1,
         ),
-      ];
+      );
     }
+
+    updatedList(updatedTotalList);
 
     moveScrollToBottom();
   }
 
-  // Método para eliminar un código de barras por su índice y actualizar las repeticiones
-  void removeBarcodeByIndex(int index) {
-    if (index < 0 || index >= state.length) return; // Asegurarse de que el índice sea válido
+  // Método para eliminar un código de barras por su índice
+  void removeBarcode(Barcode barcode) {
+    final int index = barcode.index - 1;
+    if (index < 0 || index >= state.barcodeListTotal.length) return;
 
-    final barcodeToRemove = state[index];
-    final removedCode = barcodeToRemove.code;
+    final List<Barcode> updatedTotalList = [...state.barcodeListTotal];
 
-    // Eliminar el ítem de la lista
-    state = [
-      for (int i = 0; i < state.length; i++)
-        if (i != index) state[i], // Excluir el ítem en el índice especificado
-    ];
+    if (state.uniqueView) {
+      // Eliminar todos los elementos que coincidan con el código
+      updatedTotalList.removeWhere((item) => item.code == barcode.code);
+    } else {
+      // Eliminar solo el elemento especificado en el índice
+      final barcodeToRemove = updatedTotalList[index];
+      updatedTotalList.removeAt(index);
 
-    // Ahora, actualizar las repeticiones de los demás ítems con el mismo código
-    state = [
-      for (final barcode in state)
-        if (barcode.code == removedCode)
-          barcode.copyWith(
-              repetitions: barcode.repetitions - 1) // Reducir las repeticiones
-        else
-          barcode,
-    ];
+      // Actualizar repeticiones para los elementos restantes con el mismo código
+      int newRepetitions = barcodeToRemove.repetitions - 1;
+      for (int i = 0; i < updatedTotalList.length; i++) {
+        if (updatedTotalList[i].code == barcodeToRemove.code) {
+          updatedTotalList[i] = updatedTotalList[i].copyWith(
+            repetitions: newRepetitions,
+          );
+        }
+      }
+    }
 
-    // Si después de la eliminación algún código tiene 0 repeticiones, podemos eliminarlo de la lista también.
-    state = state.where((barcode) => barcode.repetitions > 0).toList();
+    // Remover elementos con 0 repeticiones
+    final filteredTotalList =
+        updatedTotalList.where((barcode) => barcode.repetitions > 0).toList();
+
+    // Actualizar las listas
+    updatedList(filteredTotalList);
 
     moveScrollToBottom();
+  }
+
+  void updatedList(List<Barcode> updatedTotalList) {
+    // Reasignar índices a la lista total
+    for (int i = 0; i < updatedTotalList.length; i++) {
+      updatedTotalList[i] = updatedTotalList[i].copyWith(index: i + 1);
+    }
+
+    // Generar la lista única con la mayor cantidad de repeticiones para cada código
+    final Map<String, Barcode> uniqueMap = {};
+    for (final barcode in updatedTotalList) {
+      if (!uniqueMap.containsKey(barcode.code) ||
+          uniqueMap[barcode.code]!.repetitions < barcode.repetitions) {
+        uniqueMap[barcode.code] =
+            barcode.copyWith(repetitions: barcode.repetitions);
+      }
+    }
+
+// Crear lista única con índices consecutivos
+    final List<Barcode> updatedUniqueList = uniqueMap.values.toList();
+    for (int i = 0; i < updatedUniqueList.length; i++) {
+      updatedUniqueList[i] = updatedUniqueList[i].copyWith(index: i + 1);
+    }
+    // Actualizar el estado
+    state = state.copyWith(
+      barcodeListTotal: updatedTotalList,
+      barcodeListUnique: updatedUniqueList,
+    );
   }
 
   void moveScrollToBottom() {
@@ -99,14 +150,39 @@ class BarcodeListNotifier extends StateNotifier<List<Barcode>> {
     });
   }
 
-  @override
-  set state(List<Barcode> value) {
-    super.state = value;
-    _updateMetrics();
+  int getTotalCount() {
+    return state.barcodeListTotal.length;
   }
 
-  void _updateMetrics() {
-    _uniqueCodes = state.map((barcode) => barcode.code).toSet().length;
-    _totalCodes = state.length;
+  int getUniqueCount() {
+    return state.barcodeListUnique.length;
   }
+
+  bool getUniqueView() {
+    return state.uniqueView;
+  }
+}
+
+// Clase para manejar el estado de la lista
+class BarcodeListStatus {
+  final List<Barcode> barcodeListTotal;
+  final List<Barcode> barcodeListUnique;
+  final bool uniqueView;
+
+  BarcodeListStatus({
+    required this.barcodeListTotal,
+    required this.barcodeListUnique,
+    this.uniqueView = false,
+  });
+
+  BarcodeListStatus copyWith({
+    List<Barcode>? barcodeListTotal,
+    List<Barcode>? barcodeListUnique,
+    bool? uniqueView,
+  }) =>
+      BarcodeListStatus(
+        barcodeListTotal: barcodeListTotal ?? this.barcodeListTotal,
+        barcodeListUnique: barcodeListUnique ?? this.barcodeListUnique,
+        uniqueView: uniqueView ?? this.uniqueView,
+      );
 }
