@@ -13,38 +13,32 @@ class LoginScreen extends StatelessWidget {
     final size = MediaQuery.of(context).size;
 
     return GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         backgroundColor: Colors.white,
-        body: SingleChildScrollView(
-          physics: const ClampingScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 150),
-              SizedBox(
-                height: 120,
-                child: Center(
-                  child: Image.asset('assets/images/logo-monalisa.jpg',
-                      fit: BoxFit.contain),
+        body: ListView(
+          children: [
+            SizedBox(
+              height: size.height - 385,
+              child: Center(
+                child: Image.asset(
+                  'assets/images/logo-monalisa.jpg',
+                  fit: BoxFit.contain,
                 ),
               ),
-              const SizedBox(height: 100),
-              Container(
-                height: size.height -
-                    370, // 150 + 100 los dos SizedBox y 120 la imagen
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: backgroundColor,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(30),
-                    topRight: Radius.circular(30),
-                  ),
+            ),
+            Container(
+              height: 385,
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(30),
+                  topRight: Radius.circular(30),
                 ),
-                child: const _LoginForm(),
               ),
-            ],
-          ),
+              child: const _LoginForm(),
+            ),
+          ],
         ),
       ),
     );
@@ -59,29 +53,29 @@ class _LoginForm extends ConsumerStatefulWidget {
 }
 
 class _LoginFormState extends ConsumerState<_LoginForm> {
-  bool isRememberMeChecked = false;
-  bool isRoleSelected = false;
-
-  void showSnackbar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).clearSnackBars();
+  void _showSnackbar(String message) {
     ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+      ..clearSnackBars()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
     final loginForm = ref.watch(loginFormProvider);
-    ref.listen(authProvider, (previous, next) {
-      if (next.errorMessage.isEmpty) return;
-      showSnackbar(context, next.errorMessage);
-    });
     final textStyles = Theme.of(context).textTheme;
+
+    // Mover ref.listen aquí
+    ref.listen(authProvider, (previous, next) {
+      if (next.errorMessage.isNotEmpty) {
+        _showSnackbar(next.errorMessage);
+      }
+    });
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 50),
       child: Column(
         children: [
-          const SizedBox(height: 50),
+          const SizedBox(height: 20),
           Text('Iniciar', style: textStyles.titleLarge),
           const SizedBox(height: 20),
           CustomTextFormField(
@@ -110,13 +104,14 @@ class _LoginFormState extends ConsumerState<_LoginForm> {
             height: 60,
             child: CustomFilledButton(
               text: 'Ingresar',
-              icon: Icon(Icons.login_outlined),
+              icon: const Icon(Icons.login_outlined),
               onPressed: loginForm.isPosting
                   ? null
                   : ref.read(loginFormProvider.notifier).onFormSubmit,
+              isPosting: loginForm.isPosting,
             ),
           ),
-          const Spacer(flex: 1),
+          const SizedBox(height: 50),
         ],
       ),
     );
