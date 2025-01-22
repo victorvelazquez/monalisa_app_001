@@ -15,21 +15,15 @@ class MenuItem {
 
 const appMenuItems = <MenuItem>[
   MenuItem(
-    title: 'Menu 1',
-    subTitle: '',
-    link: '/splash',
-    icon: Icons.pie_chart,
-  ),
-  MenuItem(
-      title: 'Menu 2',
+      title: 'Cambiar Rol',
       subTitle: '',
-      link: '/splash',
-      icon: Icons.content_paste_outlined),
+      link: '/authData',
+      icon: Icons.assignment_ind_rounded),
   MenuItem(
-      title: 'Menu 3',
+      title: 'Cerrar Sesión',
       subTitle: '',
-      link: '/splash',
-      icon: Icons.people_alt_outlined),
+      link: '/logout',
+      icon: Icons.logout_outlined),
 ];
 
 const appHomeOptionItems = <MenuItem>[

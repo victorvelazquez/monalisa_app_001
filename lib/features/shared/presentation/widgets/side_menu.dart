@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../config/config.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-import 'widgets.dart';
 
 class SideMenu extends ConsumerStatefulWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;
@@ -37,9 +36,8 @@ class SideMenuState extends ConsumerState<SideMenu> {
         },
         children: [
           Padding(
-            padding: EdgeInsets.only(top: hasNotch ? 30 : 50),
+            padding: EdgeInsets.only(top: hasNotch ? 30 : 20),
             child: SizedBox(
-                // height: 120,
                 width: double.infinity,
                 child: Image.asset('assets/images/logo-monalisa.jpg',
                     fit: BoxFit.contain)),
@@ -60,6 +58,8 @@ class SideMenuState extends ConsumerState<SideMenu> {
                       });
                       if (item.link == '/authData') {
                         ref.read(authProvider.notifier).loadAuthData();
+                      } else if (item.link == '/logout') {
+                        ref.read(authProvider.notifier).logout();
                       } else {
                         context.push(item.link);
                       }
@@ -77,7 +77,7 @@ class SideMenuState extends ConsumerState<SideMenu> {
             padding: EdgeInsets.fromLTRB(25, 0, 25, 20),
             child: RichText(
               text: TextSpan(
-                text: 'Autenticado: ',
+                text: '',
                 style: TextStyle(
                   // fontSize: 14.0,
                   color: Colors.black,
@@ -92,34 +92,6 @@ class SideMenuState extends ConsumerState<SideMenu> {
                   ),
                 ],
               ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              alignment: WrapAlignment.spaceBetween,
-              children: [
-                CustomFilledButton(
-                  onPressed: () {
-                    ref.read(authProvider.notifier).loadAuthData();
-                  },
-                  text: 'Rol',
-                  icon: Icon(Icons.assignment_ind_rounded),
-                  textColor: Colors.white,
-                  buttonColor: colorSeed,
-                ),
-                CustomFilledButton(
-                  onPressed: () {
-                    ref.read(authProvider.notifier).logout();
-                  },
-                  text: 'Salir',
-                  icon: Icon(Icons.logout_outlined),
-                  textColor: Colors.white,
-                  buttonColor: deleteButtonColor,
-                )
-              ],
             ),
           ),
         ]);
