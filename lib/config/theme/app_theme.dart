@@ -3,11 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 
 const scaffoldBackgroundColor = Colors.white;
 final backgroundColor = Colors.grey[300];
-const colorSeed = Color.fromRGBO(0, 19, 91, 1);
-
-const cancelButtonColor = Color.fromRGBO(169, 169, 169, 1);
-const editButtonColor = Color.fromRGBO(255, 193, 7, 1);
-const deleteButtonColor = Color.fromRGBO(244, 67, 54, 1);
+const colorSeed = Color.fromRGBO(20, 25, 45, 1);
+const editButtonColor = Color.fromRGBO(255, 170, 0, 1);
+const deleteButtonColor = Color.fromRGBO(200, 30, 30, 1);
+final cancelButtonColor = Colors.grey[600];
 
 class AppTheme {
   ThemeData getTheme() => ThemeData(
