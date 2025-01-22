@@ -78,8 +78,7 @@ class _RoleView extends ConsumerWidget {
                       },
                 text: 'Confirmar',
                 icon: Icon(Icons.check),
-                textColor: Colors.white,
-                buttonColor: colorSeed,
+                isPosting: authDataState.isLoading,
               ),
               CustomFilledButton(
                 onPressed: () {
