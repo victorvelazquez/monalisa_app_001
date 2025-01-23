@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:monalisa_app_001/config/config.dart';
 import 'package:monalisa_app_001/features/shipment/presentation/widgets/barcode_list.dart';
 import 'package:monalisa_app_001/features/shipment/presentation/widgets/enter_barcode_box.dart';
-
+import '../../domain/entities/barcode.dart';
 import '../providers/barcode_list_providers.dart';
 
 class ShipmentScreen extends StatelessWidget {
@@ -15,27 +15,26 @@ class ShipmentScreen extends StatelessWidget {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Shipment'),
-          bottom: TabBar(
+          title: const TabBar(
             tabs: [
               Tab(text: 'Shipment'),
-              Tab(text: 'Verify'),
-              Tab(text: 'Line'),
+              Tab(text: 'Confirm'),
+              Tab(text: 'Scan'),
             ],
-            labelColor: colorSeed,
-            labelStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            unselectedLabelStyle: TextStyle(fontSize: 14),
+            isScrollable: true,
             indicatorWeight: 4,
             indicatorColor: colorSeed,
+            dividerColor: colorSeed,
+            tabAlignment: TabAlignment.start,
+            labelStyle: TextStyle(fontWeight: FontWeight.bold),
+            unselectedLabelStyle: TextStyle(fontSize: 14),
           ),
         ),
-        body: TabBarView(
-          physics:
-              const NeverScrollableScrollPhysics(), // Evitar que las pestañas sean desplazables
+        body: const TabBarView(
           children: [
             _ShipmentView(),
-            _VeriFyView(),
-            _LineView(),
+            _VerifyView(),
+            _ScanView(),
           ],
         ),
       ),
@@ -44,103 +43,163 @@ class ShipmentScreen extends StatelessWidget {
 }
 
 class _ShipmentView extends ConsumerWidget {
+  const _ShipmentView();
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return SafeArea(
-      child: Column(
-        children: [
-          Expanded(
-            child: Container(),
-          ),
-        ],
-      ),
+    return const SafeArea(
+      child: Center(child: Text('Shipment View Content')),
     );
   }
 }
 
-class _LineView extends ConsumerWidget {
+class _VerifyView extends StatelessWidget {
+  const _VerifyView();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SafeArea(
+      child: Center(child: Text('Verify View Content')),
+    );
+  }
+}
+
+class _ScanView extends ConsumerWidget {
+  const _ScanView();
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final barcodeList = ref.watch(barcodeListProvider);
+    final barcodeListState = ref.watch(barcodeListProvider);
     final barcodeListNotifier = ref.read(barcodeListProvider.notifier);
-    // final colors = Theme.of(context).colorScheme;
+    final barcodeList = barcodeListState.uniqueView
+        ? barcodeListState.barcodeListUnique
+        : barcodeListState.barcodeListTotal;
+
     return SafeArea(
       child: Container(
         color: backgroundColor,
         child: Column(
           children: [
-            SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                OutlinedButton(
-                  onPressed: () {},
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: colorSeed,
-                    side: BorderSide(color: colorSeed, width: 1),
-                  ),
-                  child: Text('Total: ${barcodeListNotifier.totalCodes}'),
-                ),
-                OutlinedButton(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: colorSeed,
-                      backgroundColor: Colors.white,
-                      side: BorderSide(color: colorSeed, width: 1),
-                    ),
-                    child: Text('Únicos: ${barcodeListNotifier.uniqueCodes}')),
-              ],
-            ),
-            SizedBox(height: 10),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: ListView.builder(
-                    controller: barcodeListNotifier.barcodeListScrollController,
-                    itemCount: barcodeList.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      final barcode = barcodeList[index];
-                      return Column(
-                        children: [
-                          BarcodeList(
-                            barcode: barcode,
-                            onPressed: () => barcodeListNotifier.removeBarcodeByIndex(barcodeList[index].index),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
-            EnterBarcodeBox(
-              // onValue: (value) => barcodeListNotifier.addBarcode(value),
-              onValue: barcodeListNotifier.addBarcode,
-            ),
+            _buildActionFilterList(barcodeListNotifier),
+            _buildBarcodeList(barcodeList, barcodeListNotifier),
+            EnterBarcodeBox(onValue: barcodeListNotifier.addBarcode),
           ],
         ),
       ),
     );
   }
-}
 
-class _VeriFyView extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        children: [
-          Expanded(
-            child: Container(),
-          ),
-        ],
+  Widget _buildActionFilterList(BarcodeListNotifier barcodeListNotifier) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        _buildFilterList(
+          text: 'Total',
+          counting: barcodeListNotifier.getTotalCount().toString(),
+          isActive: !barcodeListNotifier.getUniqueView(),
+          onPressed: () => barcodeListNotifier.setUniqueView(false),
+        ),
+        _buildFilterList(
+          text: 'Únicos',
+          counting: barcodeListNotifier.getUniqueCount().toString(),
+          isActive: barcodeListNotifier.getUniqueView(),
+          onPressed: () => barcodeListNotifier.setUniqueView(true),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFilterList({
+    required String text,
+    required String counting,
+    required bool isActive,
+    required VoidCallback onPressed,
+  }) {
+    final styleText = TextStyle(
+      fontSize: 10,
+      fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+      color: isActive ? Colors.black : Colors.grey[600],
+    );
+
+    final styleCounting = TextStyle(
+      fontSize: 18,
+      fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+      color: isActive ? Colors.black : Colors.grey[600],
+    );
+
+    return Expanded(
+      child: TextButton(
+        onPressed: onPressed,
+        style: TextButton.styleFrom(
+          padding: EdgeInsets.zero,
+          minimumSize: const Size(0, 0),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        child: Column(
+          children: [
+            Text(text, style: styleText),
+            Text(counting, style: styleCounting),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildBarcodeList(
+      List<Barcode> barcodeList, BarcodeListNotifier barcodeListNotifier) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: ListView.builder(
+            controller: barcodeListNotifier.barcodeListScrollController,
+            itemCount: barcodeList.length,
+            itemBuilder: (BuildContext context, int index) {
+              final barcode = barcodeList[index];
+              return BarcodeList(
+                barcode: barcode,
+                onPressedDelete: () => _showConfirmDeleteItem(
+                    context, barcodeListNotifier, barcode),
+                onPressedrepetitions: () => barcodeListNotifier.selectRepeat(barcode.code),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showConfirmDeleteItem(BuildContext context,
+      BarcodeListNotifier barcodeListNotifier, Barcode barcode) {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirmación'),
+          content: const Text(
+              '¿Estás seguro de que deseas eliminar este código de barras?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                barcodeListNotifier.removeBarcode(barcode);
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'Eliminar',
+                style: TextStyle(color: Colors.redAccent),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

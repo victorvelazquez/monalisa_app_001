@@ -56,6 +56,7 @@ class BarcodeListNotifier extends StateNotifier<BarcodeListStatus> {
           index: updatedTotalList.length + 1,
           code: code,
           repetitions: newRepetitions,
+          coloring: false,
         ),
       );
     } else {
@@ -65,6 +66,7 @@ class BarcodeListNotifier extends StateNotifier<BarcodeListStatus> {
           index: updatedTotalList.length + 1,
           code: code,
           repetitions: 1,
+          coloring: false,
         ),
       );
     }
@@ -148,6 +150,21 @@ class BarcodeListNotifier extends StateNotifier<BarcodeListStatus> {
         );
       }
     });
+  }
+
+  void selectRepeat(String code) {
+    final List<Barcode> updatedList = state.barcodeListTotal;
+    for (int i = 0; i < updatedList.length; i++) {
+      // Verificamos si el 'code' recibido coincide con el 'code' del elemento actual
+      if (updatedList[i].code == code) {
+        updatedList[i] = updatedList[i].copyWith(coloring: !updatedList[i].coloring);
+      } else {
+        updatedList[i] = updatedList[i].copyWith(coloring: false);
+      }
+    }
+    state = state.copyWith(
+      barcodeListTotal: updatedList,
+    );
   }
 
   int getTotalCount() {
