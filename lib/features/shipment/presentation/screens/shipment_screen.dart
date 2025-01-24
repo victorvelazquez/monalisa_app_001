@@ -4,13 +4,15 @@ import 'package:monalisa_app_001/config/config.dart';
 import 'package:monalisa_app_001/features/shipment/presentation/widgets/barcode_list.dart';
 import 'package:monalisa_app_001/features/shipment/presentation/widgets/enter_barcode_box.dart';
 import '../../domain/entities/barcode.dart';
-import '../providers/barcode_list_providers.dart';
+import '../providers/shipment_providers.dart';
 
-class ShipmentScreen extends StatelessWidget {
+class ShipmentScreen extends ConsumerWidget {
   const ShipmentScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final shipmentState = ref.watch(shipmentProvider);
+    final shipmentNotifier = ref.read(shipmentProvider.notifier);
     return DefaultTabController(
       length: 3,
       child: Scaffold(
@@ -30,11 +32,15 @@ class ShipmentScreen extends StatelessWidget {
             unselectedLabelStyle: TextStyle(fontSize: 14),
           ),
         ),
-        body: const TabBarView(
+        body: TabBarView(
           children: [
-            _ShipmentView(),
+            _ShipmentView(
+                shipmentState: shipmentState,
+                shipmentNotifier: shipmentNotifier),
             _VerifyView(),
-            _ScanView(),
+            _ScanView(
+                shipmentState: shipmentState,
+                shipmentNotifier: shipmentNotifier),
           ],
         ),
       ),
@@ -43,7 +49,13 @@ class ShipmentScreen extends StatelessWidget {
 }
 
 class _ShipmentView extends ConsumerWidget {
-  const _ShipmentView();
+  final ShipmentStatus shipmentState;
+  final ShipmentNotifier shipmentNotifier;
+
+  const _ShipmentView({
+    required this.shipmentState,
+    required this.shipmentNotifier,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -220,6 +232,9 @@ class _ShipmentView extends ConsumerWidget {
         }).toList(),
       ),
     );
+    // return EnterBarcodeBox(
+    //     onValue: shipmentNotifier.getShipmentAndLine,
+    //     hintText: 'Ingresar documento');
   }
 
   Widget _buildShipmentList(List<Map<String, Object>> shipmentItems) {
@@ -310,45 +325,53 @@ class _VerifyView extends StatelessWidget {
 }
 
 class _ScanView extends ConsumerWidget {
-  const _ScanView();
+  final ShipmentStatus shipmentState;
+  final ShipmentNotifier shipmentNotifier;
+
+  const _ScanView({
+    required this.shipmentState,
+    required this.shipmentNotifier,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final barcodeListState = ref.watch(barcodeListProvider);
-    final barcodeListNotifier = ref.read(barcodeListProvider.notifier);
-    final barcodeList = barcodeListState.uniqueView
-        ? barcodeListState.barcodeListUnique
-        : barcodeListState.barcodeListTotal;
+    final barcodeList = shipmentState.uniqueView
+        ? shipmentState.scanBarcodeListUnique
+        : shipmentState.scanBarcodeListTotal;
 
     return SafeArea(
       child: Container(
+        padding: EdgeInsets.all(10),
         color: backgroundColor,
         child: Column(
           children: [
-            _buildActionFilterList(barcodeListNotifier),
-            _buildBarcodeList(barcodeList, barcodeListNotifier),
-            EnterBarcodeBox(onValue: barcodeListNotifier.addBarcode),
+            _buildActionFilterList(shipmentNotifier),
+            _buildBarcodeList(barcodeList, shipmentNotifier),
+            SizedBox(height: 10),
+            EnterBarcodeBox(
+                onValue: shipmentNotifier.addBarcode,
+                hintText: 'Escanear código de barras'),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildActionFilterList(BarcodeListNotifier barcodeListNotifier) {
+  Widget _buildActionFilterList(ShipmentNotifier shipmentNotifier) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         _buildFilterList(
           text: 'Total',
-          counting: barcodeListNotifier.getTotalCount().toString(),
-          isActive: !barcodeListNotifier.getUniqueView(),
-          onPressed: () => barcodeListNotifier.setUniqueView(false),
+          counting: shipmentNotifier.getTotalCount().toString(),
+          isActive: !shipmentNotifier.getUniqueView(),
+          onPressed: () => shipmentNotifier.setUniqueView(false),
         ),
         _buildFilterList(
           text: 'Únicos',
-          counting: barcodeListNotifier.getUniqueCount().toString(),
-          isActive: barcodeListNotifier.getUniqueView(),
-          onPressed: () => barcodeListNotifier.setUniqueView(true),
+          counting: shipmentNotifier.getUniqueCount().toString(),
+          isActive: shipmentNotifier.getUniqueView(),
+          onPressed: () => shipmentNotifier.setUniqueView(true),
         ),
       ],
     );
@@ -391,36 +414,33 @@ class _ScanView extends ConsumerWidget {
   }
 
   Widget _buildBarcodeList(
-      List<Barcode> barcodeList, BarcodeListNotifier barcodeListNotifier) {
+      List<Barcode> barcodeList, ShipmentNotifier shipmentNotifier) {
     return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: ListView.builder(
-            controller: barcodeListNotifier.barcodeListScrollController,
-            itemCount: barcodeList.length,
-            itemBuilder: (BuildContext context, int index) {
-              final barcode = barcodeList[index];
-              return BarcodeList(
-                barcode: barcode,
-                onPressedDelete: () => _showConfirmDeleteItem(
-                    context, barcodeListNotifier, barcode),
-                onPressedrepetitions: () =>
-                    barcodeListNotifier.selectRepeat(barcode.code),
-              );
-            },
-          ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: ListView.builder(
+          controller: shipmentNotifier.scanBarcodeListScrollController,
+          itemCount: barcodeList.length,
+          itemBuilder: (BuildContext context, int index) {
+            final barcode = barcodeList[index];
+            return BarcodeList(
+              barcode: barcode,
+              onPressedDelete: () =>
+                  _showConfirmDeleteItem(context, shipmentNotifier, barcode),
+              onPressedrepetitions: () =>
+                  shipmentNotifier.selectRepeat(barcode.code),
+            );
+          },
         ),
       ),
     );
   }
 
   Future<void> _showConfirmDeleteItem(BuildContext context,
-      BarcodeListNotifier barcodeListNotifier, Barcode barcode) {
+      ShipmentNotifier shipmentNotifier, Barcode barcode) {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -435,7 +455,7 @@ class _ScanView extends ConsumerWidget {
             ),
             TextButton(
               onPressed: () {
-                barcodeListNotifier.removeBarcode(barcode);
+                shipmentNotifier.removeBarcode(barcode);
                 Navigator.of(context).pop();
               },
               child: const Text(
