@@ -4,20 +4,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/barcode.dart';
 
 // Provider para manejar el estado de la lista de códigos de barras
-final barcodeListProvider =
-    StateNotifierProvider<BarcodeListNotifier, BarcodeListStatus>((ref) {
-  return BarcodeListNotifier();
+final shipmentProvider =
+    StateNotifierProvider<ShipmentNotifier, ShipmentStatus>((ref) {
+  return ShipmentNotifier();
 });
 
 // Clase para manejar la lógica y estado
-class BarcodeListNotifier extends StateNotifier<BarcodeListStatus> {
-  final ScrollController barcodeListScrollController = ScrollController();
+class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
+  final ScrollController scanBarcodeListScrollController = ScrollController();
 
-  BarcodeListNotifier()
+  ShipmentNotifier()
       : super(
-          BarcodeListStatus(
-            barcodeListTotal: [],
-            barcodeListUnique: [],
+          ShipmentStatus(
+            scanBarcodeListTotal: [],
+            scanBarcodeListUnique: [],
             uniqueView: false,
           ),
         );
@@ -32,7 +32,7 @@ class BarcodeListNotifier extends StateNotifier<BarcodeListStatus> {
     if (code.trim().isEmpty) return;
 
     // Copia de la lista actual para trabajar con ella
-    final List<Barcode> updatedTotalList = [...state.barcodeListTotal];
+    final List<Barcode> updatedTotalList = [...state.scanBarcodeListTotal];
 
     // Buscar códigos existentes en la lista total
     final existingBarcodes =
@@ -79,9 +79,9 @@ class BarcodeListNotifier extends StateNotifier<BarcodeListStatus> {
   // Método para eliminar un código de barras por su índice
   void removeBarcode(Barcode barcode) {
     final int index = barcode.index - 1;
-    if (index < 0 || index >= state.barcodeListTotal.length) return;
+    if (index < 0 || index >= state.scanBarcodeListTotal.length) return;
 
-    final List<Barcode> updatedTotalList = [...state.barcodeListTotal];
+    final List<Barcode> updatedTotalList = [...state.scanBarcodeListTotal];
 
     if (state.uniqueView) {
       // Eliminar todos los elementos que coincidan con el código
@@ -135,16 +135,16 @@ class BarcodeListNotifier extends StateNotifier<BarcodeListStatus> {
     }
     // Actualizar el estado
     state = state.copyWith(
-      barcodeListTotal: updatedTotalList,
-      barcodeListUnique: updatedUniqueList,
+      scanBarcodeListTotal: updatedTotalList,
+      scanBarcodeListUnique: updatedUniqueList,
     );
   }
 
   void moveScrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (barcodeListScrollController.hasClients) {
-        barcodeListScrollController.animateTo(
-          barcodeListScrollController.position.maxScrollExtent,
+      if (scanBarcodeListScrollController.hasClients) {
+        scanBarcodeListScrollController.animateTo(
+          scanBarcodeListScrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOut,
         );
@@ -153,7 +153,7 @@ class BarcodeListNotifier extends StateNotifier<BarcodeListStatus> {
   }
 
   void selectRepeat(String code) {
-    final List<Barcode> updatedList = state.barcodeListTotal;
+    final List<Barcode> updatedList = state.scanBarcodeListTotal;
     for (int i = 0; i < updatedList.length; i++) {
       // Verificamos si el 'code' recibido coincide con el 'code' del elemento actual
       if (updatedList[i].code == code) {
@@ -163,16 +163,16 @@ class BarcodeListNotifier extends StateNotifier<BarcodeListStatus> {
       }
     }
     state = state.copyWith(
-      barcodeListTotal: updatedList,
+      scanBarcodeListTotal: updatedList,
     );
   }
 
   int getTotalCount() {
-    return state.barcodeListTotal.length;
+    return state.scanBarcodeListTotal.length;
   }
 
   int getUniqueCount() {
-    return state.barcodeListUnique.length;
+    return state.scanBarcodeListUnique.length;
   }
 
   bool getUniqueView() {
@@ -181,25 +181,25 @@ class BarcodeListNotifier extends StateNotifier<BarcodeListStatus> {
 }
 
 // Clase para manejar el estado de la lista
-class BarcodeListStatus {
-  final List<Barcode> barcodeListTotal;
-  final List<Barcode> barcodeListUnique;
+class ShipmentStatus {
+  final List<Barcode> scanBarcodeListTotal;
+  final List<Barcode> scanBarcodeListUnique;
   final bool uniqueView;
 
-  BarcodeListStatus({
-    required this.barcodeListTotal,
-    required this.barcodeListUnique,
+  ShipmentStatus({
+    required this.scanBarcodeListTotal,
+    required this.scanBarcodeListUnique,
     this.uniqueView = false,
   });
 
-  BarcodeListStatus copyWith({
-    List<Barcode>? barcodeListTotal,
-    List<Barcode>? barcodeListUnique,
+  ShipmentStatus copyWith({
+    List<Barcode>? scanBarcodeListTotal,
+    List<Barcode>? scanBarcodeListUnique,
     bool? uniqueView,
   }) =>
-      BarcodeListStatus(
-        barcodeListTotal: barcodeListTotal ?? this.barcodeListTotal,
-        barcodeListUnique: barcodeListUnique ?? this.barcodeListUnique,
+      ShipmentStatus(
+        scanBarcodeListTotal: scanBarcodeListTotal ?? this.scanBarcodeListTotal,
+        scanBarcodeListUnique: scanBarcodeListUnique ?? this.scanBarcodeListUnique,
         uniqueView: uniqueView ?? this.uniqueView,
       );
 }
