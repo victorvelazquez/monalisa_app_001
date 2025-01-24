@@ -47,8 +47,253 @@ class _ShipmentView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return const SafeArea(
-      child: Center(child: Text('Shipment View Content')),
+    final shipmentHeader = {
+      "DocumentNo": "MOWHS-00502096",
+      "MovementDate": "2025-01-16",
+      "Order": "51965_01/14/2025",
+      "DateOrdered": "2025-01-14",
+      "Organization": "MOWHS MONALISA SRL",
+      "Warehouse": "MOWHS",
+      "Business Partner": "EMAP S.A.",
+    };
+
+    final shipmentItems = [
+      {
+        "SKU": "TZD32833",
+        "UPC": "0085715328335",
+        "ProductName": "GUESS UOMO EDT 100ML TST",
+        "MovementQty": 1,
+      },
+      {
+        "SKU": "TZD32833",
+        "UPC": "0085715328335",
+        "ProductName": "GUESS UOMO EDT 100ML TST",
+        "MovementQty": 1,
+      },
+      {
+        "SKU": "TZD32833",
+        "UPC": "0085715328335",
+        "ProductName": "GUESS UOMO EDT 100ML TST",
+        "MovementQty": 1,
+      },
+      {
+        "SKU": "TZD32833",
+        "UPC": "0085715328335",
+        "ProductName": "GUESS UOMO EDT 100ML TST",
+        "MovementQty": 1,
+      },
+      {
+        "SKU": "TZD32833",
+        "UPC": "0085715328335",
+        "ProductName": "GUESS UOMO EDT 100ML TST",
+        "MovementQty": 1,
+      },
+      {
+        "SKU": "TZD32833",
+        "UPC": "0085715328335",
+        "ProductName": "GUESS UOMO EDT 100ML TST",
+        "MovementQty": 1,
+      },
+      {
+        "SKU": "TZD32833",
+        "UPC": "0085715328335",
+        "ProductName": "GUESS UOMO EDT 100ML TST",
+        "MovementQty": 1,
+      },
+      {
+        "SKU": "TZD32833",
+        "UPC": "0085715328335",
+        "ProductName": "GUESS UOMO EDT 100ML TST",
+        "MovementQty": 1,
+      },
+      {
+        "SKU": "TZD32833",
+        "UPC": "0085715328335",
+        "ProductName": "GUESS UOMO EDT 100ML TST",
+        "MovementQty": 1,
+      },
+      {
+        "SKU": "TZD32833",
+        "UPC": "0085715328335",
+        "ProductName": "GUESS UOMO EDT 100ML TST",
+        "MovementQty": 1,
+      },
+      {
+        "SKU": "TZD32833",
+        "UPC": "0085715328335",
+        "ProductName": "GUESS UOMO EDT 100ML TST",
+        "MovementQty": 1,
+      },
+      {
+        "SKU": "TZD32833",
+        "UPC": "0085715328335",
+        "ProductName": "GUESS UOMO EDT 100ML TST",
+        "MovementQty": 1,
+      },
+      {
+        "SKU": "TZD32833",
+        "UPC": "0085715328335",
+        "ProductName": "GUESS UOMO EDT 100ML TST",
+        "MovementQty": 1,
+      },
+      {
+        "SKU": "TZD32833",
+        "UPC": "0085715328335",
+        "ProductName": "GUESS UOMO EDT 100ML TST",
+        "MovementQty": 1,
+      },
+      {
+        "SKU": "TZD32833",
+        "UPC": "0085715328335",
+        "ProductName": "GUESS UOMO EDT 100ML TST",
+        "MovementQty": 1,
+      },
+      {
+        "SKU": "TZD32833",
+        "UPC": "0085715328335",
+        "ProductName": "GUESS UOMO EDT 100ML TST",
+        "MovementQty": 1,
+      },
+      {
+        "SKU": "TZD32833",
+        "UPC": "0085715328335",
+        "ProductName": "GUESS UOMO EDT 100ML TST",
+        "MovementQty": 1,
+      },
+      {
+        "SKU": "TZD32833",
+        "UPC": "0085715328335",
+        "ProductName": "GUESS UOMO EDT 100ML TST",
+        "MovementQty": 1,
+      },
+    ];
+
+    return SafeArea(
+      child: Container(
+        color: backgroundColor,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildShipmentHeader(shipmentHeader),
+                const SizedBox(height: 10),
+                _buildShipmentList(shipmentItems),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShipmentHeader(Map<String, String> shipmentHeader) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: shipmentHeader.entries.map((entry) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: RichText(
+              text: TextSpan(
+                text: '${entry.key}:  ',
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                children: [
+                  TextSpan(
+                    text: entry.value,
+                    style: TextStyle(
+                        fontWeight: FontWeight.normal, color: Colors.grey[700]),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildShipmentList(List<Map<String, Object>> shipmentItems) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: shipmentItems.length,
+        itemBuilder: (context, index) {
+          final item = shipmentItems[index];
+          return Column(
+            children: [
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 10),
+                    child: Text(
+                      (index + 1).toString(),
+                      style: TextStyle(fontSize: 18, color: Colors.grey[700]),
+                    ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: Text(
+                            item['UPC'].toString(),
+                            style: const TextStyle(
+                              fontSize: 18,
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: Text(
+                            item['ProductName'].toString(),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 10),
+                    child: Text(
+                      item['MovementQty'].toString(),
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {},
+                    icon: Icon(
+                      index % 2 == 0 ? Icons.check : Icons.close,
+                      color:
+                          index % 2 == 0 ? Colors.green[600] : Colors.red[600],
+                    ),
+                  ),
+                ],
+              ),
+              Divider(height: 0),
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -164,7 +409,8 @@ class _ScanView extends ConsumerWidget {
                 barcode: barcode,
                 onPressedDelete: () => _showConfirmDeleteItem(
                     context, barcodeListNotifier, barcode),
-                onPressedrepetitions: () => barcodeListNotifier.selectRepeat(barcode.code),
+                onPressedrepetitions: () =>
+                    barcodeListNotifier.selectRepeat(barcode.code),
               );
             },
           ),

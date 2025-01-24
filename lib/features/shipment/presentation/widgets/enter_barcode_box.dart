@@ -34,7 +34,8 @@ class EnterBarcodeBoxState extends State<EnterBarcodeBox> {
   Widget build(BuildContext context) {
     final outlineInputBorder = UnderlineInputBorder(
         borderSide: BorderSide(color: colorSeed),
-        borderRadius: BorderRadius.circular(10));
+        borderRadius: BorderRadius.circular(10)
+        );
     final inputDecoration = InputDecoration(
         enabledBorder: outlineInputBorder,
         focusedBorder: outlineInputBorder,
@@ -42,7 +43,7 @@ class EnterBarcodeBoxState extends State<EnterBarcodeBox> {
         filled: true,
         prefixIcon: IconButton(
             icon: Icon(Icons.keyboard_rounded),
-            color: isKeyboardEnabled ? colorSeed : Colors.grey,
+            color: isKeyboardEnabled ? colorSeed : Colors.grey[700],
             onPressed: toggleKeyboard),
         suffixIcon: IconButton(
             icon: Icon(Icons.send_rounded),
@@ -55,7 +56,7 @@ class EnterBarcodeBoxState extends State<EnterBarcodeBox> {
               }
               focusNode.requestFocus();
             }));
-    return Container(
+    return Padding(
       padding: const EdgeInsets.all(10),
       child: TextFormField(
         focusNode: focusNode,

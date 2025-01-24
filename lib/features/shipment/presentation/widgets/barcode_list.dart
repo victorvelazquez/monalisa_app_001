@@ -40,7 +40,7 @@ class ScrollingTextWidgetState extends State<BarcodeList> {
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: Text(
                   widget.barcode.index.toString(),
-                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                  style: TextStyle(fontSize: 18, color: Colors.grey[700]),
                 ),
               ),
               Expanded(
