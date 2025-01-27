@@ -8,7 +8,7 @@ import 'package:monalisa_app_001/features/shared/infrastructure/errors/custom_er
 import 'package:monalisa_app_001/features/shared/infrastructure/services/services.dart';
 
 import '../../domain/domain.dart';
-import '../../domain/dtos/auth_data.dart';
+import '../../domain/dtos/auth_data_dto.dart';
 import '../../domain/entities/client.dart';
 import '../../domain/entities/organization.dart';
 import '../../domain/entities/role.dart';

@@ -1,6 +1,6 @@
 import 'package:monalisa_app_001/features/auth/domain/dtos/login_dto.dart';
 
-import '../dtos/auth_data.dart';
+import '../dtos/auth_data_dto.dart';
 import '../dtos/organization_dto.dart';
 import '../dtos/role_dto.dart';
 import '../dtos/warehouse_dto.dart';

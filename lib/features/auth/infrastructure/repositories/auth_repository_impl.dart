@@ -1,5 +1,5 @@
 import 'package:monalisa_app_001/features/auth/domain/domain.dart';
-import 'package:monalisa_app_001/features/auth/domain/dtos/auth_data.dart';
+import 'package:monalisa_app_001/features/auth/domain/dtos/auth_data_dto.dart';
 import 'package:monalisa_app_001/features/auth/domain/dtos/login_dto.dart';
 import 'package:monalisa_app_001/features/auth/domain/dtos/organization_dto.dart';
 import 'package:monalisa_app_001/features/auth/domain/dtos/role_dto.dart';

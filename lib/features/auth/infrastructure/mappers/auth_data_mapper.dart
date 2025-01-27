@@ -1,4 +1,4 @@
-import '../../domain/dtos/auth_data.dart';
+import '../../domain/dtos/auth_data_dto.dart';
 
 class AuthDataMapper {
   static AuthDataDto authDataDtoJsonToEntity(Map<String, dynamic> json) =>
