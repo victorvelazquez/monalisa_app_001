@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'ad_entity_id.dart';
+import '../../../shared/domain/entities/ad_entity_id.dart';
 
 Shipment shipmentFromMap(String str) => Shipment.fromMap(json.decode(str));
 

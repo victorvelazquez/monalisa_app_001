@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'ad_entity_id.dart';
+import '../../../shared/domain/entities/ad_entity_id.dart';
 
 Line lineFromMap(String str) => Line.fromMap(json.decode(str));
 
