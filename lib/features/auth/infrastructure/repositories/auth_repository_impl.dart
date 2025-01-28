@@ -13,36 +13,31 @@ class AuthRepositoryImpl implements AuthRepository {
       : dataSource = dataSource ?? AuthDataSourceImpl();
 
   @override
-  Future<String> checkAuthStatus(String token) {
-    return dataSource.checkAuthStatus(token);
-  }
-
-  @override
   Future<LoginDto> login(String userName, String password) {
     return dataSource.login(userName, password);
   }
 
   @override
-  Future<RoleDto> getRoles(int clientId, String token) {
-    return dataSource.getRoles(clientId, token);
+  Future<RoleDto> getRoles(int clientId) {
+    return dataSource.getRoles(clientId);
   }
 
   @override
   Future<OrganizationDto> getOrganizations(
-      int clientId, int roleId, String token) {
-    return dataSource.getOrganizations(clientId, roleId, token);
+      int clientId, int roleId) {
+    return dataSource.getOrganizations(clientId, roleId);
   }
 
   @override
   Future<WarehouseDto> getWarehouses(
-      int clientId, int roleId, int organizationId, String token) {
-    return dataSource.getWarehouses(clientId, roleId, organizationId, token);
+      int clientId, int roleId, int organizationId) {
+    return dataSource.getWarehouses(clientId, roleId, organizationId);
   }
 
   @override
   Future<AuthDataDto> getAuthData(int clientId, int roleId,
-      int organizationId, int warehouseId, String token) {
+      int organizationId, int warehouseId) {
     return dataSource.getAuthData(
-        clientId, roleId, organizationId, warehouseId, token);
+        clientId, roleId, organizationId, warehouseId);
   }
 }

@@ -43,29 +43,9 @@ class AuthDataSourceImpl implements AuthDataSource {
   }
 
   @override
-  Future<String> checkAuthStatus(String token) async {
+  Future<RoleDto> getRoles(int clientId) async {
     try {
-      // final response = await dio.get('/auth/check-status',
-      //     options: Options(headers: {
-      //       'Authorization': 'Bearer $token',
-      //     }));
-
-      final newToken = '';
-      return newToken;
-    } on DioException catch (e) {
-      throw CustomErrorDioException(e);
-    } catch (e) {
-      throw Exception('ERROR: ${e.toString()}');
-    }
-  }
-
-  @override
-  Future<RoleDto> getRoles(int clientId, String token) async {
-    try {
-      final response = await dio.get('/api/v1/auth/roles?client=$clientId',
-          options: Options(headers: {
-            'Authorization': 'Bearer $token',
-          }));
+      final response = await dio.get('/api/v1/auth/roles?client=$clientId');
 
       final rolesResponse = RoleMapper.roleDtoJsonToEntity(response.data);
       return rolesResponse;
@@ -78,14 +58,10 @@ class AuthDataSourceImpl implements AuthDataSource {
   }
 
   @override
-  Future<OrganizationDto> getOrganizations(
-      int clientId, int roleId, String token) async {
+  Future<OrganizationDto> getOrganizations(int clientId, int roleId) async {
     try {
-      final response = await dio.get(
-          '/api/v1/auth/organizations?client=$clientId&role=$roleId',
-          options: Options(headers: {
-            'Authorization': 'Bearer $token',
-          }));
+      final response = await dio
+          .get('/api/v1/auth/organizations?client=$clientId&role=$roleId');
 
       final organizationsResponse =
           OrganizationMapper.organizationDtoJsonToEntity(response.data);
@@ -100,13 +76,10 @@ class AuthDataSourceImpl implements AuthDataSource {
 
   @override
   Future<WarehouseDto> getWarehouses(
-      int clientId, int roleId, int organizationId, String token) async {
+      int clientId, int roleId, int organizationId) async {
     try {
       final response = await dio.get(
-          '/api/v1/auth/warehouses?client=$clientId&role=$roleId&organization=$organizationId',
-          options: Options(headers: {
-            'Authorization': 'Bearer $token',
-          }));
+          '/api/v1/auth/warehouses?client=$clientId&role=$roleId&organization=$organizationId');
 
       final warehousesResponse =
           WarehouseMapper.warehouseDtoJsonToEntity(response.data);
@@ -120,14 +93,11 @@ class AuthDataSourceImpl implements AuthDataSource {
   }
 
   @override
-  Future<AuthDataDto> getAuthData(int clientId, int roleId, int organizationId,
-      int warehouseId, String token) async {
+  Future<AuthDataDto> getAuthData(
+      int clientId, int roleId, int organizationId, int warehouseId) async {
     try {
       final response = await dio.put(
         '/api/v1/auth/tokens',
-        options: Options(headers: {
-          'Authorization': 'Bearer $token',
-        }),
         data: {
           "clientId": clientId,
           "roleId": roleId,

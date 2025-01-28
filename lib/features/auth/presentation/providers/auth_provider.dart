@@ -66,6 +66,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         password: password,
       );
 
+      await _setToken(loginResponse.token);
+
       await updateClient(loginResponse.clients.first, preferLocalData: true);
 
       if (state.authStatus != AuthStatus.checking) {
@@ -83,11 +85,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true);
     try {
       final authDataResponse = await authRepository.getAuthData(
-          state.selectedClient!.id,
-          state.selectedRole!.id,
-          state.selectedOrganization?.id ?? 0,
-          state.selectedWarehouse?.id ?? 0,
-          state.token!);
+        state.selectedClient!.id,
+        state.selectedRole!.id,
+        state.selectedOrganization?.id ?? 0,
+        state.selectedWarehouse?.id ?? 0,
+      );
 
       if (authDataResponse.userId == null ||
           authDataResponse.token == null ||
@@ -104,6 +106,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       authDataDto.userName = state.userName;
       authDataDto.password = state.password;
 
+      _setToken(authDataResponse.token ?? '');
       _setAuthData(authDataDto);
 
       final user = state.userName;
@@ -198,6 +201,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
     await keyValueStorageService.setKeyValue('authData', jsonString);
   }
 
+  Future<void> _setToken(String token) async {
+    await keyValueStorageService.setKeyValue('token', token);
+  }
+
   Future<AuthDataDto?> _getAuthData() async {
     try {
       final authDataString =
@@ -227,7 +234,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     );
 
     final rolesResponse =
-        await authRepository.getRoles(state.selectedClient!.id, state.token!);
+        await authRepository.getRoles(state.selectedClient!.id);
 
     if (rolesResponse.roles.isEmpty) {
       throw Exception("No se encontraron roles disponibles para este cliente.");
@@ -249,7 +256,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
     );
 
     final organizationsResponse = await authRepository.getOrganizations(
-        state.selectedClient!.id, state.selectedRole!.id, state.token!);
+      state.selectedClient!.id,
+      state.selectedRole!.id,
+    );
 
     state = state.copyWith(
         organizations: organizationsResponse.organizations, isLoading: false);
@@ -275,10 +284,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     if (state.selectedOrganization != null) {
       final warehousesResponse = await authRepository.getWarehouses(
-          state.selectedClient!.id,
-          state.selectedRole!.id,
-          state.selectedOrganization!.id,
-          state.token!);
+        state.selectedClient!.id,
+        state.selectedRole!.id,
+        state.selectedOrganization!.id,
+      );
 
       state = state.copyWith(
           warehouses: warehousesResponse.warehouses, isLoading: false);

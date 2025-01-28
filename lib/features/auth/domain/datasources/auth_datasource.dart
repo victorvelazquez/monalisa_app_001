@@ -7,12 +7,11 @@ import '../dtos/warehouse_dto.dart';
 
 abstract class AuthDataSource {
   Future<LoginDto> login(String userName, String password);
-  Future<String> checkAuthStatus(String token);
-  Future<RoleDto> getRoles(int clientId, String token);
-  Future<OrganizationDto> getOrganizations(
-      int clientId, int roleId, String token);
+  // Future<String> checkAuthStatus();
+  Future<RoleDto> getRoles(int clientId);
+  Future<OrganizationDto> getOrganizations(int clientId, int roleId);
   Future<WarehouseDto> getWarehouses(
-      int clientId, int roleId, int organizationId, String token);
-  Future<AuthDataDto> getAuthData(int clientId, int roleId,
-      int organizationId, int warehouseId, String token);
+      int clientId, int roleId, int organizationId);
+  Future<AuthDataDto> getAuthData(
+      int clientId, int roleId, int organizationId, int warehouseId);
 }
