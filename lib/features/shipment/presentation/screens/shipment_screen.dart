@@ -13,14 +13,22 @@ class ShipmentScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final shipmentState = ref.watch(shipmentProvider);
     final shipmentNotifier = ref.read(shipmentProvider.notifier);
+
+    ref.listen(shipmentProvider, (previous, next) {
+      if (next.errorMessage.isNotEmpty) {
+        ScaffoldMessenger.of(context)
+          ..clearSnackBars()
+          ..showSnackBar(SnackBar(content: Text(next.errorMessage)));
+      }
+    });
+
     return DefaultTabController(
-      length: 3,
+      length: 2,
       child: Scaffold(
         appBar: AppBar(
           title: const TabBar(
             tabs: [
               Tab(text: 'Shipment'),
-              Tab(text: 'Confirm'),
               Tab(text: 'Scan'),
             ],
             isScrollable: true,
@@ -37,7 +45,6 @@ class ShipmentScreen extends ConsumerWidget {
             _ShipmentView(
                 shipmentState: shipmentState,
                 shipmentNotifier: shipmentNotifier),
-            _VerifyView(),
             _ScanView(
                 shipmentState: shipmentState,
                 shipmentNotifier: shipmentNotifier),
@@ -59,127 +66,6 @@ class _ShipmentView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final shipmentHeader = {
-      "DocumentNo": "MOWHS-00502096",
-      "MovementDate": "2025-01-16",
-      "Order": "51965_01/14/2025",
-      "DateOrdered": "2025-01-14",
-      "Organization": "MOWHS MONALISA SRL",
-      "Warehouse": "MOWHS",
-      "Business Partner": "EMAP S.A.",
-    };
-
-    final shipmentItems = [
-      {
-        "SKU": "TZD32833",
-        "UPC": "0085715328335",
-        "ProductName": "GUESS UOMO EDT 100ML TST",
-        "MovementQty": 1,
-      },
-      {
-        "SKU": "TZD32833",
-        "UPC": "0085715328335",
-        "ProductName": "GUESS UOMO EDT 100ML TST",
-        "MovementQty": 1,
-      },
-      {
-        "SKU": "TZD32833",
-        "UPC": "0085715328335",
-        "ProductName": "GUESS UOMO EDT 100ML TST",
-        "MovementQty": 1,
-      },
-      {
-        "SKU": "TZD32833",
-        "UPC": "0085715328335",
-        "ProductName": "GUESS UOMO EDT 100ML TST",
-        "MovementQty": 1,
-      },
-      {
-        "SKU": "TZD32833",
-        "UPC": "0085715328335",
-        "ProductName": "GUESS UOMO EDT 100ML TST",
-        "MovementQty": 1,
-      },
-      {
-        "SKU": "TZD32833",
-        "UPC": "0085715328335",
-        "ProductName": "GUESS UOMO EDT 100ML TST",
-        "MovementQty": 1,
-      },
-      {
-        "SKU": "TZD32833",
-        "UPC": "0085715328335",
-        "ProductName": "GUESS UOMO EDT 100ML TST",
-        "MovementQty": 1,
-      },
-      {
-        "SKU": "TZD32833",
-        "UPC": "0085715328335",
-        "ProductName": "GUESS UOMO EDT 100ML TST",
-        "MovementQty": 1,
-      },
-      {
-        "SKU": "TZD32833",
-        "UPC": "0085715328335",
-        "ProductName": "GUESS UOMO EDT 100ML TST",
-        "MovementQty": 1,
-      },
-      {
-        "SKU": "TZD32833",
-        "UPC": "0085715328335",
-        "ProductName": "GUESS UOMO EDT 100ML TST",
-        "MovementQty": 1,
-      },
-      {
-        "SKU": "TZD32833",
-        "UPC": "0085715328335",
-        "ProductName": "GUESS UOMO EDT 100ML TST",
-        "MovementQty": 1,
-      },
-      {
-        "SKU": "TZD32833",
-        "UPC": "0085715328335",
-        "ProductName": "GUESS UOMO EDT 100ML TST",
-        "MovementQty": 1,
-      },
-      {
-        "SKU": "TZD32833",
-        "UPC": "0085715328335",
-        "ProductName": "GUESS UOMO EDT 100ML TST",
-        "MovementQty": 1,
-      },
-      {
-        "SKU": "TZD32833",
-        "UPC": "0085715328335",
-        "ProductName": "GUESS UOMO EDT 100ML TST",
-        "MovementQty": 1,
-      },
-      {
-        "SKU": "TZD32833",
-        "UPC": "0085715328335",
-        "ProductName": "GUESS UOMO EDT 100ML TST",
-        "MovementQty": 1,
-      },
-      {
-        "SKU": "TZD32833",
-        "UPC": "0085715328335",
-        "ProductName": "GUESS UOMO EDT 100ML TST",
-        "MovementQty": 1,
-      },
-      {
-        "SKU": "TZD32833",
-        "UPC": "0085715328335",
-        "ProductName": "GUESS UOMO EDT 100ML TST",
-        "MovementQty": 1,
-      },
-      {
-        "SKU": "TZD32833",
-        "UPC": "0085715328335",
-        "ProductName": "GUESS UOMO EDT 100ML TST",
-        "MovementQty": 1,
-      },
-    ];
-
     return SafeArea(
       child: Container(
         color: backgroundColor,
@@ -187,12 +73,26 @@ class _ShipmentView extends ConsumerWidget {
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Stack(
               children: [
-                _buildShipmentHeader(shipmentHeader),
-                const SizedBox(height: 10),
-                _buildShipmentList(shipmentItems),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildShipmentHeader(),
+                    const SizedBox(height: 10),
+                    _buildShipmentList(),
+                  ],
+                ),
+                shipmentState.viewShipment ? Positioned(
+                  right: 0,
+                  top: 0,
+                  child: IconButton(
+                    icon: Icon(Icons.clear, size: 20),
+                    onPressed: () {
+                      shipmentNotifier.clearShipmentData();
+                    },
+                  ),
+                ) : SizedBox(),
               ],
             ),
           ),
@@ -201,43 +101,143 @@ class _ShipmentView extends ConsumerWidget {
     );
   }
 
-  Widget _buildShipmentHeader(Map<String, String> shipmentHeader) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: shipmentHeader.entries.map((entry) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2),
-            child: RichText(
-              text: TextSpan(
-                text: '${entry.key}:  ',
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-                children: [
-                  TextSpan(
-                    text: entry.value,
-                    style: TextStyle(
-                        fontWeight: FontWeight.normal, color: Colors.grey[700]),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-    // return EnterBarcodeBox(
-    //     onValue: shipmentNotifier.getShipmentAndLine,
-    //     hintText: 'Ingresar documento');
+  Widget _buildShipmentHeader() {
+    return shipmentState.isLoading
+        ? Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(30),
+            child: const Center(child: CircularProgressIndicator()),
+          )
+        : shipmentState.viewShipment
+            ? Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    RichText(
+                      text: TextSpan(
+                        text: 'Doc. No.: ',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.black),
+                        children: [
+                          TextSpan(
+                            text: shipmentState.shipment!.documentNo,
+                            style: TextStyle(
+                                fontWeight: FontWeight.normal,
+                                color: Colors.grey[800]),
+                          ),
+                        ],
+                      ),
+                    ),
+                    RichText(
+                      text: TextSpan(
+                        text: 'Movement Date: ',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.black),
+                        children: [
+                          TextSpan(
+                            text:
+                                shipmentState.shipment!.movementDate.toString(),
+                            style: TextStyle(
+                                fontWeight: FontWeight.normal,
+                                color: Colors.grey[800]),
+                          ),
+                        ],
+                      ),
+                    ),
+                    RichText(
+                      text: TextSpan(
+                        text: 'Order: ',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.black),
+                        children: [
+                          TextSpan(
+                            text: shipmentState.shipment!.cOrderId.identifier,
+                            style: TextStyle(
+                                fontWeight: FontWeight.normal,
+                                color: Colors.grey[800]),
+                          ),
+                        ],
+                      ),
+                    ),
+                    RichText(
+                      text: TextSpan(
+                        text: 'Order Date: ',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.black),
+                        children: [
+                          TextSpan(
+                            text:
+                                shipmentState.shipment!.dateOrdered.toString(),
+                            style: TextStyle(
+                                fontWeight: FontWeight.normal,
+                                color: Colors.grey[800]),
+                          ),
+                        ],
+                      ),
+                    ),
+                    RichText(
+                      text: TextSpan(
+                        text: 'Organization: ',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.black),
+                        children: [
+                          TextSpan(
+                            text: shipmentState.shipment!.adOrgId.identifier,
+                            style: TextStyle(
+                                fontWeight: FontWeight.normal,
+                                color: Colors.grey[800]),
+                          ),
+                        ],
+                      ),
+                    ),
+                    RichText(
+                      text: TextSpan(
+                        text: 'Warehouse: ',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.black),
+                        children: [
+                          TextSpan(
+                            text:
+                                shipmentState.shipment!.mWarehouseId.identifier,
+                            style: TextStyle(
+                                fontWeight: FontWeight.normal,
+                                color: Colors.grey[800]),
+                          ),
+                        ],
+                      ),
+                    ),
+                    RichText(
+                      text: TextSpan(
+                        text: 'Business Partner: ',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.black),
+                        children: [
+                          TextSpan(
+                            text:
+                                shipmentState.shipment!.cBPartnerId.identifier,
+                            style: TextStyle(
+                                fontWeight: FontWeight.normal,
+                                color: Colors.grey[800]),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : EnterBarcodeBox(
+                onValue: shipmentNotifier.getShipmentAndLine,
+                hintText: 'Ingresar documento');
   }
 
-  Widget _buildShipmentList(List<Map<String, Object>> shipmentItems) {
+  Widget _buildShipmentList() {
+    final shipmentLines = shipmentState.shipment?.lines ?? [];
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -246,9 +246,9 @@ class _ShipmentView extends ConsumerWidget {
       child: ListView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        itemCount: shipmentItems.length,
+        itemCount: shipmentLines.length,
         itemBuilder: (context, index) {
-          final item = shipmentItems[index];
+          final item = shipmentLines[index];
           return Column(
             children: [
               Row(
@@ -266,20 +266,30 @@ class _ShipmentView extends ConsumerWidget {
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: Text(
-                            item['UPC'].toString(),
-                            style: const TextStyle(
-                              fontSize: 18,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            reverse: true,
+                            child: Text(
+                              item.upc?.isNotEmpty == true
+                                  ? item.upc.toString()
+                                  : '',
+                              style: const TextStyle(
+                                fontSize: 18,
+                              ),
                             ),
                           ),
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: Text(
-                            item['ProductName'].toString(),
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[700],
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            reverse: true,
+                            child: Text(
+                              item.productName.toString(),
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[700],
+                              ),
                             ),
                           ),
                         ),
@@ -289,7 +299,7 @@ class _ShipmentView extends ConsumerWidget {
                   Padding(
                     padding: const EdgeInsets.only(right: 10),
                     child: Text(
-                      item['MovementQty'].toString(),
+                      item.movementQty.toString(),
                       style: const TextStyle(
                           fontSize: 18, fontWeight: FontWeight.bold),
                     ),
@@ -297,9 +307,19 @@ class _ShipmentView extends ConsumerWidget {
                   IconButton(
                     onPressed: () {},
                     icon: Icon(
-                      index % 2 == 0 ? Icons.check : Icons.close,
-                      color:
-                          index % 2 == 0 ? Colors.green[600] : Colors.red[600],
+                      item.verifiedStatus == 'correct'
+                          ? Icons.check_circle_outline_rounded
+                          : item.verifiedStatus == 'over'
+                              ? Icons.warning_amber_rounded
+                              : item.verifiedStatus == 'manually'
+                                  ? Icons.touch_app_outlined
+                                  : Icons.circle_outlined,
+                      color: item.verifiedStatus == 'correct' ||
+                              item.verifiedStatus == 'manually'
+                          ? Colors.green[600]
+                          : item.verifiedStatus == 'over'
+                              ? Colors.yellow[800]
+                              : Colors.red[600],
                     ),
                   ),
                 ],
@@ -309,17 +329,6 @@ class _ShipmentView extends ConsumerWidget {
           );
         },
       ),
-    );
-  }
-}
-
-class _VerifyView extends StatelessWidget {
-  const _VerifyView();
-
-  @override
-  Widget build(BuildContext context) {
-    return const SafeArea(
-      child: Center(child: Text('Verify View Content')),
     );
   }
 }
@@ -341,7 +350,6 @@ class _ScanView extends ConsumerWidget {
 
     return SafeArea(
       child: Container(
-        padding: EdgeInsets.all(10),
         color: backgroundColor,
         child: Column(
           children: [
@@ -384,33 +392,51 @@ class _ScanView extends ConsumerWidget {
     required VoidCallback onPressed,
   }) {
     final styleText = TextStyle(
-      fontSize: 10,
+      fontSize: 12,
       fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-      color: isActive ? Colors.black : Colors.grey[600],
+      color: isActive ? Colors.white : Colors.grey[700],
     );
 
     final styleCounting = TextStyle(
       fontSize: 18,
       fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-      color: isActive ? Colors.black : Colors.grey[600],
+      color: isActive ? Colors.white : Colors.grey[700],
     );
 
-    return Expanded(
-      child: TextButton(
-        onPressed: onPressed,
-        style: TextButton.styleFrom(
-          padding: EdgeInsets.zero,
-          minimumSize: const Size(0, 0),
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-        child: Column(
-          children: [
-            Text(text, style: styleText),
-            Text(counting, style: styleCounting),
-          ],
+    return OutlinedButton(
+      onPressed: onPressed,
+      style: OutlinedButton.styleFrom(
+        minimumSize: Size(130, 30),
+        backgroundColor: isActive ? colorSeedLight : Colors.white,
+        side: BorderSide(
+          color: isActive ? colorSeedLight : Colors.grey[700]!,
         ),
       ),
+      child: Row(
+        children: [
+          Text(text, style: styleText),
+          SizedBox(width: 10),
+          Text(counting, style: styleCounting),
+        ],
+      ),
     );
+
+    // return Expanded(
+    //   child: TextButton(
+    //     onPressed: onPressed,
+    //     style: TextButton.styleFrom(
+    //       padding: EdgeInsets.zero,
+    //       minimumSize: const Size(0, 0),
+    //       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    //     ),
+    //     child: Column(
+    //       children: [
+    //         Text(text, style: styleText),
+    //         Text(counting, style: styleCounting),
+    //       ],
+    //     ),
+    //   ),
+    // );
   }
 
   Widget _buildBarcodeList(

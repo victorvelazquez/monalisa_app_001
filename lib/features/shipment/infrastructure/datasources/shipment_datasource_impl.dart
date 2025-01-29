@@ -1,0 +1,49 @@
+import 'package:dio/dio.dart';
+import 'package:monalisa_app_001/features/shared/domain/entities/response_api.dart';
+import 'package:monalisa_app_001/features/shipment/domain/datasources/shipment_datasource.dart';
+import 'package:monalisa_app_001/features/shipment/domain/entities/shipment.dart';
+
+import '../../../../config/config.dart';
+import '../../../shared/shared.dart';
+
+class ShipmentDataSourceImpl implements ShipmentDataSource {
+  late final Dio dio;
+
+  ShipmentDataSourceImpl() {
+    _initDio();
+  }
+
+  Future<void> _initDio() async {
+    dio = await DioClient.create();
+  }
+
+  @override
+  Future<Shipment> getShipmentAndLine(
+    String shipment,
+  ) async {
+    try {
+      final String url =
+          "/api/v1/models/m_inout?\$expand=m_inoutline&\$filter=DocumentNo%20eq%20'$shipment'";
+      final response = await dio.get(url);
+
+      if (response.statusCode == 200) {
+        final responseApi = ResponseApi.jsonToEntity(response.data);
+
+        if (responseApi.records != null && responseApi.records!.isNotEmpty) {
+          final shipment = responseApi.records!.first;
+          return shipment;
+        } else {
+          throw Exception('No se encontraron registros de shipment');
+        }
+      } else {
+        throw Exception('Error al cargar los datos del shipment: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      print('DioException: $e');
+      throw CustomErrorDioException(e);
+    } catch (e) {
+      print('Exception: $e');
+      throw Exception('ERROR: ${e.toString()}');
+    }
+  }
+}

@@ -1,10 +1,5 @@
-import 'dart:convert';
-
 import '../../../shared/domain/entities/ad_entity_id.dart';
-
-Shipment shipmentFromMap(String str) => Shipment.fromMap(json.decode(str));
-
-String shipmentToMap(Shipment data) => json.encode(data.toMap());
+import 'line.dart';
 
 class Shipment {
     int? id;
@@ -27,6 +22,7 @@ class Shipment {
     DateTime dateAcct;
     AdEntityId cBPartnerId;
     AdEntityId cBPartnerLocationId;
+    AdEntityId adUserId;
     AdEntityId mWarehouseId;
     AdEntityId deliveryRule;
     AdEntityId freightCostRule;
@@ -43,12 +39,25 @@ class Shipment {
     bool? isInTransit;
     bool? isApproved;
     bool? isInDispute;
-    int? volume;
-    int? weight;
+    double? volume;
+    double? weight;
     bool? isDropShip;
     double? processedOn;
     bool? isAlternateReturnAddress;
+    String? moliVehicleType;
+    String? drivername;
+    String? moliTransportDirection;
+    String? moliRucTransportista;
+    String? driverid;
+    String? moliDistancia;
+    String? vehicle;
+    String? vehicleid;
+    DateTime moliEndTransfer;
+    DateTime moliStartTransfer;
+    String? moliTransportista;
     String? modelName;
+    List<Line> lines;
+
 
     Shipment({
         this.id,
@@ -71,6 +80,7 @@ class Shipment {
         required this.dateAcct,
         required this.cBPartnerId,
         required this.cBPartnerLocationId,
+        required this.adUserId,
         required this.mWarehouseId,
         required this.deliveryRule,
         required this.freightCostRule,
@@ -92,42 +102,55 @@ class Shipment {
         this.isDropShip,
         this.processedOn,
         this.isAlternateReturnAddress,
+        this.moliVehicleType,
+        this.drivername,
+        this.moliTransportDirection,
+        this.moliRucTransportista,
+        this.driverid,
+        this.moliDistancia,
+        this.vehicle,
+        this.vehicleid,
+        required this.moliEndTransfer,
+        required this.moliStartTransfer,
+        this.moliTransportista,
         this.modelName,
+        this.lines = const [],
     });
 
-    factory Shipment.fromMap(Map<String, dynamic> json) => Shipment(
+    factory Shipment.jsonToEntity(Map<String, dynamic> json) => Shipment(
         id: json["id"],
         uid: json["uid"],
         description: json["Description"],
-        movementType: AdEntityId.fromMap(json["MovementType"]),
+        movementType: AdEntityId.jsonToEntity(json["MovementType"]),
         movementDate: DateTime.parse(json["MovementDate"]),
         processed: json["Processed"],
-        adClientId: AdEntityId.fromMap(json["AD_Client_ID"]),
-        adOrgId: AdEntityId.fromMap(json["AD_Org_ID"]),
+        adClientId: AdEntityId.jsonToEntity(json["AD_Client_ID"]),
+        adOrgId: AdEntityId.jsonToEntity(json["AD_Org_ID"]),
         isActive: json["IsActive"],
         created: DateTime.parse(json["Created"]),
-        createdBy: AdEntityId.fromMap(json["CreatedBy"]),
+        createdBy: AdEntityId.jsonToEntity(json["CreatedBy"]),
         updated: DateTime.parse(json["Updated"]),
-        updatedBy: AdEntityId.fromMap(json["UpdatedBy"]),
+        updatedBy: AdEntityId.jsonToEntity(json["UpdatedBy"]),
         isSoTrx: json["IsSOTrx"],
         documentNo: json["DocumentNo"],
-        cDocTypeId: AdEntityId.fromMap(json["C_DocType_ID"]),
+        cDocTypeId: AdEntityId.jsonToEntity(json["C_DocType_ID"]),
         isPrinted: json["IsPrinted"],
         dateAcct: DateTime.parse(json["DateAcct"]),
-        cBPartnerId: AdEntityId.fromMap(json["C_BPartner_ID"]),
-        cBPartnerLocationId: AdEntityId.fromMap(json["C_BPartner_Location_ID"]),
-        mWarehouseId: AdEntityId.fromMap(json["M_Warehouse_ID"]),
-        deliveryRule: AdEntityId.fromMap(json["AdEntityId"]),
-        freightCostRule: AdEntityId.fromMap(json["FreightCostRule"]),
+        cBPartnerId: AdEntityId.jsonToEntity(json["C_BPartner_ID"]),
+        cBPartnerLocationId: AdEntityId.jsonToEntity(json["C_BPartner_Location_ID"]),
+        adUserId: AdEntityId.jsonToEntity(json["AD_User_ID"]),
+        mWarehouseId: AdEntityId.jsonToEntity(json["M_Warehouse_ID"]),
+        deliveryRule: AdEntityId.jsonToEntity(json["DeliveryRule"]),
+        freightCostRule: AdEntityId.jsonToEntity(json["FreightCostRule"]),
         freightAmt: json["FreightAmt"],
-        deliveryViaRule: AdEntityId.fromMap(json["DeliveryViaRule"]),
+        deliveryViaRule: AdEntityId.jsonToEntity(json["DeliveryViaRule"]),
         chargeAmt: json["ChargeAmt"],
-        priorityRule: AdEntityId.fromMap(json["PriorityRule"]),
-        cOrderId: AdEntityId.fromMap(json["C_Order_ID"]),
+        priorityRule: AdEntityId.jsonToEntity(json["PriorityRule"]),
+        cOrderId: AdEntityId.jsonToEntity(json["C_Order_ID"]),
         dateOrdered: DateTime.parse(json["DateOrdered"]),
-        docStatus: AdEntityId.fromMap(json["DocStatus"]),
+        docStatus: AdEntityId.jsonToEntity(json["DocStatus"]),
         sendEMail: json["SendEMail"],
-        salesRepId: AdEntityId.fromMap(json["SalesRep_ID"]),
+        salesRepId: AdEntityId.jsonToEntity(json["SalesRep_ID"]),
         noPackages: json["NoPackages"],
         isInTransit: json["IsInTransit"],
         isApproved: json["IsApproved"],
@@ -137,51 +160,134 @@ class Shipment {
         isDropShip: json["IsDropShip"],
         processedOn: json["ProcessedOn"].toDouble(),
         isAlternateReturnAddress: json["IsAlternateReturnAddress"],
+        moliVehicleType: json["MOLI_VehicleType"],
+        drivername: json["DRIVERNAME"],
+        moliTransportDirection: json["MOLI_TransportDirection"],
+        moliRucTransportista: json["MOLI_RucTransportista"],
+        driverid: json["DRIVERID"],
+        moliDistancia: json["MOLI_Distancia"],
+        vehicle: json["VEHICLE"],
+        vehicleid: json["VEHICLEID"],
+        moliEndTransfer: DateTime.parse(json["MOLI_EndTransfer"]),
+        moliStartTransfer: DateTime.parse(json["MOLI_StartTransfer"]),
+        moliTransportista: json["MOLI_Transportista"],
         modelName: json["model-name"],
+        lines: List<Line>.from(json["m_inoutline"].map((x) => Line.jsonToEntity(x))),
     );
 
-    Map<String, dynamic> toMap() => {
-        "id": id,
-        "uid": uid,
-        "Description": description,
-        "MovementType": movementType.toMap(),
-        "MovementDate": "${movementDate.year.toString().padLeft(4, '0')}-${movementDate.month.toString().padLeft(2, '0')}-${movementDate.day.toString().padLeft(2, '0')}",
-        "Processed": processed,
-        "AD_Client_ID": adClientId.toMap(),
-        "AD_Org_ID": adOrgId.toMap(),
-        "IsActive": isActive,
-        "Created": created.toIso8601String(),
-        "CreatedBy": createdBy.toMap(),
-        "Updated": updated.toIso8601String(),
-        "UpdatedBy": updatedBy.toMap(),
-        "IsSOTrx": isSoTrx,
-        "DocumentNo": documentNo,
-        "C_DocType_ID": cDocTypeId.toMap(),
-        "IsPrinted": isPrinted,
-        "DateAcct": "${dateAcct.year.toString().padLeft(4, '0')}-${dateAcct.month.toString().padLeft(2, '0')}-${dateAcct.day.toString().padLeft(2, '0')}",
-        "C_BPartner_ID": cBPartnerId.toMap(),
-        "C_BPartner_Location_ID": cBPartnerLocationId.toMap(),
-        "M_Warehouse_ID": mWarehouseId.toMap(),
-        "AdEntityId": deliveryRule.toMap(),
-        "FreightCostRule": freightCostRule.toMap(),
-        "FreightAmt": freightAmt,
-        "DeliveryViaRule": deliveryViaRule.toMap(),
-        "ChargeAmt": chargeAmt,
-        "PriorityRule": priorityRule.toMap(),
-        "C_Order_ID": cOrderId.toMap(),
-        "DateOrdered": "${dateOrdered.year.toString().padLeft(4, '0')}-${dateOrdered.month.toString().padLeft(2, '0')}-${dateOrdered.day.toString().padLeft(2, '0')}",
-        "DocStatus": docStatus.toMap(),
-        "SendEMail": sendEMail,
-        "SalesRep_ID": salesRepId.toMap(),
-        "NoPackages": noPackages,
-        "IsInTransit": isInTransit,
-        "IsApproved": isApproved,
-        "IsInDispute": isInDispute,
-        "Volume": volume,
-        "Weight": weight,
-        "IsDropShip": isDropShip,
-        "ProcessedOn": processedOn,
-        "IsAlternateReturnAddress": isAlternateReturnAddress,
-        "model-name": modelName,
-    };
+    Shipment copyWith({
+      int? id,
+      String? uid,
+      String? description,
+      AdEntityId? movementType,
+      DateTime? movementDate,
+      bool? processed,
+      AdEntityId? adClientId,
+      AdEntityId? adOrgId,
+      bool? isActive,
+      DateTime? created,
+      AdEntityId? createdBy,
+      DateTime? updated,
+      AdEntityId? updatedBy,
+      bool? isSoTrx,
+      String? documentNo,
+      AdEntityId? cDocTypeId,
+      bool? isPrinted,
+      DateTime? dateAcct,
+      AdEntityId? cBPartnerId,
+      AdEntityId? cBPartnerLocationId,
+      AdEntityId? adUserId,
+      AdEntityId? mWarehouseId,
+      AdEntityId? deliveryRule,
+      AdEntityId? freightCostRule,
+      int? freightAmt,
+      AdEntityId? deliveryViaRule,
+      int? chargeAmt,
+      AdEntityId? priorityRule,
+      AdEntityId? cOrderId,
+      DateTime? dateOrdered,
+      AdEntityId? docStatus,
+      bool? sendEMail,
+      AdEntityId? salesRepId,
+      int? noPackages,
+      bool? isInTransit,
+      bool? isApproved,
+      bool? isInDispute,
+      double? volume,
+      double? weight,
+      bool? isDropShip,
+      double? processedOn,
+      bool? isAlternateReturnAddress,
+      String? moliVehicleType,
+      String? drivername,
+      String? moliTransportDirection,
+      String? moliRucTransportista,
+      String? driverid,
+      String? moliDistancia,
+      String? vehicle,
+      String? vehicleid,
+      DateTime? moliEndTransfer,
+      DateTime? moliStartTransfer,
+      String? moliTransportista,
+      String? modelName,
+      List<Line>? lines,
+    }) {
+      return Shipment(
+        id: id ?? this.id,
+        uid: uid ?? this.uid,
+        description: description ?? this.description,
+        movementType: movementType ?? this.movementType,
+        movementDate: movementDate ?? this.movementDate,
+        processed: processed ?? this.processed,
+        adClientId: adClientId ?? this.adClientId,
+        adOrgId: adOrgId ?? this.adOrgId,
+        isActive: isActive ?? this.isActive,
+        created: created ?? this.created,
+        createdBy: createdBy ?? this.createdBy,
+        updated: updated ?? this.updated,
+        updatedBy: updatedBy ?? this.updatedBy,
+        isSoTrx: isSoTrx ?? this.isSoTrx,
+        documentNo: documentNo ?? this.documentNo,
+        cDocTypeId: cDocTypeId ?? this.cDocTypeId,
+        isPrinted: isPrinted ?? this.isPrinted,
+        dateAcct: dateAcct ?? this.dateAcct,
+        cBPartnerId: cBPartnerId ?? this.cBPartnerId,
+        cBPartnerLocationId: cBPartnerLocationId ?? this.cBPartnerLocationId,
+        adUserId: adUserId ?? this.adUserId,
+        mWarehouseId: mWarehouseId ?? this.mWarehouseId,
+        deliveryRule: deliveryRule ?? this.deliveryRule,
+        freightCostRule: freightCostRule ?? this.freightCostRule,
+        freightAmt: freightAmt ?? this.freightAmt,
+        deliveryViaRule: deliveryViaRule ?? this.deliveryViaRule,
+        chargeAmt: chargeAmt ?? this.chargeAmt,
+        priorityRule: priorityRule ?? this.priorityRule,
+        cOrderId: cOrderId ?? this.cOrderId,
+        dateOrdered: dateOrdered ?? this.dateOrdered,
+        docStatus: docStatus ?? this.docStatus,
+        sendEMail: sendEMail ?? this.sendEMail,
+        salesRepId: salesRepId ?? this.salesRepId,
+        noPackages: noPackages ?? this.noPackages,
+        isInTransit: isInTransit ?? this.isInTransit,
+        isApproved: isApproved ?? this.isApproved,
+        isInDispute: isInDispute ?? this.isInDispute,
+        volume: volume ?? this.volume,
+        weight: weight ?? this.weight,
+        isDropShip: isDropShip ?? this.isDropShip,
+        processedOn: processedOn ?? this.processedOn,
+        isAlternateReturnAddress: isAlternateReturnAddress ?? this.isAlternateReturnAddress,
+        moliVehicleType: moliVehicleType ?? this.moliVehicleType,
+        drivername: drivername ?? this.drivername,
+        moliTransportDirection: moliTransportDirection ?? this.moliTransportDirection,
+        moliRucTransportista: moliRucTransportista ?? this.moliRucTransportista,
+        driverid: driverid ?? this.driverid,
+        moliDistancia: moliDistancia ?? this.moliDistancia,
+        vehicle: vehicle ?? this.vehicle,
+        vehicleid: vehicleid ?? this.vehicleid,
+        moliEndTransfer: moliEndTransfer ?? this.moliEndTransfer,
+        moliStartTransfer: moliStartTransfer ?? this.moliStartTransfer,
+        moliTransportista: moliTransportista ?? this.moliTransportista,
+        modelName: modelName ?? this.modelName,
+        lines: lines ?? this.lines,
+      );
+    }
 }

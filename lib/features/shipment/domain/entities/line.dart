@@ -1,10 +1,4 @@
-import 'dart:convert';
-
 import '../../../shared/domain/entities/ad_entity_id.dart';
-
-Line lineFromMap(String str) => Line.fromMap(json.decode(str));
-
-String lineToMap(Line data) => json.encode(data.toMap());
 
 class Line {
     int? id;
@@ -17,7 +11,6 @@ class Line {
     DateTime updated;
     AdEntityId updatedBy;
     AdEntityId mLocatorId;
-    AdEntityId mInOutId;
     AdEntityId mProductId;
     int? movementQty;
     int? line;
@@ -26,10 +19,10 @@ class Line {
     bool? isInvoiced;
     AdEntityId mAttributeSetInstanceId;
     bool? isDescription;
-    int? confirmedQty;
-    int? pickedQty;
-    int? scrappedQty;
-    int? targetQty;
+    double? confirmedQty;
+    double? pickedQty;
+    double? scrappedQty;
+    double? targetQty;
     int? refInOutLineId;
     bool? processed;
     int? qtyEntered;
@@ -38,6 +31,7 @@ class Line {
     String? productName;
     String? sku;
     String? modelName;
+    String? verifiedStatus;
 
     Line({
         this.id,
@@ -50,7 +44,6 @@ class Line {
         required this.updated,
         required this.updatedBy,
         required this.mLocatorId,
-        required this.mInOutId,
         required this.mProductId,
         this.movementQty,
         this.line,
@@ -71,27 +64,27 @@ class Line {
         this.productName,
         this.sku,
         this.modelName,
+        this.verifiedStatus,
     });
 
-    factory Line.fromMap(Map<String, dynamic> json) => Line(
+    factory Line.jsonToEntity(Map<String, dynamic> json) => Line(
         id: json["id"],
         uid: json["uid"],
-        adClientId: AdEntityId.fromMap(json["AD_Client_ID"]),
-        adOrgId: AdEntityId.fromMap(json["AD_Org_ID"]),
+        adClientId: AdEntityId.jsonToEntity(json["AD_Client_ID"]),
+        adOrgId: AdEntityId.jsonToEntity(json["AD_Org_ID"]),
         isActive: json["IsActive"],
         created: DateTime.parse(json["Created"]),
-        createdBy: AdEntityId.fromMap(json["CreatedBy"]),
+        createdBy: AdEntityId.jsonToEntity(json["CreatedBy"]),
         updated: DateTime.parse(json["Updated"]),
-        updatedBy: AdEntityId.fromMap(json["UpdatedBy"]),
-        mLocatorId: AdEntityId.fromMap(json["M_Locator_ID"]),
-        mInOutId: AdEntityId.fromMap(json["M_InOut_ID"]),
-        mProductId: AdEntityId.fromMap(json["M_Product_ID"]),
+        updatedBy: AdEntityId.jsonToEntity(json["UpdatedBy"]),
+        mLocatorId: AdEntityId.jsonToEntity(json["M_Locator_ID"]),
+        mProductId: AdEntityId.jsonToEntity(json["M_Product_ID"]),
         movementQty: json["MovementQty"],
         line: json["Line"],
-        cOrderLineId: AdEntityId.fromMap(json["C_OrderLine_ID"]),
-        cUomId: AdEntityId.fromMap(json["C_UOM_ID"]),
+        cOrderLineId: AdEntityId.jsonToEntity(json["C_OrderLine_ID"]),
+        cUomId: AdEntityId.jsonToEntity(json["C_UOM_ID"]),
         isInvoiced: json["IsInvoiced"],
-        mAttributeSetInstanceId: AdEntityId.fromMap(json["M_AttributeSetInstance_ID"]),
+        mAttributeSetInstanceId: AdEntityId.jsonToEntity(json["M_AttributeSetInstance_ID"]),
         isDescription: json["IsDescription"],
         confirmedQty: json["ConfirmedQty"],
         pickedQty: json["PickedQty"],
@@ -107,37 +100,71 @@ class Line {
         modelName: json["model-name"],
     );
 
-    Map<String, dynamic> toMap() => {
-        "id": id,
-        "uid": uid,
-        "AD_Client_ID": adClientId.toMap(),
-        "AD_Org_ID": adOrgId.toMap(),
-        "IsActive": isActive,
-        "Created": created.toIso8601String(),
-        "CreatedBy": createdBy.toMap(),
-        "Updated": updated.toIso8601String(),
-        "UpdatedBy": updatedBy.toMap(),
-        "M_Locator_ID": mLocatorId.toMap(),
-        "M_InOut_ID": mInOutId.toMap(),
-        "M_Product_ID": mProductId.toMap(),
-        "MovementQty": movementQty,
-        "Line": line,
-        "C_OrderLine_ID": cOrderLineId.toMap(),
-        "C_UOM_ID": cUomId.toMap(),
-        "IsInvoiced": isInvoiced,
-        "M_AttributeSetInstance_ID": mAttributeSetInstanceId.toMap(),
-        "IsDescription": isDescription,
-        "ConfirmedQty": confirmedQty,
-        "PickedQty": pickedQty,
-        "ScrappedQty": scrappedQty,
-        "TargetQty": targetQty,
-        "Ref_InOutLine_ID": refInOutLineId,
-        "Processed": processed,
-        "QtyEntered": qtyEntered,
-        "IsAutoProduce": isAutoProduce,
-        "UPC": upc,
-        "ProductName": productName,
-        "SKU": sku,
-        "model-name": modelName,
-    };
+    Line copyWith({
+      int? id,
+      String? uid,
+      AdEntityId? adClientId,
+      AdEntityId? adOrgId,
+      bool? isActive,
+      DateTime? created,
+      AdEntityId? createdBy,
+      DateTime? updated,
+      AdEntityId? updatedBy,
+      AdEntityId? mLocatorId,
+      AdEntityId? mProductId,
+      int? movementQty,
+      int? line,
+      AdEntityId? cOrderLineId,
+      AdEntityId? cUomId,
+      bool? isInvoiced,
+      AdEntityId? mAttributeSetInstanceId,
+      bool? isDescription,
+      double? confirmedQty,
+      double? pickedQty,
+      double? scrappedQty,
+      double? targetQty,
+      int? refInOutLineId,
+      bool? processed,
+      int? qtyEntered,
+      bool? isAutoProduce,
+      String? upc,
+      String? productName,
+      String? sku,
+      String? modelName,
+      String? verifiedStatus,
+    }) {
+      return Line(
+        id: id ?? this.id,
+        uid: uid ?? this.uid,
+        adClientId: adClientId ?? this.adClientId,
+        adOrgId: adOrgId ?? this.adOrgId,
+        isActive: isActive ?? this.isActive,
+        created: created ?? this.created,
+        createdBy: createdBy ?? this.createdBy,
+        updated: updated ?? this.updated,
+        updatedBy: updatedBy ?? this.updatedBy,
+        mLocatorId: mLocatorId ?? this.mLocatorId,
+        mProductId: mProductId ?? this.mProductId,
+        movementQty: movementQty ?? this.movementQty,
+        line: line ?? this.line,
+        cOrderLineId: cOrderLineId ?? this.cOrderLineId,
+        cUomId: cUomId ?? this.cUomId,
+        isInvoiced: isInvoiced ?? this.isInvoiced,
+        mAttributeSetInstanceId: mAttributeSetInstanceId ?? this.mAttributeSetInstanceId,
+        isDescription: isDescription ?? this.isDescription,
+        confirmedQty: confirmedQty ?? this.confirmedQty,
+        pickedQty: pickedQty ?? this.pickedQty,
+        scrappedQty: scrappedQty ?? this.scrappedQty,
+        targetQty: targetQty ?? this.targetQty,
+        refInOutLineId: refInOutLineId ?? this.refInOutLineId,
+        processed: processed ?? this.processed,
+        qtyEntered: qtyEntered ?? this.qtyEntered,
+        isAutoProduce: isAutoProduce ?? this.isAutoProduce,
+        upc: upc ?? this.upc,
+        productName: productName ?? this.productName,
+        sku: sku ?? this.sku,
+        modelName: modelName ?? this.modelName,
+        verifiedStatus: verifiedStatus ?? this.verifiedStatus,
+      );
+    }
 }

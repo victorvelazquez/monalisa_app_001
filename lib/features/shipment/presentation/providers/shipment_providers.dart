@@ -1,30 +1,65 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:monalisa_app_001/features/shipment/domain/entities/line.dart';
+import 'package:monalisa_app_001/features/shipment/domain/entities/shipment.dart';
+import 'package:monalisa_app_001/features/shipment/domain/repositories/shipment_repositiry.dart';
 
 import '../../domain/entities/barcode.dart';
+import '../../infrastructure/repositories/shipment_repository_impl.dart';
 
 // Provider para manejar el estado de la lista de códigos de barras
 final shipmentProvider =
     StateNotifierProvider<ShipmentNotifier, ShipmentStatus>((ref) {
-  return ShipmentNotifier();
+  return ShipmentNotifier(
+    shipmentRepository: ShipmentRepositoryImpl(),
+  );
 });
 
 // Clase para manejar la lógica y estado
 class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
+  final ShipmentRepository shipmentRepository;
   final ScrollController scanBarcodeListScrollController = ScrollController();
 
-  ShipmentNotifier()
-      : super(
+  ShipmentNotifier({
+    required this.shipmentRepository,
+  }) : super(
           ShipmentStatus(
             scanBarcodeListTotal: [],
             scanBarcodeListUnique: [],
             uniqueView: false,
+            viewShipment: false,
           ),
         );
 
-  // Método para alternar entre vista única o completa
-  void setUniqueView(bool value) {
-    state = state.copyWith(uniqueView: value);
+  Future<void> getShipmentAndLine(String code) async {
+    state = state.copyWith(
+      isLoading: true,
+      errorMessage: '',
+    );
+    try {
+      final shipmentResponse =
+          await shipmentRepository.getShipmentAndLine(code);
+      state = state.copyWith(
+        shipment: shipmentResponse,
+        isLoading: false,
+        viewShipment: true,
+      );
+      updatedVerifyList([]);
+    } catch (e) {
+      state = state.copyWith(
+        errorMessage: 'Error al obtener el shipment: ${e.toString()}',
+        viewShipment: false,
+        isLoading: false,
+      );
+    }
+  }
+
+  // Método para limpiar los datos del shipment
+  void clearShipmentData() {
+    state = state.copyWith(
+      shipment: state.shipment!.copyWith(id: null, lines: null),
+      viewShipment: false,
+    );
   }
 
   // Método para agregar un código de barras
@@ -71,7 +106,7 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
       );
     }
 
-    updatedList(updatedTotalList);
+    updatedVerifyList(updatedTotalList);
 
     moveScrollToBottom();
   }
@@ -107,12 +142,13 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
         updatedTotalList.where((barcode) => barcode.repetitions > 0).toList();
 
     // Actualizar las listas
-    updatedList(filteredTotalList);
+    updatedVerifyList(filteredTotalList);
 
     moveScrollToBottom();
   }
 
-  void updatedList(List<Barcode> updatedTotalList) {
+  void updatedVerifyList(List<Barcode> updatedTotalList) {
+
     // Reasignar índices a la lista total
     for (int i = 0; i < updatedTotalList.length; i++) {
       updatedTotalList[i] = updatedTotalList[i].copyWith(index: i + 1);
@@ -128,16 +164,45 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
       }
     }
 
-// Crear lista única con índices consecutivos
+    // Crear lista única con índices consecutivos
     final List<Barcode> updatedUniqueList = uniqueMap.values.toList();
     for (int i = 0; i < updatedUniqueList.length; i++) {
       updatedUniqueList[i] = updatedUniqueList[i].copyWith(index: i + 1);
     }
+
     // Actualizar el estado
     state = state.copyWith(
       scanBarcodeListTotal: updatedTotalList,
       scanBarcodeListUnique: updatedUniqueList,
     );
+
+    // Verificar las líneas del shipment
+    if (state.shipment != null && state.viewShipment) {
+      List<Line> lines = state.shipment!.lines;
+      if (lines.isNotEmpty) {
+        for (int i = 0; i < lines.length; i++) {
+          lines[i] = lines[i].copyWith(verifiedStatus: 'pending');
+        }
+        for (int i = 0; i < updatedUniqueList.length; i++) {
+          final barcode = updatedUniqueList[i];
+          final lineIndex =
+              lines.indexWhere((line) => line.upc == barcode.code);
+
+          if (lineIndex != -1) {
+            final line = lines[lineIndex];
+            if (line.movementQty == barcode.repetitions) {
+              lines[lineIndex] = line.copyWith(verifiedStatus: 'correct');
+            } else if (line.movementQty! < barcode.repetitions) {
+              lines[lineIndex] = line.copyWith(verifiedStatus: 'over');
+            }
+          }
+        }
+        // Actualizar el estado con las líneas verificadas
+        state = state.copyWith(
+          shipment: state.shipment!.copyWith(lines: lines),
+        );
+      }
+    }
   }
 
   void moveScrollToBottom() {
@@ -157,7 +222,8 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
     for (int i = 0; i < updatedList.length; i++) {
       // Verificamos si el 'code' recibido coincide con el 'code' del elemento actual
       if (updatedList[i].code == code) {
-        updatedList[i] = updatedList[i].copyWith(coloring: !updatedList[i].coloring);
+        updatedList[i] =
+            updatedList[i].copyWith(coloring: !updatedList[i].coloring);
       } else {
         updatedList[i] = updatedList[i].copyWith(coloring: false);
       }
@@ -175,6 +241,10 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
     return state.scanBarcodeListUnique.length;
   }
 
+  void setUniqueView(bool value) {
+    state = state.copyWith(uniqueView: value);
+  }
+
   bool getUniqueView() {
     return state.uniqueView;
   }
@@ -184,22 +254,39 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
 class ShipmentStatus {
   final List<Barcode> scanBarcodeListTotal;
   final List<Barcode> scanBarcodeListUnique;
+  final Shipment? shipment;
+  final bool viewShipment;
   final bool uniqueView;
+  final String errorMessage;
+  final bool isLoading;
 
   ShipmentStatus({
     required this.scanBarcodeListTotal,
     required this.scanBarcodeListUnique,
+    this.shipment,
+    this.viewShipment = false,
     this.uniqueView = false,
+    this.errorMessage = '',
+    this.isLoading = false,
   });
 
   ShipmentStatus copyWith({
     List<Barcode>? scanBarcodeListTotal,
     List<Barcode>? scanBarcodeListUnique,
+    Shipment? shipment,
+    bool? viewShipment,
     bool? uniqueView,
+    String? errorMessage,
+    bool? isLoading,
   }) =>
       ShipmentStatus(
         scanBarcodeListTotal: scanBarcodeListTotal ?? this.scanBarcodeListTotal,
-        scanBarcodeListUnique: scanBarcodeListUnique ?? this.scanBarcodeListUnique,
+        scanBarcodeListUnique:
+            scanBarcodeListUnique ?? this.scanBarcodeListUnique,
+        shipment: shipment ?? this.shipment,
+        viewShipment: viewShipment ?? this.viewShipment,
         uniqueView: uniqueView ?? this.uniqueView,
+        errorMessage: errorMessage ?? this.errorMessage,
+        isLoading: isLoading ?? this.isLoading,
       );
 }
