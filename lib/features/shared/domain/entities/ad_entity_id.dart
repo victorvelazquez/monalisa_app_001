@@ -1,6 +1,6 @@
 class AdEntityId {
   String? propertyLabel;
-  int? id;
+  String? id;
   String? identifier;
   String? modelName;
 
@@ -11,17 +11,10 @@ class AdEntityId {
     this.modelName,
   });
 
-  factory AdEntityId.fromMap(Map<String, dynamic> json) => AdEntityId(
+  factory AdEntityId.jsonToEntity(Map<String, dynamic> json) => AdEntityId(
         propertyLabel: json["propertyLabel"],
-        id: json["id"],
+        id: json["id"].toString(),
         identifier: json["identifier"],
         modelName: json["model-name"],
       );
-
-  Map<String, dynamic> toMap() => {
-        "propertyLabel": propertyLabel,
-        "id": id,
-        "identifier": identifier,
-        "model-name": modelName,
-      };
 }
