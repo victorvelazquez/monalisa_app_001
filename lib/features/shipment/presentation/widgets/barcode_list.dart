@@ -40,7 +40,7 @@ class ScrollingTextWidgetState extends State<BarcodeList> {
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: Text(
                   widget.barcode.index.toString(),
-                  style: TextStyle(fontSize: 18, color: Colors.grey[700]),
+                  style: TextStyle(fontSize: 16, color: Colors.grey[700]),
                 ),
               ),
               Expanded(
@@ -49,14 +49,14 @@ class ScrollingTextWidgetState extends State<BarcodeList> {
                 scrollDirection: Axis.horizontal,
                 child: Text(
                   widget.barcode.code.toString(),
-                  style: TextStyle(fontSize: 18),
+                  style: TextStyle(fontSize: 16),
                 ),
               )),
               IconButton(
                 onPressed:  widget.onPressedrepetitions,
                 icon: Text(
                   widget.barcode.repetitions.toString(),
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
               IconButton(
