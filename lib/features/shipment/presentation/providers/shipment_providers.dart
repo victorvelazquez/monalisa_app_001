@@ -26,6 +26,7 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
           ShipmentStatus(
             scanBarcodeListTotal: [],
             scanBarcodeListUnique: [],
+            linesOver: [],
             uniqueView: false,
             viewShipment: false,
           ),
@@ -44,7 +45,6 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
         isLoading: false,
         viewShipment: true,
       );
-      updatedVerifyList([]);
     } catch (e) {
       state = state.copyWith(
         errorMessage: 'Error al obtener el shipment: ${e.toString()}',
@@ -58,8 +58,58 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
   void clearShipmentData() {
     state = state.copyWith(
       shipment: state.shipment!.copyWith(id: null, lines: null),
+      scanBarcodeListTotal: [],
+      scanBarcodeListUnique: [],
       viewShipment: false,
     );
+  }
+
+  void confirmManualLine(Line line) {
+    final List<Line> updatedLines = state.shipment!.lines;
+    final int index = updatedLines.indexWhere((l) => l.id == line.id);
+    if (index != -1) {
+      updatedLines[index] = line.copyWith(verifiedStatus: 'manually');
+      state = state.copyWith(
+        shipment: state.shipment!.copyWith(lines: updatedLines),
+      );
+    }
+  }
+
+  bool isConfirmShipment() {
+    if (state.shipment != null) {
+      final List<Line> lines = state.shipment!.lines;
+      for (final line in lines) {
+        if (line.verifiedStatus != 'correct' &&
+            line.verifiedStatus != 'manually') {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  Future<void> confirmShipment() async {
+    state = state.copyWith(
+      isLoading: true,
+      viewShipment: false,
+      errorMessage: '',
+    );
+    try {
+      // final shipmentResponse = await shipmentRepository.confirmShipment(code);
+      await Future.delayed(const Duration(seconds: 2));
+      state = state.copyWith(
+        // shipment: shipmentResponse,
+        isLoading: false,
+        viewShipment: true,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        errorMessage: 'Error al confirmar el shipment: ${e.toString()}',
+        viewShipment: false,
+        isLoading: false,
+      );
+    }
   }
 
   // Método para agregar un código de barras
@@ -148,7 +198,6 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
   }
 
   void updatedVerifyList(List<Barcode> updatedTotalList) {
-
     // Reasignar índices a la lista total
     for (int i = 0; i < updatedTotalList.length; i++) {
       updatedTotalList[i] = updatedTotalList[i].copyWith(index: i + 1);
@@ -179,9 +228,13 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
     // Verificar las líneas del shipment
     if (state.shipment != null && state.viewShipment) {
       List<Line> lines = state.shipment!.lines;
+      List<Barcode> linesOver = [];
       if (lines.isNotEmpty) {
         for (int i = 0; i < lines.length; i++) {
-          lines[i] = lines[i].copyWith(verifiedStatus: 'pending');
+          lines[i] = lines[i].copyWith(
+            verifiedStatus: 'pending',
+            scanningQty: 0,
+          );
         }
         for (int i = 0; i < updatedUniqueList.length; i++) {
           final barcode = updatedUniqueList[i];
@@ -191,15 +244,32 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
           if (lineIndex != -1) {
             final line = lines[lineIndex];
             if (line.movementQty == barcode.repetitions) {
-              lines[lineIndex] = line.copyWith(verifiedStatus: 'correct');
-            } else if (line.movementQty! < barcode.repetitions) {
-              lines[lineIndex] = line.copyWith(verifiedStatus: 'over');
+              lines[lineIndex] = line.copyWith(
+                verifiedStatus: 'correct',
+                scanningQty: barcode.repetitions,
+              );
+            } else if (line.movementQty! != barcode.repetitions) {
+              lines[lineIndex] = line.copyWith(
+                verifiedStatus: 'different',
+                scanningQty: barcode.repetitions,
+              );
             }
+          } else {
+            linesOver = [
+              ...linesOver,
+              Barcode(
+                index: linesOver.length + 1,
+                code: barcode.code,
+                repetitions: barcode.repetitions,
+                coloring: false,
+              ),
+            ];
           }
         }
         // Actualizar el estado con las líneas verificadas
         state = state.copyWith(
           shipment: state.shipment!.copyWith(lines: lines),
+          linesOver: linesOver,
         );
       }
     }
@@ -218,18 +288,40 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
   }
 
   void selectRepeat(String code) {
-    final List<Barcode> updatedList = state.scanBarcodeListTotal;
-    for (int i = 0; i < updatedList.length; i++) {
+    final List<Barcode> updatedListTotal = state.scanBarcodeListTotal;
+    final List<Barcode> updatedListUnique = state.scanBarcodeListUnique;
+    final List<Barcode> updatedLinesOver = state.linesOver;
+    for (int i = 0; i < updatedListTotal.length; i++) {
       // Verificamos si el 'code' recibido coincide con el 'code' del elemento actual
-      if (updatedList[i].code == code) {
-        updatedList[i] =
-            updatedList[i].copyWith(coloring: !updatedList[i].coloring);
+      if (updatedListTotal[i].code == code) {
+        updatedListTotal[i] =
+            updatedListTotal[i].copyWith(coloring: !updatedListTotal[i].coloring);
       } else {
-        updatedList[i] = updatedList[i].copyWith(coloring: false);
+        updatedListTotal[i] = updatedListTotal[i].copyWith(coloring: false);
+      }
+    }
+    for (int i = 0; i < updatedListUnique.length; i++) {
+      // Verificamos si el 'code' recibido coincide con el 'code' del elemento actual
+      if (updatedListUnique[i].code == code) {
+        updatedListUnique[i] =
+            updatedListUnique[i].copyWith(coloring: !updatedListUnique[i].coloring);
+      } else {
+        updatedListUnique[i] = updatedListUnique[i].copyWith(coloring: false);
+      }
+    }
+    for (int i = 0; i < updatedLinesOver.length; i++) {
+      // Verificamos si el 'code' recibido coincide con el 'code' del elemento actual
+      if (updatedLinesOver[i].code == code) {
+        updatedLinesOver[i] =
+            updatedLinesOver[i].copyWith(coloring: !updatedLinesOver[i].coloring);
+      } else {
+        updatedLinesOver[i] = updatedLinesOver[i].copyWith(coloring: false);
       }
     }
     state = state.copyWith(
-      scanBarcodeListTotal: updatedList,
+      scanBarcodeListTotal: updatedListTotal,
+      scanBarcodeListUnique: updatedListUnique,
+      linesOver: updatedLinesOver,
     );
   }
 
@@ -254,6 +346,7 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
 class ShipmentStatus {
   final List<Barcode> scanBarcodeListTotal;
   final List<Barcode> scanBarcodeListUnique;
+  final List<Barcode> linesOver;
   final Shipment? shipment;
   final bool viewShipment;
   final bool uniqueView;
@@ -263,6 +356,7 @@ class ShipmentStatus {
   ShipmentStatus({
     required this.scanBarcodeListTotal,
     required this.scanBarcodeListUnique,
+    this.linesOver = const [],
     this.shipment,
     this.viewShipment = false,
     this.uniqueView = false,
@@ -273,6 +367,7 @@ class ShipmentStatus {
   ShipmentStatus copyWith({
     List<Barcode>? scanBarcodeListTotal,
     List<Barcode>? scanBarcodeListUnique,
+    List<Barcode>? linesOver,
     Shipment? shipment,
     bool? viewShipment,
     bool? uniqueView,
@@ -283,6 +378,7 @@ class ShipmentStatus {
         scanBarcodeListTotal: scanBarcodeListTotal ?? this.scanBarcodeListTotal,
         scanBarcodeListUnique:
             scanBarcodeListUnique ?? this.scanBarcodeListUnique,
+        linesOver: linesOver ?? this.linesOver,
         shipment: shipment ?? this.shipment,
         viewShipment: viewShipment ?? this.viewShipment,
         uniqueView: uniqueView ?? this.uniqueView,

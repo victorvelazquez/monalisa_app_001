@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:monalisa_app_001/config/config.dart';
 import 'package:monalisa_app_001/features/shipment/domain/entities/barcode.dart';
 
 class BarcodeList extends StatefulWidget {
@@ -33,14 +34,14 @@ class ScrollingTextWidgetState extends State<BarcodeList> {
     return Column(
       children: [
         Container(
-          color: widget.barcode.coloring ? const Color.fromRGBO(20, 25, 45, 0.5) : null,
+          color: widget.barcode.coloring ? colorSeedLight : null,
           child: Row(
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: Text(
                   widget.barcode.index.toString(),
-                  style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                  style: TextStyle(fontSize: 16, color: widget.barcode.coloring ? Colors.grey :Colors.grey[700]),
                 ),
               ),
               Expanded(
@@ -49,14 +50,14 @@ class ScrollingTextWidgetState extends State<BarcodeList> {
                 scrollDirection: Axis.horizontal,
                 child: Text(
                   widget.barcode.code.toString(),
-                  style: TextStyle(fontSize: 16),
+                  style: TextStyle(fontSize: 16, color: widget.barcode.coloring ? Colors.white : null),
                 ),
               )),
               IconButton(
                 onPressed:  widget.onPressedrepetitions,
                 icon: Text(
                   widget.barcode.repetitions.toString(),
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: widget.barcode.coloring ? Colors.white : null),
                 ),
               ),
               IconButton(

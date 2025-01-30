@@ -32,6 +32,9 @@ class Line {
     String? sku;
     String? modelName;
     String? verifiedStatus;
+    int? scanningQty;
+
+
 
     Line({
         this.id,
@@ -65,6 +68,7 @@ class Line {
         this.sku,
         this.modelName,
         this.verifiedStatus,
+        this.scanningQty,
     });
 
     factory Line.jsonToEntity(Map<String, dynamic> json) => Line(
@@ -132,6 +136,7 @@ class Line {
       String? sku,
       String? modelName,
       String? verifiedStatus,
+      int? scanningQty,
     }) {
       return Line(
         id: id ?? this.id,
@@ -165,6 +170,7 @@ class Line {
         sku: sku ?? this.sku,
         modelName: modelName ?? this.modelName,
         verifiedStatus: verifiedStatus ?? this.verifiedStatus,
+        scanningQty: scanningQty ?? this.scanningQty,
       );
     }
 }
