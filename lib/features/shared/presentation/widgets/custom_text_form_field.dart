@@ -63,7 +63,7 @@ class CustomTextFormField extends StatelessWidget {
         validator: validator,
         obscureText: obscureText,
         keyboardType: keyboardType,
-        style: const TextStyle(fontSize: 18, color: Colors.black54),
+        style: const TextStyle(fontSize: 16, color: Colors.black54),
         maxLines: maxLines,
         initialValue: initialValue,
         decoration: InputDecoration(

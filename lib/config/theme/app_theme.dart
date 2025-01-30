@@ -40,6 +40,6 @@ class AppTheme {
         color: scaffoldBackgroundColor,
         centerTitle: true,
         titleTextStyle: GoogleFonts.roboto().copyWith(
-            fontSize: 25, fontWeight: FontWeight.bold, color: Colors.black),
+            fontSize: 22, fontWeight: FontWeight.bold, color: colorSeed),
       ));
 }

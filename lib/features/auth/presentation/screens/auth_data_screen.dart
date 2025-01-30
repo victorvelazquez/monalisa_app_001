@@ -138,7 +138,7 @@ class _BuildDropdown<T> extends ConsumerWidget {
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                           style: const TextStyle(
-                            fontSize: 18,
+                            fontSize: 16,
                           ),
                         ),
                       ),
