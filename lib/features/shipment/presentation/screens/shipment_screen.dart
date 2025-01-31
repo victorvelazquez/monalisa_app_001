@@ -6,6 +6,7 @@ import 'package:monalisa_app_001/features/shipment/presentation/widgets/barcode_
 import 'package:monalisa_app_001/features/shipment/presentation/widgets/enter_barcode_box.dart';
 import '../../domain/entities/barcode.dart';
 import '../providers/shipment_providers.dart';
+import '../widgets/enter_barcode_button.dart';
 
 class ShipmentScreen extends ConsumerWidget {
   const ShipmentScreen({super.key});
@@ -596,9 +597,10 @@ class _ScanView extends ConsumerWidget {
             _buildActionFilterList(shipmentNotifier),
             _buildBarcodeList(barcodeList, shipmentNotifier),
             SizedBox(height: 5),
-            EnterBarcodeBox(
-                onValue: shipmentNotifier.addBarcode,
-                hintText: 'Escanear código de barras'),
+            // EnterBarcodeBox(
+            //     onValue: shipmentNotifier.addBarcode,
+            //     hintText: 'Escanear código de barras'),
+            EnterBarcodeButton(shipmentNotifier),
             SizedBox(height: 5),
           ],
         ),
