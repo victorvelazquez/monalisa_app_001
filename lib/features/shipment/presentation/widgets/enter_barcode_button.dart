@@ -31,20 +31,23 @@ class EnterBarcodeButtonState extends State<EnterBarcodeButton> {
   }
 
   void _handleKeyEvent(KeyEvent event) {
-    Future.delayed(Duration(milliseconds: 100), () {
-      if (event is KeyDownEvent) {
-        if (event.logicalKey == LogicalKeyboardKey.enter) {
-          widget.shipmentNotifier.addBarcode(scannedData);
-          setState(() {
-            scannedData = "";
-          });
-        } else {
-          setState(() {
-            scannedData += event.logicalKey.keyLabel;
-          });
-        }
+    if (event is KeyDownEvent) {
+      final String? character = event.character;
+
+      if (event.logicalKey == LogicalKeyboardKey.enter) {
+        widget.shipmentNotifier.addBarcode(scannedData);
+        setState(() {
+          scannedData = "";
+        });
+        return;
       }
-    });
+
+      if (character != null && character.isNotEmpty) {
+        setState(() {
+          scannedData += character;
+        });
+      }
+    }
   }
 
   @override
@@ -75,7 +78,8 @@ class EnterBarcodeButtonState extends State<EnterBarcodeButton> {
                           ? scannedData
                           : 'Listo para escanear'
                       : 'Presiona para escanear',
-                  style: TextStyle(color: Colors.white, fontSize: themeFontSizeLarge),
+                  style: TextStyle(
+                      color: Colors.white, fontSize: themeFontSizeLarge),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
