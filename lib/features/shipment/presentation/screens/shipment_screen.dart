@@ -326,7 +326,7 @@ class _ShipmentView extends ConsumerWidget {
                               (index + 1).toString(),
                               style: TextStyle(
                                   fontSize: themeFontSizeSmall,
-                                  color: themeFontColorDarkGray),
+                                  color: themeColorDarkGray),
                             ),
                           ),
                           Expanded(
@@ -359,7 +359,7 @@ class _ShipmentView extends ConsumerWidget {
                                       item.productName.toString(),
                                       style: TextStyle(
                                         fontSize: themeFontSizeSmall,
-                                        color: themeFontColorDarkGray,
+                                        color: themeColorDarkGray,
                                       ),
                                     ),
                                   ),
@@ -433,7 +433,7 @@ class _ShipmentView extends ConsumerWidget {
               onPressed: () => Navigator.of(context).pop(),
               label: 'No',
               icon: const Icon(Icons.close_rounded),
-              buttonColor: themeFontColorDarkGrayLight,
+              buttonColor: themeColorDarkGrayLight,
             ),
           ],
         );
@@ -460,50 +460,51 @@ class _ShipmentView extends ConsumerWidget {
                     1: FlexColumnWidth(),
                   },
                   children: [
-                    _buildTableRow("UPC:", item.upc?.toString() ?? '',
-                        themeFontColorDarkGray),
+                    _buildTableRow("UPC:", item.upc?.toString() ?? '', false),
                     _buildTableRow(
-                        "Producto:",
-                        item.productName?.toString() ?? '',
-                        themeFontColorDarkGray),
+                        "Producto:", item.productName?.toString() ?? '', false),
+                    _buildTableRow(
+                        "Cantidad:", item.movementQty?.toString() ?? '0', true),
+                    _buildTableRow("Escaneado:",
+                        item.scanningQty?.toString() ?? '0', true),
                   ],
                 ),
-                SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      children: [
-                        Text(
-                          'Cantidad:',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          item.movementQty?.toString() ?? '0',
-                          style: TextStyle(
-                              fontWeight: FontWeight.normal,
-                              fontSize: themeFontSizeTitle,
-                              color: themeFontColorDarkGray),
-                        )
-                      ],
-                    ),
-                    Column(
-                      children: [
-                        Text(
-                          'Escaneado:',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          item.scanningQty?.toString() ?? '0',
-                          style: TextStyle(
-                              fontWeight: FontWeight.normal,
-                              fontSize: themeFontSizeTitle,
-                              color: themeFontColorDarkGray),
-                        )
-                      ],
-                    ),
-                  ],
-                ),
+                // SizedBox(height: 16),
+                // Row(
+                //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //   children: [
+                //     Column(
+                //       children: [
+                //         Text(
+                //           'Cantidad:',
+                //           style: const TextStyle(fontWeight: FontWeight.bold),
+                //         ),
+                //         Text(
+                //           item.movementQty?.toString() ?? '0',
+                //           style: TextStyle(
+                //               fontWeight: FontWeight.normal,
+                //               fontSize: themeFontSizeTitle,
+                //               color: themeColorDarkGray),
+                //         )
+                //       ],
+                //     ),
+                //     Column(
+                //       children: [
+                //         Text(
+                //           'Escaneado:',
+                //           style: const TextStyle(fontWeight: FontWeight.bold),
+                //         ),
+                //         Text(
+                //           item.scanningQty?.toString() ?? '0',
+                //           style: TextStyle(
+                //               fontWeight: FontWeight.normal,
+                //               fontSize: themeFontSizeTitle,
+                //               color: themeColorDarkGray),
+                //         )
+                //       ],
+                //     ),
+                //   ],
+                // ),
               ],
             ),
           ),
@@ -520,7 +521,7 @@ class _ShipmentView extends ConsumerWidget {
               },
               label: 'Manual',
               icon: const Icon(Icons.touch_app_outlined),
-              buttonColor: themeFontColorDarkGrayLight,
+              buttonColor: themeColorDarkGrayLight,
             ),
           ],
         );
@@ -535,7 +536,7 @@ class _ShipmentView extends ConsumerWidget {
         SizedBox(height: 32),
         Text('Productos a remover',
             style: TextStyle(
-                fontSize: themeFontSizeSmall, color: themeFontColorDarkGray)),
+                fontSize: themeFontSizeSmall, color: themeColorDarkGray)),
         SizedBox(height: 4),
         Divider(height: 0),
         Column(
@@ -580,7 +581,7 @@ class _ShipmentView extends ConsumerWidget {
               onPressed: () => Navigator.of(context).pop(),
               label: 'No',
               icon: const Icon(Icons.close_rounded),
-              buttonColor: themeFontColorDarkGrayLight,
+              buttonColor: themeColorDarkGrayLight,
             ),
           ],
         );
@@ -589,21 +590,27 @@ class _ShipmentView extends ConsumerWidget {
   }
 }
 
-TableRow _buildTableRow(String label, String value, Color textColor) {
+TableRow _buildTableRow(String label, String value, bool fontSizeTitle) {
   return TableRow(
     children: [
-      Padding(
+      Container(
+        height: fontSizeTitle ? 40 : null,
         padding: const EdgeInsets.fromLTRB(0, 2, 0, 2),
+        alignment: fontSizeTitle ? AlignmentDirectional(-1, -0.3) : null,
         child: Text(
           label,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
-      Padding(
+      Container(
         padding: const EdgeInsets.fromLTRB(4, 2, 0, 2),
         child: Text(
           value,
-          style: TextStyle(fontWeight: FontWeight.normal, color: textColor),
+          style: TextStyle(
+            fontWeight: FontWeight.normal,
+            color: themeColorDarkGray,
+            fontSize: fontSizeTitle ? themeFontSizeTitle : null,
+          ),
         ),
       ),
     ],
@@ -672,13 +679,13 @@ class _ScanView extends ConsumerWidget {
     final styleText = TextStyle(
       fontSize: themeFontSizeSmall,
       fontWeight: FontWeight.bold,
-      color: isActive ? themeColorPrimary : themeFontColorDarkGray,
+      color: isActive ? themeColorPrimary : themeColorDarkGray,
     );
 
     final styleCounting = TextStyle(
       fontSize: themeFontSizeLarge,
       fontWeight: FontWeight.bold,
-      color: isActive ? themeColorPrimary : themeFontColorDarkGray,
+      color: isActive ? themeColorPrimary : themeColorDarkGray,
     );
 
     return GestureDetector(
@@ -750,7 +757,7 @@ class _ScanView extends ConsumerWidget {
               onPressed: () => Navigator.of(context).pop(),
               label: 'No',
               icon: const Icon(Icons.close_rounded),
-              buttonColor: themeFontColorDarkGrayLight,
+              buttonColor: themeColorDarkGrayLight,
             ),
           ],
         );

@@ -39,7 +39,7 @@ class CustomDropDown<T> extends ConsumerWidget {
           height: 40,
           width: expand ? double.infinity : null,
           decoration: BoxDecoration(
-            border: Border.all(color: themeFontColorDarkGrayLight),
+            border: Border.all(color: themeColorDarkGrayLight),
             borderRadius: BorderRadius.circular(themeBorderRadius),
           ),
           child: DropdownButtonHideUnderline(

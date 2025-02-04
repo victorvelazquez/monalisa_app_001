@@ -89,7 +89,7 @@ class RoleView extends ConsumerWidget {
                 label: 'Cancelar',
                 icon: const Icon(Icons.close),
                 labelColor: Colors.white,
-                buttonColor: themeFontColorDarkGrayLight,
+                buttonColor: themeColorDarkGrayLight,
               )
             ],
           ),
