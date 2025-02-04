@@ -28,13 +28,13 @@ const appMenuItems = <MenuItem>[
 
 const appHomeOptionItems = <MenuItem>[
   MenuItem(
-    title: 'Shipment',
+    title: 'Shipment Shipment',
     subTitle: '',
     link: '/shipment',
     icon: Icons.multiple_stop_outlined,
   ),
   MenuItem(
-    title: 'Reportes',
+    title: 'Reportes Reportes',
     subTitle: '',
     link: '/splash',
     icon: Icons.pie_chart,
@@ -44,11 +44,6 @@ const appHomeOptionItems = <MenuItem>[
       subTitle: '',
       link: '/splash',
       icon: Icons.people_alt_outlined),
-  MenuItem(
-      title: 'Templates',
-      subTitle: '',
-      link: '/templateHome',
-      icon: Icons.widgets),
 ];
 
 const appTemplateMenuItems = <MenuItem>[

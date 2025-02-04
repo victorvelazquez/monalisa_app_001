@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:monalisa_app_001/config/config.dart';
 
 class CustomTextFormField extends StatelessWidget {
-  final bool isTopField;
-  final bool isBottomField;
   final String? label;
   final String? hint;
   final String? errorMessage;
@@ -13,11 +12,12 @@ class CustomTextFormField extends StatelessWidget {
   final Function(String)? onChanged;
   final Function(String)? onFieldSubmitted;
   final String? Function(String?)? validator;
+  final bool border;
+  final Widget? prefixIcon;
+  final Widget? suffixIcon;
 
   const CustomTextFormField({
     super.key,
-    this.isTopField = false,
-    this.isBottomField = false,
     this.label,
     this.hint,
     this.errorMessage,
@@ -28,61 +28,71 @@ class CustomTextFormField extends StatelessWidget {
     this.onChanged,
     this.onFieldSubmitted,
     this.validator,
+    this.border = true,
+    this.prefixIcon,
+    this.suffixIcon,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
-    final border = OutlineInputBorder(
-        borderSide: const BorderSide(color: Colors.transparent),
-        borderRadius: BorderRadius.circular(5));
-
-    const borderRadius = Radius.circular(5);
+    final inputBorder = OutlineInputBorder(
+      borderSide: BorderSide(
+          color: border ? themeFontColorDarkGrayLight : Colors.transparent),
+      borderRadius: BorderRadius.circular(themeBorderRadius),
+    );
 
     return Container(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 3),
       decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: isTopField ? borderRadius : Radius.zero,
-            topRight: isTopField ? borderRadius : Radius.zero,
-            bottomLeft: isBottomField ? borderRadius : Radius.zero,
-            bottomRight: isBottomField ? borderRadius : Radius.zero,
-          ),
-          boxShadow: [
-            if (isBottomField)
-              BoxShadow(
+        color: themeBackgroundColor,
+        borderRadius: BorderRadius.circular(themeBorderRadius),
+        boxShadow: border
+            ? null
+            : [
+                BoxShadow(
                   color: Colors.black.withValues(alpha: 0.06),
                   blurRadius: 5,
-                  offset: const Offset(0, 3))
-          ]),
-      child: TextFormField(
-        onChanged: onChanged,
-        onFieldSubmitted: onFieldSubmitted,
-        validator: validator,
-        obscureText: obscureText,
-        keyboardType: keyboardType,
-        style: const TextStyle(fontSize: 16, color: Colors.black54),
-        maxLines: maxLines,
-        initialValue: initialValue,
-        decoration: InputDecoration(
-          floatingLabelBehavior: maxLines > 1
-              ? FloatingLabelBehavior.always
-              : FloatingLabelBehavior.auto,
-          floatingLabelStyle: const TextStyle(
-              color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
-          enabledBorder: border,
-          focusedBorder: border,
-          errorBorder: border.copyWith(
-              borderSide: const BorderSide(color: Colors.transparent)),
-          focusedErrorBorder: border.copyWith(
-              borderSide: const BorderSide(color: Colors.transparent)),
-          isDense: true,
-          label: label != null ? Text(label!) : null,
-          hintText: hint,
-          errorText: errorMessage,
-          focusColor: colors.primary,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+      ),
+      child: SizedBox(
+        height: 40,
+        child: TextFormField(
+          onChanged: onChanged,
+          onFieldSubmitted: onFieldSubmitted,
+          validator: validator,
+          obscureText: obscureText,
+          keyboardType: keyboardType,
+          style: TextStyle(
+            fontSize: themeFontSizeNormal,
+          ),
+          maxLines: maxLines,
+          initialValue: initialValue,
+          decoration: InputDecoration(
+            floatingLabelBehavior: maxLines > 1
+                ? FloatingLabelBehavior.always
+                : FloatingLabelBehavior.auto,
+            floatingLabelStyle: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: themeFontSizeNormal,
+            ),
+            enabledBorder: inputBorder,
+            focusedBorder: inputBorder,
+            errorBorder: inputBorder.copyWith(
+              borderSide: const BorderSide(color: Colors.transparent),
+            ),
+            focusedErrorBorder: inputBorder.copyWith(
+              borderSide: const BorderSide(color: Colors.transparent),
+            ),
+            isDense: true,
+            label: label != null ? Text(label!) : null,
+            hintText: hint,
+            errorText: errorMessage,
+            prefixIcon: prefixIcon,
+            suffixIcon: suffixIcon,
+          ),
         ),
       ),
     );

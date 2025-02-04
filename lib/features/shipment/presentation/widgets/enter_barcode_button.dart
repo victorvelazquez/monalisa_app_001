@@ -57,11 +57,11 @@ class EnterBarcodeButtonState extends State<EnterBarcodeButton> {
           _focusNode.requestFocus();
         },
         child: Container(
-          padding: EdgeInsets.all(12),
+          height: 40,
           width: double.infinity,
           decoration: BoxDecoration(
-            color: _focusNode.hasFocus ? colorSeedLight : Colors.grey,
-            borderRadius: BorderRadius.circular(10),
+            color: _focusNode.hasFocus ? themeColorPrimary : Colors.grey,
+            borderRadius: BorderRadius.circular(themeBorderRadius),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -75,7 +75,7 @@ class EnterBarcodeButtonState extends State<EnterBarcodeButton> {
                           ? scannedData
                           : 'Listo para escanear'
                       : 'Presiona para escanear',
-                  style: TextStyle(color: Colors.white, fontSize: 16),
+                  style: TextStyle(color: Colors.white, fontSize: themeFontSizeLarge),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),

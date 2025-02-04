@@ -30,7 +30,7 @@ class LoginScreen extends StatelessWidget {
             Container(
               height: 385,
               decoration: BoxDecoration(
-                color: backgroundColor,
+                color: themeBackgroundColorLight,
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(30),
                   topRight: Radius.circular(30),
@@ -64,7 +64,6 @@ class _LoginFormState extends ConsumerState<_LoginForm> {
     final loginForm = ref.watch(loginFormProvider);
     final textStyles = Theme.of(context).textTheme;
 
-    // Mover ref.listen aquí
     ref.listen(authProvider, (previous, next) {
       if (next.errorMessage.isNotEmpty) {
         _showSnackbar(next.errorMessage);
@@ -80,38 +79,33 @@ class _LoginFormState extends ConsumerState<_LoginForm> {
           const SizedBox(height: 20),
           CustomTextFormField(
             label: 'Usuario',
-            isTopField: true,
-            isBottomField: true,
             onChanged: ref.read(loginFormProvider.notifier).onUserNameChange,
             errorMessage:
                 loginForm.isFormPosted ? loginForm.userName.errorMessage : null,
+            border: false,
           ),
           const SizedBox(height: 16),
           CustomTextFormField(
             label: 'Contraseña',
-            isTopField: true,
-            isBottomField: true,
             obscureText: true,
             onChanged: ref.read(loginFormProvider.notifier).onPasswordChanged,
             onFieldSubmitted: (_) =>
                 ref.read(loginFormProvider.notifier).onFormSubmit(),
             errorMessage:
                 loginForm.isFormPosted ? loginForm.password.errorMessage : null,
+            border: false,
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            height: 60,
-            child: CustomFilledButton(
-              text: 'Ingresar',
-              icon: const Icon(Icons.login_outlined),
-              onPressed: loginForm.isPosting
-                  ? null
-                  : ref.read(loginFormProvider.notifier).onFormSubmit,
-              isPosting: loginForm.isPosting,
-            ),
+          CustomFilledButton(
+            label: 'Ingresar',
+            icon: const Icon(Icons.login_outlined),
+            onPressed: loginForm.isPosting
+                ? null
+                : ref.read(loginFormProvider.notifier).onFormSubmit,
+            isPosting: loginForm.isPosting,
+            expand: true,
           ),
-          const SizedBox(height: 50),
+          const SizedBox(height: 32),
         ],
       ),
     );

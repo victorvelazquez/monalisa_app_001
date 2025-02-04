@@ -17,7 +17,6 @@ class EnterBarcodeBox extends StatefulWidget {
 class EnterBarcodeBoxState extends State<EnterBarcodeBox> {
   final TextEditingController textController = TextEditingController();
   final FocusNode focusNode = FocusNode();
-  bool isKeyboardEnabled = true;
 
   @override
   void dispose() {
@@ -26,16 +25,10 @@ class EnterBarcodeBoxState extends State<EnterBarcodeBox> {
     super.dispose();
   }
 
-  void toggleKeyboard() {
-    setState(() {
-      isKeyboardEnabled = !isKeyboardEnabled;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final outlineInputBorder = UnderlineInputBorder(
-        borderSide: BorderSide(color: colorSeed),
+        borderSide: BorderSide(color: themeColorPrimary),
         borderRadius: BorderRadius.circular(10));
     final inputDecoration = InputDecoration(
         hintText: widget.hintText,
@@ -43,13 +36,10 @@ class EnterBarcodeBoxState extends State<EnterBarcodeBox> {
         focusedBorder: outlineInputBorder,
         fillColor: Colors.white,
         filled: true,
-        prefixIcon: IconButton(
-            icon: Icon(Icons.keyboard_rounded),
-            color: isKeyboardEnabled ? colorSeed : Colors.grey[700],
-            onPressed: toggleKeyboard),
+        prefixIcon: Icon(Icons.qr_code_scanner_rounded),
         suffixIcon: IconButton(
             icon: Icon(Icons.send_rounded),
-            color: colorSeed,
+            color: themeColorPrimary,
             onPressed: () {
               if (textController.text.isNotEmpty) {
                 final textValue = textController.text;
@@ -66,9 +56,7 @@ class EnterBarcodeBoxState extends State<EnterBarcodeBox> {
       },
       controller: textController,
       decoration: inputDecoration,
-      enableInteractiveSelection: !isKeyboardEnabled,
       showCursor: true,
-      readOnly: !isKeyboardEnabled,
       onFieldSubmitted: (value) {
         if (value.isNotEmpty) {
           textController.clear();

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:monalisa_app_001/config/config.dart';
+import 'package:monalisa_app_001/config/theme/app_theme.dart';
 import 'package:monalisa_app_001/features/shipment/domain/entities/barcode.dart';
 
 class BarcodeList extends StatefulWidget {
@@ -34,36 +34,48 @@ class ScrollingTextWidgetState extends State<BarcodeList> {
     return Column(
       children: [
         Container(
-          color: widget.barcode.coloring ? colorSeedLight : null,
+          color: widget.barcode.coloring ? Colors.blue[100] : null,
           child: Row(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
+                padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
                 child: Text(
                   widget.barcode.index.toString(),
-                  style: TextStyle(fontSize: 16, color: widget.barcode.coloring ? Colors.grey :Colors.grey[700]),
+                  style:
+                      TextStyle(fontSize: themeFontSizeSmall, color: themeFontColorDarkGray),
                 ),
               ),
               Expanded(
                   child: SingleChildScrollView(
                 controller: _scrollController,
                 scrollDirection: Axis.horizontal,
-                child: Text(
-                  widget.barcode.code.toString(),
-                  style: TextStyle(fontSize: 16, color: widget.barcode.coloring ? Colors.white : null),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    widget.barcode.code.toString(),
+                    style: TextStyle(fontSize: themeFontSizeLarge),
+                  ),
                 ),
               )),
-              IconButton(
-                onPressed:  widget.onPressedrepetitions,
-                icon: Text(
-                  widget.barcode.repetitions.toString(),
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: widget.barcode.coloring ? Colors.white : null),
+              GestureDetector(
+                onTap: widget.onPressedrepetitions,
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Text(
+                    widget.barcode.repetitions.toString(),
+                    style: TextStyle(fontSize: themeFontSizeLarge, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
-              IconButton(
-                onPressed: widget.onPressedDelete,
-                icon: const Icon(Icons.clear_rounded),
-                color: Colors.redAccent,
+              GestureDetector(
+                onTap: widget.onPressedDelete,
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Icon(
+                    Icons.clear_rounded,
+                    color: themeColorError,
+                  ),
+                ),
               ),
             ],
           ),

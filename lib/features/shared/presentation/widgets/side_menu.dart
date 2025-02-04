@@ -22,78 +22,81 @@ class SideMenuState extends ConsumerState<SideMenu> {
   Widget build(BuildContext context) {
     final hasNotch = MediaQuery.of(context).viewPadding.top > 35;
     final authDataState = ref.watch(authProvider);
+
     return NavigationDrawer(
-        elevation: 1,
-        selectedIndex: navDrawerIndex,
-        backgroundColor: scaffoldBackgroundColor,
-        onDestinationSelected: (value) {
-          setState(() {
-            navDrawerIndex = value;
-          });
-          final menuItem = appMenuItems[value];
-          context.push(menuItem.link);
-          widget.scaffoldKey.currentState?.closeDrawer();
-        },
-        children: [
-          Padding(
-            padding: EdgeInsets.only(top: hasNotch ? 30 : 20),
-            child: SizedBox(
-                width: double.infinity,
-                child: Image.asset('assets/images/logo-monalisa.jpg',
-                    fit: BoxFit.contain)),
-          ),
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 20, 16, 10),
-            child: Divider(),
-          ),
-          ...appMenuItems.sublist(0, appMenuItems.length).map(
-                (item) => Padding(
-                  padding: const EdgeInsets.only(left: 10),
-                  child: ListTile(
-                    leading: Icon(item.icon),
-                    title: Text(item.title),
-                    onTap: () {
-                      setState(() {
-                        _selectedItem = item.title;
-                      });
-                      if (item.link == '/authData') {
-                        ref.read(authProvider.notifier).loadAuthData();
-                      } else if (item.link == '/logout') {
-                        ref.read(authProvider.notifier).logout();
-                      } else {
-                        context.push(item.link);
-                      }
-                      widget.scaffoldKey.currentState?.closeDrawer();
-                    },
-                    selected: _selectedItem == item.title,
-                  ),
-                ),
-              ),
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 10, 16, 10),
-            child: Divider(),
-          ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(25, 0, 25, 20),
-            child: RichText(
-              text: TextSpan(
-                text: '',
-                style: TextStyle(
-                  // fontSize: 14.0,
-                  color: Colors.black,
-                ),
-                children: [
-                  TextSpan(
-                    text: authDataState.authInfo ?? '',
-                    style: TextStyle(
-                      // fontSize: 14.0,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ],
-              ),
+      elevation: 1,
+      selectedIndex: navDrawerIndex,
+      backgroundColor: themeBackgroundColor,
+      onDestinationSelected: (value) {
+        setState(() {
+          navDrawerIndex = value;
+        });
+        final menuItem = appMenuItems[value];
+        context.push(menuItem.link);
+        widget.scaffoldKey.currentState?.closeDrawer();
+      },
+      children: [
+        Padding(
+          padding: EdgeInsets.only(top: hasNotch ? 30 : 20),
+          child: SizedBox(
+            width: double.infinity,
+            child: Image.asset(
+              'assets/images/logo-monalisa.jpg',
+              fit: BoxFit.contain,
             ),
           ),
-        ]);
+        ),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(16, 20, 16, 10),
+          child: Divider(),
+        ),
+        ...appMenuItems.map(
+          (item) => Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: ListTile(
+              leading: Icon(item.icon),
+              title: Text(item.title),
+              onTap: () {
+                setState(() {
+                  _selectedItem = item.title;
+                });
+                if (item.link == '/authData') {
+                  ref.read(authProvider.notifier).loadAuthData();
+                } else if (item.link == '/logout') {
+                  ref.read(authProvider.notifier).logout();
+                } else {
+                  context.push(item.link);
+                }
+                widget.scaffoldKey.currentState?.closeDrawer();
+              },
+              selected: _selectedItem == item.title,
+            ),
+          ),
+        ),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(16, 10, 16, 10),
+          child: Divider(),
+        ),
+        Padding(
+          padding: EdgeInsets.fromLTRB(25, 0, 25, 20),
+          child: RichText(
+            text: TextSpan(
+              text: '',
+              style: TextStyle(
+                color: Colors.black,
+              ),
+              children: [
+                TextSpan(
+                  text: authDataState.authInfo ?? '',
+                  style: TextStyle(
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

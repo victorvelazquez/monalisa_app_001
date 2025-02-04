@@ -18,13 +18,12 @@ class HomeScreen extends StatelessWidget {
         title: const Text('Opciones'),
       ),
       body: Padding(
-        padding: const EdgeInsets.fromLTRB(32, 10, 32, 10),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
         child: GridView.builder(
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 1.2,
+            crossAxisCount: 3,
+            crossAxisSpacing: 4,
+            mainAxisSpacing: 4,
           ),
           itemCount: appHomeOptionItems.length,
           itemBuilder: (context, index) {

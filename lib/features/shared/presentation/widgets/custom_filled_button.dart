@@ -1,63 +1,60 @@
 import 'package:flutter/material.dart';
+import 'package:monalisa_app_001/config/config.dart';
 
 class CustomFilledButton extends StatelessWidget {
   final void Function()? onPressed;
-  final String text;
+  final String label;
   final Color? buttonColor;
   final Icon? icon;
-  final Color? textColor;
-  final bool? isPosting;
+  final Color? labelColor;
+  final bool isPosting;
+  final bool expand;
 
   const CustomFilledButton({
     super.key,
     this.onPressed,
-    required this.text,
+    required this.label,
     this.buttonColor,
     this.icon,
-    this.textColor,
+    this.labelColor,
     this.isPosting = false,
+    this.expand = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    const radius = Radius.circular(5);
-
-    return FilledButton(
-      style: FilledButton.styleFrom(
-          backgroundColor: buttonColor,
-          disabledBackgroundColor: Colors.grey,
-          shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(radius)),
-          minimumSize: const Size(100, 55)),
-      onPressed: onPressed,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (isPosting!) ...[
-            const SizedBox(
-              width: 22,
-              height: 22,
-              child: CircularProgressIndicator(
-                color: Colors.white, // Color del indicador de carga
-                strokeWidth: 2,
-              ),
-            ),
-            const SizedBox(width: 8),
-          ],
-          if (icon != null && isPosting == false) ...[
-            Icon(
-              icon!.icon,
-              color: textColor ?? Colors.white,
-              size: 22,
-            ),
-            const SizedBox(width: 8),
-          ],
-          Text(
-            text,
-            style: TextStyle(color: textColor ?? Colors.white, fontSize: 16),
-          ),
-        ],
+    return SizedBox(
+      height: 40,
+      width: expand ? double.infinity : null,
+      child: FilledButton.icon(
+        style: FilledButton.styleFrom(
+            backgroundColor: buttonColor,
+            disabledBackgroundColor: Colors.grey,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(themeBorderRadius))),
+        onPressed: onPressed,
+        icon: icon != null
+            ? isPosting
+                ? _buildLoadingIndicator()
+                : _buildIcon()
+            : null,
+        label: Text(label, style: TextStyle(color: labelColor ?? Colors.white)),
       ),
     );
+  }
+
+  Widget _buildLoadingIndicator() {
+    return const SizedBox(
+      width: 18,
+      height: 18,
+      child: CircularProgressIndicator(
+        color: Colors.white,
+        strokeWidth: 2,
+      ),
+    );
+  }
+
+  Widget _buildIcon() {
+    return Icon(icon!.icon, color: labelColor ?? Colors.white);
   }
 }

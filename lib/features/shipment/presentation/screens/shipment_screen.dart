@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:monalisa_app_001/config/config.dart';
+import 'package:monalisa_app_001/features/shared/shared.dart';
 import 'package:monalisa_app_001/features/shipment/domain/entities/line.dart';
 import 'package:monalisa_app_001/features/shipment/presentation/widgets/barcode_list.dart';
-import 'package:monalisa_app_001/features/shipment/presentation/widgets/enter_barcode_box.dart';
+import 'package:intl/intl.dart';
 import '../../domain/entities/barcode.dart';
 import '../providers/shipment_providers.dart';
 import '../widgets/enter_barcode_button.dart';
@@ -35,24 +36,26 @@ class ShipmentScreen extends ConsumerWidget {
             ],
             isScrollable: true,
             indicatorWeight: 4,
-            indicatorColor: colorSeed,
-            dividerColor: colorSeed,
+            indicatorColor: themeColorPrimary,
+            dividerColor: themeColorPrimary,
             tabAlignment: TabAlignment.start,
             labelStyle: TextStyle(
-                fontSize: 22, fontWeight: FontWeight.bold, color: colorSeed),
-            unselectedLabelStyle: TextStyle(fontSize: 16),
+                fontSize: themeFontSizeTitle,
+                fontWeight: FontWeight.bold,
+                color: themeColorPrimary),
+            unselectedLabelStyle: TextStyle(fontSize: themeFontSizeLarge),
           ),
           actions: shipmentState.viewShipment
               ? [
                   IconButton(
                     onPressed: shipmentNotifier.isConfirmShipment()
                         ? () => shipmentNotifier.confirmShipment()
-                        : () => _showConfirmShipment(context, shipmentNotifier),
+                        : () => _showConfirmShipment(context),
                     icon: Icon(
                       Icons.check,
                       color: shipmentNotifier.isConfirmShipment()
-                          ? Colors.green[600]
-                          : Colors.grey[800],
+                          ? themeColorSuccessful
+                          : null,
                     ),
                   ),
                 ]
@@ -72,19 +75,22 @@ class ShipmentScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _showConfirmShipment(
-      BuildContext context, ShipmentNotifier shipmentNotifier) {
+  Future<void> _showConfirmShipment(BuildContext context) {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(themeBorderRadius),
+          ),
           title: const Text('Confirmar Lineas'),
           content: const Text(
               'Por favor, verifica las líneas. Puede que falten códigos por escanear o que se hayan escaneado de más.'),
           actions: <Widget>[
-            TextButton(
+            CustomFilledButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cerrar'),
+              label: 'Cerrar',
+              icon: const Icon(Icons.close_rounded),
             ),
           ],
         );
@@ -105,52 +111,27 @@ class _ShipmentView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SafeArea(
-      child: Container(
-        color: backgroundColor,
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Stack(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildShipmentHeader(),
-                    const SizedBox(height: 5),
-                    _buildShipmentList(),
-                    shipmentState.linesOver.isNotEmpty
-                        ? _buildListOver(
-                            context,
-                            shipmentState.linesOver,
-                            shipmentNotifier,
-                          )
-                        : SizedBox(),
-                  ],
-                ),
-                shipmentState.viewShipment
-                    ? Positioned(
-                        right: 0,
-                        top: 0,
-                        child: IconButton(
-                          icon: Icon(Icons.clear, size: 20),
-                          onPressed:
-                              shipmentState.scanBarcodeListTotal.isNotEmpty
-                                  ? () => _showConfirmclearShipmentData(
-                                      context, shipmentNotifier)
-                                  : () => shipmentNotifier.clearShipmentData(),
-                        ),
-                      )
-                    : SizedBox(),
-              ],
-            ),
-          ),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildShipmentHeader(context),
+            const SizedBox(height: 5),
+            _buildShipmentList(),
+            shipmentState.linesOver.isNotEmpty
+                ? _buildListOver(
+                    context,
+                    shipmentState.linesOver,
+                    shipmentNotifier,
+                  )
+                : SizedBox(),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildShipmentHeader() {
+  Widget _buildShipmentHeader(BuildContext context) {
     return shipmentState.isLoading
         ? Container(
             width: double.infinity,
@@ -158,192 +139,227 @@ class _ShipmentView extends ConsumerWidget {
             child: const Center(child: CircularProgressIndicator()),
           )
         : shipmentState.viewShipment
-            ? Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            ? Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Stack(
                   children: [
-                    RichText(
-                      text: TextSpan(
-                        text: 'Doc. No.: ',
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.black),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(themeBorderRadius),
+                        color:
+                            shipmentState.shipment!.docStatus.id.toString() ==
+                                    'CO'
+                                ? themeColorSuccessfulLight
+                                : Colors.white,
+                      ),
+                      child: Row(
                         children: [
-                          TextSpan(
-                            text: shipmentState.shipment!.documentNo,
-                            style: TextStyle(
-                                fontWeight: FontWeight.normal,
-                                color: Colors.grey[800]),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Doc. No.: ',
+                                style: const TextStyle(
+                                  fontSize: themeFontSizeSmall,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'Date: ',
+                                style: const TextStyle(
+                                  fontSize: themeFontSizeSmall,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'Order: ',
+                                style: const TextStyle(
+                                  fontSize: themeFontSizeSmall,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'O. Date: ',
+                                style: const TextStyle(
+                                  fontSize: themeFontSizeSmall,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'Org.: ',
+                                style: const TextStyle(
+                                  fontSize: themeFontSizeSmall,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'Whs.: ',
+                                style: const TextStyle(
+                                  fontSize: themeFontSizeSmall,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'BP: ',
+                                style: const TextStyle(
+                                  fontSize: themeFontSizeSmall,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'Status: ',
+                                style: const TextStyle(
+                                  fontSize: themeFontSizeSmall,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(width: 10),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                shipmentState.shipment!.documentNo ?? '',
+                                style: TextStyle(fontSize: themeFontSizeSmall),
+                              ),
+                              Text(
+                                DateFormat('dd/MM/yyyy').format(
+                                    shipmentState.shipment!.movementDate),
+                                style: TextStyle(fontSize: themeFontSizeSmall),
+                              ),
+                              Text(
+                                shipmentState.shipment!.cOrderId.identifier ??
+                                    '',
+                                style: TextStyle(fontSize: themeFontSizeSmall),
+                              ),
+                              Text(
+                                DateFormat('dd/MM/yyyy').format(
+                                    shipmentState.shipment!.dateOrdered),
+                                style: TextStyle(fontSize: themeFontSizeSmall),
+                              ),
+                              Text(
+                                shipmentState.shipment!.adOrgId.identifier ??
+                                    '',
+                                style: TextStyle(fontSize: themeFontSizeSmall),
+                              ),
+                              Text(
+                                shipmentState
+                                        .shipment!.mWarehouseId.identifier ??
+                                    '',
+                                style: TextStyle(fontSize: themeFontSizeSmall),
+                              ),
+                              Text(
+                                shipmentState
+                                        .shipment!.cBPartnerId.identifier ??
+                                    '',
+                                style: TextStyle(fontSize: themeFontSizeSmall),
+                              ),
+                              Text(
+                                shipmentState.shipment!.docStatus.identifier ??
+                                    '',
+                                style: TextStyle(fontSize: themeFontSizeSmall),
+                              ),
+                            ],
                           ),
                         ],
                       ),
                     ),
-                    RichText(
-                      text: TextSpan(
-                        text: 'Movement Date: ',
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.black),
-                        children: [
-                          TextSpan(
-                            text:
-                                shipmentState.shipment!.movementDate.toString(),
-                            style: TextStyle(
-                                fontWeight: FontWeight.normal,
-                                color: Colors.grey[800]),
-                          ),
-                        ],
-                      ),
-                    ),
-                    RichText(
-                      text: TextSpan(
-                        text: 'Order: ',
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.black),
-                        children: [
-                          TextSpan(
-                            text: shipmentState.shipment!.cOrderId.identifier,
-                            style: TextStyle(
-                                fontWeight: FontWeight.normal,
-                                color: Colors.grey[800]),
-                          ),
-                        ],
-                      ),
-                    ),
-                    RichText(
-                      text: TextSpan(
-                        text: 'Order Date: ',
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.black),
-                        children: [
-                          TextSpan(
-                            text:
-                                shipmentState.shipment!.dateOrdered.toString(),
-                            style: TextStyle(
-                                fontWeight: FontWeight.normal,
-                                color: Colors.grey[800]),
-                          ),
-                        ],
-                      ),
-                    ),
-                    RichText(
-                      text: TextSpan(
-                        text: 'Organization: ',
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.black),
-                        children: [
-                          TextSpan(
-                            text: shipmentState.shipment!.adOrgId.identifier,
-                            style: TextStyle(
-                                fontWeight: FontWeight.normal,
-                                color: Colors.grey[800]),
-                          ),
-                        ],
-                      ),
-                    ),
-                    RichText(
-                      text: TextSpan(
-                        text: 'Warehouse: ',
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.black),
-                        children: [
-                          TextSpan(
-                            text:
-                                shipmentState.shipment!.mWarehouseId.identifier,
-                            style: TextStyle(
-                                fontWeight: FontWeight.normal,
-                                color: Colors.grey[800]),
-                          ),
-                        ],
-                      ),
-                    ),
-                    RichText(
-                      text: TextSpan(
-                        text: 'Business Partner: ',
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.black),
-                        children: [
-                          TextSpan(
-                            text:
-                                shipmentState.shipment!.cBPartnerId.identifier,
-                            style: TextStyle(
-                                fontWeight: FontWeight.normal,
-                                color: Colors.grey[800]),
-                          ),
-                        ],
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: IconButton(
+                        icon: Icon(Icons.clear, size: 20),
+                        onPressed: shipmentState.scanBarcodeListTotal.isNotEmpty
+                            ? () => _showConfirmclearShipmentData(
+                                context, shipmentNotifier)
+                            : () => shipmentNotifier.clearShipmentData(),
                       ),
                     ),
                   ],
                 ),
               )
-            : EnterBarcodeBox(
-                onValue: shipmentNotifier.getShipmentAndLine,
-                hintText: 'Ingresar documento');
+            : Padding(
+                padding: const EdgeInsets.all(16),
+                child: CustomTextFormField(
+                  hint: 'Ingresar documento',
+                  onChanged: shipmentNotifier.onDocChange,
+                  onFieldSubmitted: (value) =>
+                      shipmentNotifier.getShipmentAndLine(),
+                  prefixIcon: Icon(Icons.qr_code_scanner_rounded),
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.send_rounded),
+                    color: themeColorPrimary,
+                    onPressed: () {
+                      shipmentNotifier.getShipmentAndLine();
+                    },
+                  ),
+                ),
+              );
   }
 
   Widget _buildShipmentList() {
     final shipmentLines = shipmentState.shipment?.lines ?? [];
     return shipmentState.viewShipment
-        ? Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: shipmentLines.length,
-              itemBuilder: (context, index) {
-                final item = shipmentLines[index];
-                return GestureDetector(
-                  onTap: () => _selectLine(context, shipmentNotifier, item),
-                  child: Column(
-                    children: [
-                      Row(
+        ? ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: shipmentLines.length,
+            itemBuilder: (context, index) {
+              final item = shipmentLines[index];
+              return GestureDetector(
+                onTap: () => _selectLine(context, shipmentNotifier, item),
+                child: Column(
+                  children: [
+                    Divider(height: 0),
+                    Container(
+                      color: item.verifiedStatus == 'greater'
+                          ? themeColorWarningLight
+                          : null,
+                      child: Row(
                         children: [
                           Padding(
                             padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
                             child: Text(
                               (index + 1).toString(),
                               style: TextStyle(
-                                  fontSize: 16, color: Colors.grey[700]),
+                                  fontSize: themeFontSizeSmall,
+                                  color: themeFontColorDarkGray),
                             ),
                           ),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 8),
-                                  child: SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
-                                    reverse: true,
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  reverse: true,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8),
                                     child: Text(
                                       item.upc?.isNotEmpty == true
                                           ? item.upc.toString()
                                           : '',
                                       style: const TextStyle(
-                                        fontSize: 16,
+                                        fontSize: themeFontSizeLarge,
                                       ),
                                     ),
                                   ),
                                 ),
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 8),
-                                  child: SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
-                                    reverse: true,
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  reverse: true,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8),
                                     child: Text(
                                       item.productName.toString(),
                                       style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey[700],
+                                        fontSize: themeFontSizeSmall,
+                                        color: themeFontColorDarkGray,
                                       ),
                                     ),
                                   ),
@@ -356,35 +372,37 @@ class _ShipmentView extends ConsumerWidget {
                             child: Text(
                               item.movementQty.toString(),
                               style: const TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold),
+                                  fontSize: themeFontSizeLarge,
+                                  fontWeight: FontWeight.bold),
                             ),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(8),
                             child: Icon(
-                              item.verifiedStatus == 'correct'
+                              item.verifiedStatus == 'equal'
                                   ? Icons.check_circle_outline_rounded
-                                  : item.verifiedStatus == 'different'
+                                  : item.verifiedStatus == 'greater'
                                       ? Icons.warning_amber_rounded
                                       : item.verifiedStatus == 'manually'
                                           ? Icons.touch_app_outlined
                                           : Icons.circle_outlined,
-                              color: item.verifiedStatus == 'correct' ||
+                              color: item.verifiedStatus == 'equal' ||
                                       item.verifiedStatus == 'manually'
-                                  ? Colors.green[600]
-                                  : item.verifiedStatus == 'different'
-                                      ? Colors.yellow[800]
-                                      : Colors.red[600],
+                                  ? themeColorSuccessful
+                                  : item.verifiedStatus == 'minor' ||
+                                          item.verifiedStatus == 'greater'
+                                      ? themeColorWarning
+                                      : themeColorError,
                             ),
                           ),
                         ],
                       ),
-                      Divider(height: 0),
-                    ],
-                  ),
-                );
-              },
-            ),
+                    ),
+                    Divider(height: 0),
+                  ],
+                ),
+              );
+            },
           )
         : SizedBox();
   }
@@ -395,23 +413,27 @@ class _ShipmentView extends ConsumerWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(themeBorderRadius),
+          ),
           title: const Text('Limpiar Shipment'),
           content:
               const Text('¿Estás seguro de que deseas limpiar este Shipment?'),
           actions: <Widget>[
-            TextButton(
+            CustomFilledButton(
               onPressed: () {
                 shipmentNotifier.clearShipmentData();
                 Navigator.of(context).pop();
               },
-              child: const Text(
-                'Limpiar',
-                style: TextStyle(color: Colors.redAccent),
-              ),
+              label: 'Si',
+              icon: const Icon(Icons.check),
+              buttonColor: themeColorError,
             ),
-            TextButton(
+            CustomFilledButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancelar'),
+              label: 'No',
+              icon: const Icon(Icons.close_rounded),
+              buttonColor: themeFontColorDarkGrayLight,
             ),
           ],
         );
@@ -425,87 +447,80 @@ class _ShipmentView extends ConsumerWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(themeBorderRadius),
+          ),
           title: const Text('Detalles de la Línea'),
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              RichText(
-                text: TextSpan(
-                  text: 'UPC: ',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.black),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                Table(
+                  columnWidths: {
+                    0: IntrinsicColumnWidth(),
+                    1: FlexColumnWidth(),
+                  },
                   children: [
-                    TextSpan(
-                      text: item.upc,
-                      style: TextStyle(
-                          fontWeight: FontWeight.normal,
-                          color: Colors.grey[800]),
+                    _buildTableRow("UPC:", item.upc?.toString() ?? '',
+                        themeFontColorDarkGray),
+                    _buildTableRow(
+                        "Producto:",
+                        item.productName?.toString() ?? '',
+                        themeFontColorDarkGray),
+                  ],
+                ),
+                SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      children: [
+                        Text(
+                          'Cantidad:',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          item.movementQty?.toString() ?? '0',
+                          style: TextStyle(
+                              fontWeight: FontWeight.normal,
+                              fontSize: themeFontSizeTitle,
+                              color: themeFontColorDarkGray),
+                        )
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        Text(
+                          'Escaneado:',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          item.scanningQty?.toString() ?? '0',
+                          style: TextStyle(
+                              fontWeight: FontWeight.normal,
+                              fontSize: themeFontSizeTitle,
+                              color: themeFontColorDarkGray),
+                        )
+                      ],
                     ),
                   ],
                 ),
-              ),
-              RichText(
-                text: TextSpan(
-                  text: 'Producto: ',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.black),
-                  children: [
-                    TextSpan(
-                      text: item.productName,
-                      style: TextStyle(
-                          fontWeight: FontWeight.normal,
-                          color: Colors.grey[800]),
-                    ),
-                  ],
-                ),
-              ),
-              RichText(
-                text: TextSpan(
-                  text: 'Cantidad: ',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.black),
-                  children: [
-                    TextSpan(
-                      text: item.movementQty.toString(),
-                      style: TextStyle(
-                          fontWeight: FontWeight.normal,
-                          color: Colors.grey[800]),
-                    ),
-                  ],
-                ),
-              ),
-              RichText(
-                text: TextSpan(
-                  text: 'Escaneado: ',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.black),
-                  children: [
-                    TextSpan(
-                      text: item.scanningQty.toString(),
-                      style: TextStyle(
-                          fontWeight: FontWeight.normal,
-                          color: Colors.grey[800]),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
           actions: <Widget>[
-            TextButton(
+            CustomFilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              label: 'Cerrar',
+              icon: const Icon(Icons.close_rounded),
+            ),
+            CustomFilledButton(
               onPressed: () {
                 shipmentNotifier.confirmManualLine(item);
                 Navigator.of(context).pop();
               },
-              child: const Text(
-                'Confirmar Manual',
-                style: TextStyle(color: Colors.green),
-              ),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cerrar'),
+              label: 'Manual',
+              icon: const Icon(Icons.touch_app_outlined),
+              buttonColor: themeFontColorDarkGrayLight,
             ),
           ],
         );
@@ -517,27 +532,24 @@ class _ShipmentView extends ConsumerWidget {
       ShipmentNotifier shipmentNotifier) {
     return Column(
       children: [
-        SizedBox(height: 16),
-        Text('Códigos Escaneados de más', style: TextStyle(fontSize: 16)),
-        SizedBox(height: 5),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Column(
-            children: barcodeList.map((barcode) {
-              return BarcodeList(
-                barcode: barcode,
-                onPressedDelete: () => _showConfirmDeleteItemOver(
-                    context, shipmentNotifier, barcode),
-                onPressedrepetitions: () =>
-                    shipmentNotifier.selectRepeat(barcode.code),
-              );
-            }).toList(),
-          ),
+        SizedBox(height: 32),
+        Text('Productos a remover',
+            style: TextStyle(
+                fontSize: themeFontSizeSmall, color: themeFontColorDarkGray)),
+        SizedBox(height: 4),
+        Divider(height: 0),
+        Column(
+          children: barcodeList.map((barcode) {
+            return BarcodeList(
+              barcode: barcode,
+              onPressedDelete: () => _showConfirmDeleteItemOver(
+                  context, shipmentNotifier, barcode),
+              onPressedrepetitions: () =>
+                  shipmentNotifier.selectRepeat(barcode.code),
+            );
+          }).toList(),
         ),
-        SizedBox(height: 5),
+        SizedBox(height: 4),
       ],
     );
   }
@@ -548,29 +560,54 @@ class _ShipmentView extends ConsumerWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(themeBorderRadius),
+          ),
           title: const Text('Eliminar Código'),
           content: const Text(
               '¿Estás seguro de que deseas eliminar este código de barras?'),
           actions: <Widget>[
-            TextButton(
+            CustomFilledButton(
               onPressed: () {
                 shipmentNotifier.removeBarcode(barcode);
                 Navigator.of(context).pop();
               },
-              child: const Text(
-                'Eliminar',
-                style: TextStyle(color: Colors.redAccent),
-              ),
+              label: 'Si',
+              icon: const Icon(Icons.check),
+              buttonColor: themeColorError,
             ),
-            TextButton(
+            CustomFilledButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancelar'),
+              label: 'No',
+              icon: const Icon(Icons.close_rounded),
+              buttonColor: themeFontColorDarkGrayLight,
             ),
           ],
         );
       },
     );
   }
+}
+
+TableRow _buildTableRow(String label, String value, Color textColor) {
+  return TableRow(
+    children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(0, 2, 0, 2),
+        child: Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(4, 2, 0, 2),
+        child: Text(
+          value,
+          style: TextStyle(fontWeight: FontWeight.normal, color: textColor),
+        ),
+      ),
+    ],
+  );
 }
 
 class _ScanView extends ConsumerWidget {
@@ -589,28 +626,25 @@ class _ScanView extends ConsumerWidget {
         : shipmentState.scanBarcodeListTotal;
 
     return SafeArea(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 5),
-        color: backgroundColor,
-        child: Column(
-          children: [
-            _buildActionFilterList(shipmentNotifier),
-            _buildBarcodeList(barcodeList, shipmentNotifier),
-            SizedBox(height: 5),
-            // EnterBarcodeBox(
-            //     onValue: shipmentNotifier.addBarcode,
-            //     hintText: 'Escanear código de barras'),
-            EnterBarcodeButton(shipmentNotifier),
-            SizedBox(height: 5),
-          ],
-        ),
+      child: Column(
+        children: [
+          SizedBox(height: 4),
+          _buildActionFilterList(shipmentNotifier),
+          SizedBox(height: 8),
+          Divider(height: 0),
+          _buildBarcodeList(barcodeList, shipmentNotifier),
+          Padding(
+            padding: const EdgeInsets.all(4.0),
+            child: EnterBarcodeButton(shipmentNotifier),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildActionFilterList(ShipmentNotifier shipmentNotifier) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _buildFilterList(
           text: 'Total',
@@ -618,6 +652,7 @@ class _ScanView extends ConsumerWidget {
           isActive: !shipmentNotifier.getUniqueView(),
           onPressed: () => shipmentNotifier.setUniqueView(false),
         ),
+        SizedBox(width: 8),
         _buildFilterList(
           text: 'Únicos',
           counting: shipmentNotifier.getUniqueCount().toString(),
@@ -635,32 +670,36 @@ class _ScanView extends ConsumerWidget {
     required VoidCallback onPressed,
   }) {
     final styleText = TextStyle(
-      fontSize: 12,
-      fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-      color: isActive ? Colors.white : Colors.grey[700],
+      fontSize: themeFontSizeSmall,
+      fontWeight: FontWeight.bold,
+      color: isActive ? themeColorPrimary : themeFontColorDarkGray,
     );
 
     final styleCounting = TextStyle(
-      fontSize: 16,
-      fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-      color: isActive ? Colors.white : Colors.grey[700],
+      fontSize: themeFontSizeLarge,
+      fontWeight: FontWeight.bold,
+      color: isActive ? themeColorPrimary : themeFontColorDarkGray,
     );
 
-    return OutlinedButton(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        minimumSize: Size(130, 30),
-        backgroundColor: isActive ? colorSeedLight : Colors.white,
-        side: BorderSide(
-          color: isActive ? colorSeedLight : Colors.grey[700]!,
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        width: 100,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(themeBorderRadius),
+          color: isActive ? themeColorPrimaryLight : themeBackgroundColorLight,
         ),
-      ),
-      child: Row(
-        children: [
-          Text(text, style: styleText),
-          SizedBox(width: 10),
-          Text(counting, style: styleCounting),
-        ],
+        padding: EdgeInsets.symmetric(vertical: 2, horizontal: 16),
+        child: Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(text, style: styleText),
+              SizedBox(width: 8),
+              Text(counting, style: styleCounting),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -668,25 +707,19 @@ class _ScanView extends ConsumerWidget {
   Widget _buildBarcodeList(
       List<Barcode> barcodeList, ShipmentNotifier shipmentNotifier) {
     return Expanded(
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: ListView.builder(
-          controller: shipmentNotifier.scanBarcodeListScrollController,
-          itemCount: barcodeList.length,
-          itemBuilder: (BuildContext context, int index) {
-            final barcode = barcodeList[index];
-            return BarcodeList(
-              barcode: barcode,
-              onPressedDelete: () =>
-                  _showConfirmDeleteItem(context, shipmentNotifier, barcode),
-              onPressedrepetitions: () =>
-                  shipmentNotifier.selectRepeat(barcode.code),
-            );
-          },
-        ),
+      child: ListView.builder(
+        controller: shipmentNotifier.scanBarcodeListScrollController,
+        itemCount: barcodeList.length,
+        itemBuilder: (BuildContext context, int index) {
+          final barcode = barcodeList[index];
+          return BarcodeList(
+            barcode: barcode,
+            onPressedDelete: () =>
+                _showConfirmDeleteItem(context, shipmentNotifier, barcode),
+            onPressedrepetitions: () =>
+                shipmentNotifier.selectRepeat(barcode.code),
+          );
+        },
       ),
     );
   }
@@ -697,23 +730,27 @@ class _ScanView extends ConsumerWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(themeBorderRadius),
+          ),
           title: const Text('Eliminar Código'),
           content: const Text(
               '¿Estás seguro de que deseas eliminar este código de barras?'),
           actions: <Widget>[
-            TextButton(
+            CustomFilledButton(
               onPressed: () {
                 shipmentNotifier.removeBarcode(barcode);
                 Navigator.of(context).pop();
               },
-              child: const Text(
-                'Eliminar',
-                style: TextStyle(color: Colors.redAccent),
-              ),
+              label: 'Si',
+              icon: const Icon(Icons.check),
+              buttonColor: themeColorError,
             ),
-            TextButton(
+            CustomFilledButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancelar'),
+              label: 'No',
+              icon: const Icon(Icons.close_rounded),
+              buttonColor: themeFontColorDarkGrayLight,
             ),
           ],
         );

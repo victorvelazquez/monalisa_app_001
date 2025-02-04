@@ -23,7 +23,7 @@ class ShipmentDataSourceImpl implements ShipmentDataSource {
   ) async {
     try {
       final String url =
-          "/api/v1/models/m_inout?\$expand=m_inoutline&\$filter=DocumentNo%20eq%20'$shipment'";
+          "/api/v1/models/m_inout?\$expand=m_inoutline&\$filter=DocumentNo%20eq%20'${shipment.toString()}'";
       final response = await dio.get(url);
 
       if (response.statusCode == 200) {
@@ -36,7 +36,8 @@ class ShipmentDataSourceImpl implements ShipmentDataSource {
           throw Exception('No se encontraron registros de shipment');
         }
       } else {
-        throw Exception('Error al cargar los datos del shipment: ${response.statusCode}');
+        throw Exception(
+            'Error al cargar los datos del shipment: ${response.statusCode}');
       }
     } on DioException catch (e) {
       print('DioException: $e');
