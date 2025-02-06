@@ -13,7 +13,7 @@ const themeColorWarning = Color.fromRGBO(250, 200, 50, 1);
 const themeColorWarningLight = Color.fromRGBO(250, 220, 120, 1);
 const themeColorError = Color.fromRGBO(255, 50, 50, 1);
 const themeColorErrorLight = Color.fromRGBO(255, 100, 100, 1);
-const themeColorGray = Color.fromRGBO(90, 90, 90, 1);
+const themeColorGray = Color.fromRGBO(100, 100, 100, 1);
 const themeColorGrayLight = Color.fromRGBO(200, 200, 180, 1);
 
 const double themeFontSizeLarge = 16;
