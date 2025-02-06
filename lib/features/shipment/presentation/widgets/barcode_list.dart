@@ -42,7 +42,7 @@ class ScrollingTextWidgetState extends State<BarcodeList> {
                 child: Text(
                   widget.barcode.index.toString(),
                   style:
-                      TextStyle(fontSize: themeFontSizeSmall, color: themeColorDarkGray),
+                      TextStyle(fontSize: themeFontSizeSmall, color: themeColorGray),
                 ),
               ),
               Expanded(

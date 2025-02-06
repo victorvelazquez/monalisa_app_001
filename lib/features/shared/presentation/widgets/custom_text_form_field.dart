@@ -37,14 +37,13 @@ class CustomTextFormField extends StatelessWidget {
   Widget build(BuildContext context) {
     final inputBorder = OutlineInputBorder(
       borderSide: BorderSide(
-          color: border ? themeColorDarkGrayLight : Colors.transparent),
+          color: border ? themeColorGrayLight : Colors.transparent),
       borderRadius: BorderRadius.circular(themeBorderRadius),
     );
 
     return Container(
-      padding: const EdgeInsets.only(bottom: 3),
       decoration: BoxDecoration(
-        color: themeBackgroundColor,
+        color: border ? themeBackgroundColorLight : themeBackgroundColor,
         borderRadius: BorderRadius.circular(themeBorderRadius),
         boxShadow: border
             ? null

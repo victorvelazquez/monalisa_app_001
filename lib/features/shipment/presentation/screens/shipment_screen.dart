@@ -152,7 +152,7 @@ class _ShipmentView extends ConsumerWidget {
                             shipmentState.shipment!.docStatus.id.toString() ==
                                     'CO'
                                 ? themeColorSuccessfulLight
-                                : Colors.white,
+                                : themeBackgroundColorLight,
                       ),
                       child: Row(
                         children: [
@@ -326,7 +326,7 @@ class _ShipmentView extends ConsumerWidget {
                               (index + 1).toString(),
                               style: TextStyle(
                                   fontSize: themeFontSizeSmall,
-                                  color: themeColorDarkGray),
+                                  color: themeColorGray),
                             ),
                           ),
                           Expanded(
@@ -359,7 +359,7 @@ class _ShipmentView extends ConsumerWidget {
                                       item.productName.toString(),
                                       style: TextStyle(
                                         fontSize: themeFontSizeSmall,
-                                        color: themeColorDarkGray,
+                                        color: themeColorGray,
                                       ),
                                     ),
                                   ),
@@ -433,7 +433,7 @@ class _ShipmentView extends ConsumerWidget {
               onPressed: () => Navigator.of(context).pop(),
               label: 'No',
               icon: const Icon(Icons.close_rounded),
-              buttonColor: themeColorDarkGrayLight,
+              buttonColor: themeColorGray,
             ),
           ],
         );
@@ -484,7 +484,7 @@ class _ShipmentView extends ConsumerWidget {
                 //           style: TextStyle(
                 //               fontWeight: FontWeight.normal,
                 //               fontSize: themeFontSizeTitle,
-                //               color: themeColorDarkGray),
+                //               color: themeColorGray),
                 //         )
                 //       ],
                 //     ),
@@ -499,7 +499,7 @@ class _ShipmentView extends ConsumerWidget {
                 //           style: TextStyle(
                 //               fontWeight: FontWeight.normal,
                 //               fontSize: themeFontSizeTitle,
-                //               color: themeColorDarkGray),
+                //               color: themeColorGray),
                 //         )
                 //       ],
                 //     ),
@@ -521,7 +521,7 @@ class _ShipmentView extends ConsumerWidget {
               },
               label: 'Manual',
               icon: const Icon(Icons.touch_app_outlined),
-              buttonColor: themeColorDarkGrayLight,
+              buttonColor: themeColorGrayLight,
             ),
           ],
         );
@@ -536,7 +536,7 @@ class _ShipmentView extends ConsumerWidget {
         SizedBox(height: 32),
         Text('Productos a remover',
             style: TextStyle(
-                fontSize: themeFontSizeSmall, color: themeColorDarkGray)),
+                fontSize: themeFontSizeSmall, color: themeColorGray)),
         SizedBox(height: 4),
         Divider(height: 0),
         Column(
@@ -581,7 +581,7 @@ class _ShipmentView extends ConsumerWidget {
               onPressed: () => Navigator.of(context).pop(),
               label: 'No',
               icon: const Icon(Icons.close_rounded),
-              buttonColor: themeColorDarkGrayLight,
+              buttonColor: themeColorGray,
             ),
           ],
         );
@@ -608,7 +608,7 @@ TableRow _buildTableRow(String label, String value, bool fontSizeTitle) {
           value,
           style: TextStyle(
             fontWeight: FontWeight.normal,
-            color: themeColorDarkGray,
+            color: themeColorGray,
             fontSize: fontSizeTitle ? themeFontSizeTitle : null,
           ),
         ),
@@ -679,13 +679,13 @@ class _ScanView extends ConsumerWidget {
     final styleText = TextStyle(
       fontSize: themeFontSizeSmall,
       fontWeight: FontWeight.bold,
-      color: isActive ? themeColorPrimary : themeColorDarkGray,
+      color: isActive ? themeColorPrimary : themeColorGray,
     );
 
     final styleCounting = TextStyle(
       fontSize: themeFontSizeLarge,
       fontWeight: FontWeight.bold,
-      color: isActive ? themeColorPrimary : themeColorDarkGray,
+      color: isActive ? themeColorPrimary : themeColorGray,
     );
 
     return GestureDetector(
@@ -757,7 +757,7 @@ class _ScanView extends ConsumerWidget {
               onPressed: () => Navigator.of(context).pop(),
               label: 'No',
               icon: const Icon(Icons.close_rounded),
-              buttonColor: themeColorDarkGrayLight,
+              buttonColor: themeColorGray,
             ),
           ],
         );

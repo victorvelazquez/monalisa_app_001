@@ -30,7 +30,7 @@ class LoginScreen extends StatelessWidget {
             Container(
               height: 385,
               decoration: BoxDecoration(
-                color: themeBackgroundColorLight,
+                color: themeColorGrayLight,
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(30),
                   topRight: Radius.circular(30),
