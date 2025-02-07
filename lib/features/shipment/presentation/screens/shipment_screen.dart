@@ -570,7 +570,7 @@ class _ShipmentView extends ConsumerWidget {
           actions: <Widget>[
             CustomFilledButton(
               onPressed: () {
-                shipmentNotifier.removeBarcode(barcode);
+                shipmentNotifier.removeBarcode(barcode: barcode, isOver: true);
                 Navigator.of(context).pop();
               },
               label: 'Si',
@@ -746,7 +746,7 @@ class _ScanView extends ConsumerWidget {
           actions: <Widget>[
             CustomFilledButton(
               onPressed: () {
-                shipmentNotifier.removeBarcode(barcode);
+                shipmentNotifier.removeBarcode(barcode: barcode);
                 Navigator.of(context).pop();
               },
               label: 'Si',

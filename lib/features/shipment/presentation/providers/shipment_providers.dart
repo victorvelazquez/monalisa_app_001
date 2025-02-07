@@ -35,8 +35,8 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
   onDocChange(String value) {
     if (value.trim().isNotEmpty) {
       state = state.copyWith(
-      doc: value,
-      errorMessage: '',
+        doc: value,
+        errorMessage: '',
       );
     }
   }
@@ -68,10 +68,15 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
   // Método para limpiar los datos del shipment
   void clearShipmentData() {
     state = state.copyWith(
+      doc: '',
       shipment: state.shipment!.copyWith(id: null, lines: null),
       scanBarcodeListTotal: [],
       scanBarcodeListUnique: [],
+      linesOver: [],
       viewShipment: false,
+      uniqueView: false,
+      errorMessage: '',
+      isLoading: false,
     );
   }
 
@@ -173,13 +178,13 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
   }
 
   // Método para eliminar un código de barras por su índice
-  void removeBarcode(Barcode barcode) {
+  void removeBarcode({required Barcode barcode, bool isOver = false}) {
     final int index = barcode.index - 1;
     if (index < 0 || index >= state.scanBarcodeListTotal.length) return;
 
     final List<Barcode> updatedTotalList = [...state.scanBarcodeListTotal];
 
-    if (state.uniqueView) {
+    if (state.uniqueView || isOver) {
       // Eliminar todos los elementos que coincidan con el código
       updatedTotalList.removeWhere((item) => item.code == barcode.code);
     } else {
@@ -360,22 +365,22 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
 
 // Clase para manejar el estado de la lista
 class ShipmentStatus {
+  final String doc;
+  final Shipment? shipment;
   final List<Barcode> scanBarcodeListTotal;
   final List<Barcode> scanBarcodeListUnique;
   final List<Barcode> linesOver;
-  final String doc;
-  final Shipment? shipment;
   final bool viewShipment;
   final bool uniqueView;
   final String errorMessage;
   final bool isLoading;
 
   ShipmentStatus({
+    this.doc = '',
+    this.shipment,
     required this.scanBarcodeListTotal,
     required this.scanBarcodeListUnique,
     this.linesOver = const [],
-    this.doc = '',
-    this.shipment,
     this.viewShipment = false,
     this.uniqueView = false,
     this.errorMessage = '',
@@ -383,23 +388,23 @@ class ShipmentStatus {
   });
 
   ShipmentStatus copyWith({
+    String? doc,
+    Shipment? shipment,
     List<Barcode>? scanBarcodeListTotal,
     List<Barcode>? scanBarcodeListUnique,
     List<Barcode>? linesOver,
-    String? doc,
-    Shipment? shipment,
     bool? viewShipment,
     bool? uniqueView,
     String? errorMessage,
     bool? isLoading,
   }) =>
       ShipmentStatus(
+        doc: doc ?? this.doc,
+        shipment: shipment ?? this.shipment,
         scanBarcodeListTotal: scanBarcodeListTotal ?? this.scanBarcodeListTotal,
         scanBarcodeListUnique:
             scanBarcodeListUnique ?? this.scanBarcodeListUnique,
         linesOver: linesOver ?? this.linesOver,
-        doc: doc ?? this.doc,
-        shipment: shipment ?? this.shipment,
         viewShipment: viewShipment ?? this.viewShipment,
         uniqueView: uniqueView ?? this.uniqueView,
         errorMessage: errorMessage ?? this.errorMessage,
