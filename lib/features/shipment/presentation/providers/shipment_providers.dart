@@ -41,7 +41,7 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
     }
   }
 
-  Future<void> getShipmentAndLine() async {
+  Future<void> getShipmentAndLine(WidgetRef ref) async {
     if (state.doc.trim().isNotEmpty) {
       state = state.copyWith(
         isLoading: true,
@@ -49,7 +49,7 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
       );
       try {
         final shipmentResponse =
-            await shipmentRepository.getShipmentAndLine(state.doc);
+            await shipmentRepository.getShipmentAndLine(state.doc, ref);
         state = state.copyWith(
           shipment: shipmentResponse,
           isLoading: false,

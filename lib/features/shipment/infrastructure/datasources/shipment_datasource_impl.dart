@@ -1,9 +1,11 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:monalisa_app_001/features/shared/domain/entities/response_api.dart';
 import 'package:monalisa_app_001/features/shipment/domain/datasources/shipment_datasource.dart';
 import 'package:monalisa_app_001/features/shipment/domain/entities/shipment.dart';
 
 import '../../../../config/config.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../shared/shared.dart';
 
 class ShipmentDataSourceImpl implements ShipmentDataSource {
@@ -20,6 +22,7 @@ class ShipmentDataSourceImpl implements ShipmentDataSource {
   @override
   Future<Shipment> getShipmentAndLine(
     String shipment,
+    WidgetRef ref,
   ) async {
     try {
       final String url =
@@ -40,11 +43,10 @@ class ShipmentDataSourceImpl implements ShipmentDataSource {
             'Error al cargar los datos del shipment: ${response.statusCode}');
       }
     } on DioException catch (e) {
-      print('DioException: $e');
-      throw CustomErrorDioException(e);
+      final authDataNotifier = ref.read(authProvider.notifier);
+      throw CustomErrorDioException(e, authDataNotifier);
     } catch (e) {
-      print('Exception: $e');
-      throw Exception('ERROR: ${e.toString()}');
+      throw Exception(e.toString());
     }
   }
 }

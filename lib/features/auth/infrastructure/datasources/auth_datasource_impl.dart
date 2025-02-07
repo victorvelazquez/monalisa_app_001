@@ -36,7 +36,7 @@ class AuthDataSourceImpl implements AuthDataSource {
       return loginResponse;
     } on DioException catch (e) {
       print(e);
-      throw CustomErrorDioException(e);
+      throw CustomErrorDioException(e, null);
     } catch (e) {
       throw Exception('ERROR: ${e.toString()}');
     }
@@ -51,7 +51,7 @@ class AuthDataSourceImpl implements AuthDataSource {
       return rolesResponse;
     } on DioException catch (e) {
       print(e);
-      throw CustomErrorDioException(e);
+      throw CustomErrorDioException(e, null);
     } catch (e) {
       throw Exception('ERROR: ${e.toString()}');
     }
@@ -68,7 +68,7 @@ class AuthDataSourceImpl implements AuthDataSource {
       return organizationsResponse;
     } on DioException catch (e) {
       print(e);
-      throw CustomErrorDioException(e);
+      throw CustomErrorDioException(e, null);
     } catch (e) {
       throw Exception('ERROR: ${e.toString()}');
     }
@@ -86,7 +86,7 @@ class AuthDataSourceImpl implements AuthDataSource {
       return warehousesResponse;
     } on DioException catch (e) {
       print(e);
-      throw CustomErrorDioException(e);
+      throw CustomErrorDioException(e, null);
     } catch (e) {
       throw Exception('ERROR: ${e.toString()}');
     }
@@ -112,7 +112,7 @@ class AuthDataSourceImpl implements AuthDataSource {
       return authDataResponse;
     } on DioException catch (e) {
       print(e);
-      throw CustomErrorDioException(e);
+      throw CustomErrorDioException(e, null);
     } catch (e) {
       throw Exception('ERROR: ${e.toString()}');
     }

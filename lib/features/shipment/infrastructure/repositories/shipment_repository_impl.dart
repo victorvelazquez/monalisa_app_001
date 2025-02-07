@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:monalisa_app_001/features/shipment/domain/entities/shipment.dart';
 import 'package:monalisa_app_001/features/shipment/domain/repositories/shipment_repositiry.dart';
 
@@ -11,7 +12,7 @@ class ShipmentRepositoryImpl implements ShipmentRepository {
       : dataSource = dataSource ?? ShipmentDataSourceImpl();
   
   @override
-  Future<Shipment> getShipmentAndLine(String shipment) {
-    return dataSource.getShipmentAndLine(shipment);
+  Future<Shipment> getShipmentAndLine(String shipment, WidgetRef ref) {
+    return dataSource.getShipmentAndLine(shipment, ref);
   }
 }

@@ -115,7 +115,7 @@ class _ShipmentView extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildShipmentHeader(context),
+            _buildShipmentHeader(context, ref),
             const SizedBox(height: 5),
             _buildShipmentList(),
             shipmentState.linesOver.isNotEmpty
@@ -131,7 +131,7 @@ class _ShipmentView extends ConsumerWidget {
     );
   }
 
-  Widget _buildShipmentHeader(BuildContext context) {
+  Widget _buildShipmentHeader(BuildContext context, WidgetRef ref) {
     return shipmentState.isLoading
         ? Container(
             width: double.infinity,
@@ -287,13 +287,13 @@ class _ShipmentView extends ConsumerWidget {
                   hint: 'Ingresar documento',
                   onChanged: shipmentNotifier.onDocChange,
                   onFieldSubmitted: (value) =>
-                      shipmentNotifier.getShipmentAndLine(),
+                      shipmentNotifier.getShipmentAndLine(ref),
                   prefixIcon: Icon(Icons.qr_code_scanner_rounded),
                   suffixIcon: IconButton(
                     icon: Icon(Icons.send_rounded),
                     color: themeColorPrimary,
                     onPressed: () {
-                      shipmentNotifier.getShipmentAndLine();
+                      shipmentNotifier.getShipmentAndLine(ref);
                     },
                   ),
                 ),
