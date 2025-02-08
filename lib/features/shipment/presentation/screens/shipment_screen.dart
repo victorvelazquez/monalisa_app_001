@@ -45,7 +45,8 @@ class ShipmentScreen extends ConsumerWidget {
                 color: themeColorPrimary),
             unselectedLabelStyle: TextStyle(fontSize: themeFontSizeLarge),
           ),
-          actions: shipmentState.viewShipment
+          actions: shipmentState.viewShipment &&
+                  shipmentState.shipment!.docStatus.id.toString() != 'CO'
               ? [
                   IconButton(
                     onPressed: shipmentNotifier.isConfirmShipment()
@@ -535,8 +536,8 @@ class _ShipmentView extends ConsumerWidget {
       children: [
         SizedBox(height: 32),
         Text('Productos a remover',
-            style: TextStyle(
-                fontSize: themeFontSizeSmall, color: themeColorGray)),
+            style:
+                TextStyle(fontSize: themeFontSizeSmall, color: themeColorGray)),
         SizedBox(height: 4),
         Divider(height: 0),
         Column(
