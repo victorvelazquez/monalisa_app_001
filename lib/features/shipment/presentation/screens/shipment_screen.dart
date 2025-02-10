@@ -319,11 +319,20 @@ class _ShipmentView extends ConsumerWidget {
               SizedBox(width: 4),
               // menor
               _buildOrderList(
-                icon: Icons.circle_outlined,
+                icon: Icons.radio_button_checked_rounded,
                 color: themeColorWarning,
                 background: themeColorWarningLight,
                 onPressed: () => shipmentNotifier.setOrderBy('minor'),
                 name: 'minor',
+              ),
+              SizedBox(width: 4),
+              // correcto
+              _buildOrderList(
+                icon: Icons.check_circle_outline_rounded,
+                color: themeColorSuccessful,
+                background: themeColorSuccessfulLight,
+                onPressed: () => shipmentNotifier.setOrderBy('correct'),
+                name: 'correct',
               ),
               SizedBox(width: 4),
               // supera
@@ -342,15 +351,6 @@ class _ShipmentView extends ConsumerWidget {
                 background: themeColorSuccessfulLight,
                 onPressed: () => shipmentNotifier.setOrderBy('manually'),
                 name: 'manually',
-              ),
-              SizedBox(width: 4),
-              // correcto
-              _buildOrderList(
-                icon: Icons.check_circle_outline_rounded,
-                color: themeColorSuccessful,
-                background: themeColorSuccessfulLight,
-                onPressed: () => shipmentNotifier.setOrderBy('correct'),
-                name: 'correct',
               ),
             ],
           )
@@ -478,7 +478,10 @@ class _ShipmentView extends ConsumerWidget {
                                       ? Icons.warning_amber_rounded
                                       : item.verifiedStatus == 'manually'
                                           ? Icons.touch_app_outlined
-                                          : Icons.circle_outlined,
+                                          : item.verifiedStatus == 'minor'
+                                              ? Icons
+                                                  .radio_button_checked_rounded
+                                              : Icons.circle_outlined,
                               color: item.verifiedStatus == 'correct' ||
                                       item.verifiedStatus == 'manually'
                                   ? themeColorSuccessful
