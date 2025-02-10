@@ -9,10 +9,10 @@ const themeBackgroundColorLight = Color.fromRGBO(245, 245, 245, 1);
 
 const themeColorSuccessful = Color.fromRGBO(70, 170, 70, 1);
 const themeColorSuccessfulLight = Color.fromRGBO(140, 220, 140, 1);
-const themeColorWarning = Color.fromRGBO(250, 200, 50, 1);
+const themeColorWarning = Color.fromRGBO(255, 200, 50, 1);
 const themeColorWarningLight = Color.fromRGBO(255, 255, 140, 1);
 const themeColorError = Color.fromRGBO(255, 50, 50, 1);
-const themeColorErrorLight = Color.fromRGBO(255, 100, 100, 1);
+const themeColorErrorLight = Color.fromRGBO(255, 178, 178, 1);
 const themeColorGray = Color.fromRGBO(100, 100, 100, 1);
 const themeColorGrayLight = Color.fromRGBO(200, 200, 180, 1);
 

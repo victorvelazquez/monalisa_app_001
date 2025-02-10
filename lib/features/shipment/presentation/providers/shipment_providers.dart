@@ -75,6 +75,7 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
       linesOver: [],
       viewShipment: false,
       uniqueView: false,
+      orderBy: 'line',
       errorMessage: '',
       isLoading: false,
     );
@@ -261,7 +262,7 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
             final line = lines[lineIndex];
             if (barcode.repetitions == line.movementQty) {
               lines[lineIndex] = line.copyWith(
-                verifiedStatus: 'equal',
+                verifiedStatus: 'correct',
                 scanningQty: barcode.repetitions,
               );
             } else if (barcode.repetitions < line.movementQty!) {
@@ -271,7 +272,7 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
               );
             } else if (barcode.repetitions > line.movementQty!) {
               lines[lineIndex] = line.copyWith(
-                verifiedStatus: 'greater',
+                verifiedStatus: 'exceeds',
                 scanningQty: barcode.repetitions,
               );
             }
@@ -361,6 +362,32 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
   bool getUniqueView() {
     return state.uniqueView;
   }
+
+  void setOrderBy(String orderBy) {
+    if (state.orderBy == orderBy) {
+      final List<Line> sortedLines = [...state.shipment!.lines];
+      sortedLines.sort((a, b) => a.line!.compareTo(b.line!));
+      state = state.copyWith(
+        orderBy: 'line',
+        shipment: state.shipment!.copyWith(lines: sortedLines),
+      );
+    } else {
+      final List<Line> sortedLines = [...state.shipment!.lines];
+      sortedLines.sort((a, b) {
+        if (a.verifiedStatus == orderBy && b.verifiedStatus != orderBy) {
+          return -1;
+        } else if (a.verifiedStatus != orderBy && b.verifiedStatus == orderBy) {
+          return 1;
+        } else {
+          return 0;
+        }
+      });
+      state = state.copyWith(
+        orderBy: orderBy,
+        shipment: state.shipment!.copyWith(lines: sortedLines),
+      );
+    }
+  }
 }
 
 // Clase para manejar el estado de la lista
@@ -372,6 +399,7 @@ class ShipmentStatus {
   final List<Barcode> linesOver;
   final bool viewShipment;
   final bool uniqueView;
+  final String orderBy;
   final String errorMessage;
   final bool isLoading;
 
@@ -383,6 +411,7 @@ class ShipmentStatus {
     this.linesOver = const [],
     this.viewShipment = false,
     this.uniqueView = false,
+    this.orderBy = '',
     this.errorMessage = '',
     this.isLoading = false,
   });
@@ -395,6 +424,7 @@ class ShipmentStatus {
     List<Barcode>? linesOver,
     bool? viewShipment,
     bool? uniqueView,
+    String? orderBy,
     String? errorMessage,
     bool? isLoading,
   }) =>
@@ -406,6 +436,7 @@ class ShipmentStatus {
             scanBarcodeListUnique ?? this.scanBarcodeListUnique,
         linesOver: linesOver ?? this.linesOver,
         viewShipment: viewShipment ?? this.viewShipment,
+        orderBy: orderBy ?? this.orderBy,
         uniqueView: uniqueView ?? this.uniqueView,
         errorMessage: errorMessage ?? this.errorMessage,
         isLoading: isLoading ?? this.isLoading,

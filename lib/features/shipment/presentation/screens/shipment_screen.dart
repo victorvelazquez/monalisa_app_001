@@ -118,6 +118,8 @@ class _ShipmentView extends ConsumerWidget {
           children: [
             _buildShipmentHeader(context, ref),
             const SizedBox(height: 5),
+            _buildActionOrderList(shipmentNotifier),
+            const SizedBox(height: 5),
             _buildShipmentList(),
             shipmentState.linesOver.isNotEmpty
                 ? _buildListOver(
@@ -301,6 +303,96 @@ class _ShipmentView extends ConsumerWidget {
               );
   }
 
+  Widget _buildActionOrderList(ShipmentNotifier shipmentNotifier) {
+    return shipmentState.viewShipment
+        ? Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // pendiente
+              _buildOrderList(
+                icon: Icons.circle_outlined,
+                color: themeColorError,
+                background: themeColorErrorLight,
+                onPressed: () => shipmentNotifier.setOrderBy('pending'),
+                name: 'pending',
+              ),
+              SizedBox(width: 4),
+              // menor
+              _buildOrderList(
+                icon: Icons.circle_outlined,
+                color: themeColorWarning,
+                background: themeColorWarningLight,
+                onPressed: () => shipmentNotifier.setOrderBy('minor'),
+                name: 'minor',
+              ),
+              SizedBox(width: 4),
+              // supera
+              _buildOrderList(
+                icon: Icons.warning_amber_rounded,
+                color: themeColorWarning,
+                background: themeColorWarningLight,
+                onPressed: () => shipmentNotifier.setOrderBy('exceeds'),
+                name: 'exceeds',
+              ),
+              SizedBox(width: 4),
+              // manual
+              _buildOrderList(
+                icon: Icons.touch_app_outlined,
+                color: themeColorSuccessful,
+                background: themeColorSuccessfulLight,
+                onPressed: () => shipmentNotifier.setOrderBy('manually'),
+                name: 'manually',
+              ),
+              SizedBox(width: 4),
+              // correcto
+              _buildOrderList(
+                icon: Icons.check_circle_outline_rounded,
+                color: themeColorSuccessful,
+                background: themeColorSuccessfulLight,
+                onPressed: () => shipmentNotifier.setOrderBy('correct'),
+                name: 'correct',
+              ),
+            ],
+          )
+        : SizedBox();
+  }
+
+  Widget _buildOrderList({
+    required IconData icon,
+    required VoidCallback onPressed,
+    required Color color,
+    required Color background,
+    required String name,
+  }) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(themeBorderRadius),
+          color: shipmentState.orderBy == name
+              ? background
+              : themeBackgroundColorLight,
+        ),
+        padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+        child: Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.straight_rounded,
+                  size: 18,
+                  color:
+                      shipmentState.orderBy == name ? color : themeColorGray),
+              Icon(icon,
+                  size: 18,
+                  color:
+                      shipmentState.orderBy == name ? color : themeColorGray),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildShipmentList() {
     final shipmentLines = shipmentState.shipment?.lines ?? [];
     return shipmentState.viewShipment
@@ -316,7 +408,7 @@ class _ShipmentView extends ConsumerWidget {
                   children: [
                     Divider(height: 0),
                     Container(
-                      color: item.verifiedStatus == 'greater'
+                      color: item.verifiedStatus == 'exceeds'
                           ? themeColorWarningLight
                           : null,
                       child: Row(
@@ -324,7 +416,7 @@ class _ShipmentView extends ConsumerWidget {
                           Padding(
                             padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
                             child: Text(
-                              (index + 1).toString(),
+                              item.line.toString(),
                               style: TextStyle(
                                   fontSize: themeFontSizeSmall,
                                   color: themeColorGray),
@@ -380,18 +472,18 @@ class _ShipmentView extends ConsumerWidget {
                           Padding(
                             padding: const EdgeInsets.all(8),
                             child: Icon(
-                              item.verifiedStatus == 'equal'
+                              item.verifiedStatus == 'correct'
                                   ? Icons.check_circle_outline_rounded
-                                  : item.verifiedStatus == 'greater'
+                                  : item.verifiedStatus == 'exceeds'
                                       ? Icons.warning_amber_rounded
                                       : item.verifiedStatus == 'manually'
                                           ? Icons.touch_app_outlined
                                           : Icons.circle_outlined,
-                              color: item.verifiedStatus == 'equal' ||
+                              color: item.verifiedStatus == 'correct' ||
                                       item.verifiedStatus == 'manually'
                                   ? themeColorSuccessful
                                   : item.verifiedStatus == 'minor' ||
-                                          item.verifiedStatus == 'greater'
+                                          item.verifiedStatus == 'exceeds'
                                       ? themeColorWarning
                                       : themeColorError,
                             ),
@@ -470,42 +562,6 @@ class _ShipmentView extends ConsumerWidget {
                         item.scanningQty?.toString() ?? '0', true),
                   ],
                 ),
-                // SizedBox(height: 16),
-                // Row(
-                //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                //   children: [
-                //     Column(
-                //       children: [
-                //         Text(
-                //           'Cantidad:',
-                //           style: const TextStyle(fontWeight: FontWeight.bold),
-                //         ),
-                //         Text(
-                //           item.movementQty?.toString() ?? '0',
-                //           style: TextStyle(
-                //               fontWeight: FontWeight.normal,
-                //               fontSize: themeFontSizeTitle,
-                //               color: themeColorGray),
-                //         )
-                //       ],
-                //     ),
-                //     Column(
-                //       children: [
-                //         Text(
-                //           'Escaneado:',
-                //           style: const TextStyle(fontWeight: FontWeight.bold),
-                //         ),
-                //         Text(
-                //           item.scanningQty?.toString() ?? '0',
-                //           style: TextStyle(
-                //               fontWeight: FontWeight.normal,
-                //               fontSize: themeFontSizeTitle,
-                //               color: themeColorGray),
-                //         )
-                //       ],
-                //     ),
-                //   ],
-                // ),
               ],
             ),
           ),
