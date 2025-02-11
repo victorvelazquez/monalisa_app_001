@@ -23,22 +23,25 @@ class CustomFilledButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 40,
-      width: expand ? double.infinity : null,
-      child: FilledButton.icon(
-        style: FilledButton.styleFrom(
-            backgroundColor: buttonColor,
-            disabledBackgroundColor: Colors.grey,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(themeBorderRadius))),
-        onPressed: onPressed,
-        icon: icon != null
-            ? isPosting
-                ? _buildLoadingIndicator()
-                : _buildIcon()
-            : null,
-        label: Text(label, style: TextStyle(color: labelColor ?? Colors.white)),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: SizedBox(
+        height: 40,
+        width: expand ? double.infinity : null,
+        child: FilledButton.icon(
+          style: FilledButton.styleFrom(
+              backgroundColor: buttonColor,
+              disabledBackgroundColor: Colors.grey,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(themeBorderRadius))),
+          onPressed: onPressed,
+          icon: icon != null
+              ? isPosting
+                  ? _buildLoadingIndicator()
+                  : _buildIcon()
+              : null,
+          label: Text(label, style: TextStyle(color: labelColor ?? Colors.white)),
+        ),
       ),
     );
   }
