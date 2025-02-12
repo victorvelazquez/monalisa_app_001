@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:monalisa_app_001/config/config.dart';
-import 'package:monalisa_app_001/features/shipment/presentation/providers/shipment_providers.dart';
+import 'package:monalisa_app_001/features/m_inout/presentation/providers/m_in_out_providers.dart';
 
 class EnterBarcodeButton extends StatefulWidget {
-  final ShipmentNotifier shipmentNotifier;
-  const EnterBarcodeButton(this.shipmentNotifier, {super.key});
+  final MInOutNotifier mInOutNotifier;
+  const EnterBarcodeButton(this.mInOutNotifier, {super.key});
 
   @override
   EnterBarcodeButtonState createState() => EnterBarcodeButtonState();
@@ -35,7 +35,7 @@ class EnterBarcodeButtonState extends State<EnterBarcodeButton> {
       final String? character = event.character;
 
       if (event.logicalKey == LogicalKeyboardKey.enter) {
-        widget.shipmentNotifier.addBarcode(scannedData);
+        widget.mInOutNotifier.addBarcode(scannedData);
         setState(() {
           scannedData = "";
         });

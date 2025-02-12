@@ -1,4 +1,4 @@
-import '../../../shipment/domain/entities/shipment.dart';
+import '../../../m_inout/domain/entities/m_in_out.dart';
 
 class ResponseApi {
     int? pageCount;
@@ -6,7 +6,7 @@ class ResponseApi {
     int? skipRecords;
     int? rowCount;
     int? arrayCount;
-    List<Shipment>? records;
+    List<MInOut>? records;
 
     ResponseApi({
         this.pageCount,
@@ -23,6 +23,6 @@ class ResponseApi {
         skipRecords: json["skip-records"],
         rowCount: json["row-count"],
         arrayCount: json["array-count"],
-        records: List<Shipment>.from(json["records"].map((x) => Shipment.jsonToEntity(x))),        
+        records: List<MInOut>.from(json["records"].map((x) => MInOut.jsonToEntity(x))),        
     );
 }

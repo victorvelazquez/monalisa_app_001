@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:monalisa_app_001/config/theme/app_theme.dart';
-import 'package:monalisa_app_001/features/shipment/domain/entities/barcode.dart';
+import 'package:monalisa_app_001/features/m_inout/domain/entities/barcode.dart';
 
 class BarcodeList extends StatefulWidget {
   final Barcode barcode;

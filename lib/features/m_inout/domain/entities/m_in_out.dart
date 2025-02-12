@@ -1,7 +1,7 @@
 import '../../../shared/domain/entities/ad_entity_id.dart';
 import 'line.dart';
 
-class Shipment {
+class MInOut {
     int? id;
     DateTime movementDate;
     AdEntityId adOrgId;
@@ -15,7 +15,7 @@ class Shipment {
     List<Line> lines;
 
 
-    Shipment({
+    MInOut({
         this.id,
         required this.movementDate,
         required this.adOrgId,
@@ -29,7 +29,7 @@ class Shipment {
         this.lines = const [],
     });
 
-    factory Shipment.jsonToEntity(Map<String, dynamic> json) => Shipment(
+    factory MInOut.jsonToEntity(Map<String, dynamic> json) => MInOut(
         id: json["id"],
         movementDate: DateTime.parse(json["MovementDate"]),
         adOrgId: AdEntityId.jsonToEntity(json["AD_Org_ID"]),
@@ -43,7 +43,7 @@ class Shipment {
         lines: List<Line>.from(json["m_inoutline"].map((x) => Line.jsonToEntity(x))),
     );
 
-    Shipment copyWith({
+    MInOut copyWith({
       int? id,
       DateTime? movementDate,
       AdEntityId? adOrgId,
@@ -56,7 +56,7 @@ class Shipment {
       AdEntityId? docStatus,
       List<Line>? lines,
     }) {
-      return Shipment(
+      return MInOut(
         id: id ?? this.id,
         movementDate: movementDate ?? this.movementDate,
         adOrgId: adOrgId ?? this.adOrgId,

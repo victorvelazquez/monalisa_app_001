@@ -2,22 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:monalisa_app_001/config/config.dart';
 import 'package:monalisa_app_001/features/shared/shared.dart';
-import 'package:monalisa_app_001/features/shipment/domain/entities/line.dart';
-import 'package:monalisa_app_001/features/shipment/presentation/widgets/barcode_list.dart';
+import 'package:monalisa_app_001/features/m_inout/domain/entities/line.dart';
+import 'package:monalisa_app_001/features/m_inout/presentation/widgets/barcode_list.dart';
 import 'package:intl/intl.dart';
 import '../../domain/entities/barcode.dart';
-import '../providers/shipment_providers.dart';
+import '../providers/m_in_out_providers.dart';
 import '../widgets/enter_barcode_button.dart';
 
-class ShipmentScreen extends ConsumerWidget {
-  const ShipmentScreen({super.key});
+class MInOutScreen extends ConsumerWidget {
+  const MInOutScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final shipmentState = ref.watch(shipmentProvider);
-    final shipmentNotifier = ref.read(shipmentProvider.notifier);
+    final mInOutState = ref.watch(mInOutProvider);
+    final mInOutNotifier = ref.read(mInOutProvider.notifier);
 
-    ref.listen(shipmentProvider, (previous, next) {
+    ref.listen(mInOutProvider, (previous, next) {
       if (next.errorMessage.isNotEmpty) {
         ScaffoldMessenger.of(context)
           ..clearSnackBars()
@@ -45,16 +45,16 @@ class ShipmentScreen extends ConsumerWidget {
                 color: themeColorPrimary),
             unselectedLabelStyle: TextStyle(fontSize: themeFontSizeLarge),
           ),
-          actions: shipmentState.viewShipment &&
-                  shipmentState.shipment!.docStatus.id.toString() != 'CO'
+          actions: mInOutState.viewMInOut &&
+                  mInOutState.mInOut!.docStatus.id.toString() != 'CO'
               ? [
                   IconButton(
-                    onPressed: shipmentNotifier.isConfirmShipment()
-                        ? () => shipmentNotifier.confirmShipment()
-                        : () => _showConfirmShipment(context),
+                    onPressed: mInOutNotifier.isConfirmMInOut()
+                        ? () => mInOutNotifier.confirmMInOut()
+                        : () => _showConfirmMInOut(context),
                     icon: Icon(
                       Icons.check,
-                      color: shipmentNotifier.isConfirmShipment()
+                      color: mInOutNotifier.isConfirmMInOut()
                           ? themeColorSuccessful
                           : null,
                     ),
@@ -64,19 +64,19 @@ class ShipmentScreen extends ConsumerWidget {
         ),
         body: TabBarView(
           children: [
-            _ShipmentView(
-                shipmentState: shipmentState,
-                shipmentNotifier: shipmentNotifier),
+            _MInOutView(
+                mInOutState: mInOutState,
+                mInOutNotifier: mInOutNotifier),
             _ScanView(
-                shipmentState: shipmentState,
-                shipmentNotifier: shipmentNotifier),
+                mInOutState: mInOutState,
+                mInOutNotifier: mInOutNotifier),
           ],
         ),
       ),
     );
   }
 
-  Future<void> _showConfirmShipment(BuildContext context) {
+  Future<void> _showConfirmMInOut(BuildContext context) {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -100,13 +100,13 @@ class ShipmentScreen extends ConsumerWidget {
   }
 }
 
-class _ShipmentView extends ConsumerWidget {
-  final ShipmentStatus shipmentState;
-  final ShipmentNotifier shipmentNotifier;
+class _MInOutView extends ConsumerWidget {
+  final MInOutStatus mInOutState;
+  final MInOutNotifier mInOutNotifier;
 
-  const _ShipmentView({
-    required this.shipmentState,
-    required this.shipmentNotifier,
+  const _MInOutView({
+    required this.mInOutState,
+    required this.mInOutNotifier,
   });
 
   @override
@@ -116,16 +116,16 @@ class _ShipmentView extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildShipmentHeader(context, ref),
+            _buildMInOutHeader(context, ref),
             const SizedBox(height: 5),
-            _buildActionOrderList(shipmentNotifier),
+            _buildActionOrderList(mInOutNotifier),
             const SizedBox(height: 5),
-            _buildShipmentList(),
-            shipmentState.linesOver.isNotEmpty
+            _buildMInOutList(),
+            mInOutState.linesOver.isNotEmpty
                 ? _buildListOver(
                     context,
-                    shipmentState.linesOver,
-                    shipmentNotifier,
+                    mInOutState.linesOver,
+                    mInOutNotifier,
                   )
                 : SizedBox(),
           ],
@@ -134,14 +134,14 @@ class _ShipmentView extends ConsumerWidget {
     );
   }
 
-  Widget _buildShipmentHeader(BuildContext context, WidgetRef ref) {
-    return shipmentState.isLoading
+  Widget _buildMInOutHeader(BuildContext context, WidgetRef ref) {
+    return mInOutState.isLoading
         ? Container(
             width: double.infinity,
             padding: const EdgeInsets.all(30),
             child: const Center(child: CircularProgressIndicator()),
           )
-        : shipmentState.viewShipment
+        : mInOutState.viewMInOut
             ? Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: Stack(
@@ -152,7 +152,7 @@ class _ShipmentView extends ConsumerWidget {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(themeBorderRadius),
                         color:
-                            shipmentState.shipment!.docStatus.id.toString() ==
+                            mInOutState.mInOut!.docStatus.id.toString() ==
                                     'CO'
                                 ? themeColorSuccessfulLight
                                 : themeBackgroundColorLight,
@@ -225,43 +225,43 @@ class _ShipmentView extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                shipmentState.shipment!.documentNo ?? '',
+                                mInOutState.mInOut!.documentNo ?? '',
                                 style: TextStyle(fontSize: themeFontSizeSmall),
                               ),
                               Text(
                                 DateFormat('dd/MM/yyyy').format(
-                                    shipmentState.shipment!.movementDate),
+                                    mInOutState.mInOut!.movementDate),
                                 style: TextStyle(fontSize: themeFontSizeSmall),
                               ),
                               Text(
-                                shipmentState.shipment!.cOrderId.identifier ??
+                                mInOutState.mInOut!.cOrderId.identifier ??
                                     '',
                                 style: TextStyle(fontSize: themeFontSizeSmall),
                               ),
                               Text(
                                 DateFormat('dd/MM/yyyy').format(
-                                    shipmentState.shipment!.dateOrdered),
+                                    mInOutState.mInOut!.dateOrdered),
                                 style: TextStyle(fontSize: themeFontSizeSmall),
                               ),
                               Text(
-                                shipmentState.shipment!.adOrgId.identifier ??
+                                mInOutState.mInOut!.adOrgId.identifier ??
                                     '',
                                 style: TextStyle(fontSize: themeFontSizeSmall),
                               ),
                               Text(
-                                shipmentState
-                                        .shipment!.mWarehouseId.identifier ??
+                                mInOutState
+                                        .mInOut!.mWarehouseId.identifier ??
                                     '',
                                 style: TextStyle(fontSize: themeFontSizeSmall),
                               ),
                               Text(
-                                shipmentState
-                                        .shipment!.cBPartnerId.identifier ??
+                                mInOutState
+                                        .mInOut!.cBPartnerId.identifier ??
                                     '',
                                 style: TextStyle(fontSize: themeFontSizeSmall),
                               ),
                               Text(
-                                shipmentState.shipment!.docStatus.identifier ??
+                                mInOutState.mInOut!.docStatus.identifier ??
                                     '',
                                 style: TextStyle(fontSize: themeFontSizeSmall),
                               ),
@@ -275,10 +275,10 @@ class _ShipmentView extends ConsumerWidget {
                       top: 0,
                       child: IconButton(
                         icon: Icon(Icons.clear, size: 20),
-                        onPressed: shipmentState.scanBarcodeListTotal.isNotEmpty
-                            ? () => _showConfirmclearShipmentData(
-                                context, shipmentNotifier)
-                            : () => shipmentNotifier.clearShipmentData(),
+                        onPressed: mInOutState.scanBarcodeListTotal.isNotEmpty
+                            ? () => _showConfirmclearMInOutData(
+                                context, mInOutNotifier)
+                            : () => mInOutNotifier.clearMInOutData(),
                       ),
                     ),
                   ],
@@ -288,23 +288,23 @@ class _ShipmentView extends ConsumerWidget {
                 padding: const EdgeInsets.all(16),
                 child: CustomTextFormField(
                   hint: 'Ingresar documento',
-                  onChanged: shipmentNotifier.onDocChange,
+                  onChanged: mInOutNotifier.onDocChange,
                   onFieldSubmitted: (value) =>
-                      shipmentNotifier.getShipmentAndLine(ref),
+                      mInOutNotifier.getMInOutAndLine(ref),
                   prefixIcon: Icon(Icons.qr_code_scanner_rounded),
                   suffixIcon: IconButton(
                     icon: Icon(Icons.send_rounded),
                     color: themeColorPrimary,
                     onPressed: () {
-                      shipmentNotifier.getShipmentAndLine(ref);
+                      mInOutNotifier.getMInOutAndLine(ref);
                     },
                   ),
                 ),
               );
   }
 
-  Widget _buildActionOrderList(ShipmentNotifier shipmentNotifier) {
-    return shipmentState.viewShipment
+  Widget _buildActionOrderList(MInOutNotifier mInOutNotifier) {
+    return mInOutState.viewMInOut
         ? Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -313,7 +313,7 @@ class _ShipmentView extends ConsumerWidget {
                 icon: Icons.circle_outlined,
                 color: themeColorError,
                 background: themeColorErrorLight,
-                onPressed: () => shipmentNotifier.setOrderBy('pending'),
+                onPressed: () => mInOutNotifier.setOrderBy('pending'),
                 name: 'pending',
               ),
               SizedBox(width: 4),
@@ -322,7 +322,7 @@ class _ShipmentView extends ConsumerWidget {
                 icon: Icons.radio_button_checked_rounded,
                 color: themeColorWarning,
                 background: themeColorWarningLight,
-                onPressed: () => shipmentNotifier.setOrderBy('minor'),
+                onPressed: () => mInOutNotifier.setOrderBy('minor'),
                 name: 'minor',
               ),
               SizedBox(width: 4),
@@ -331,7 +331,7 @@ class _ShipmentView extends ConsumerWidget {
                 icon: Icons.check_circle_outline_rounded,
                 color: themeColorSuccessful,
                 background: themeColorSuccessfulLight,
-                onPressed: () => shipmentNotifier.setOrderBy('correct'),
+                onPressed: () => mInOutNotifier.setOrderBy('correct'),
                 name: 'correct',
               ),
               SizedBox(width: 4),
@@ -340,7 +340,7 @@ class _ShipmentView extends ConsumerWidget {
                 icon: Icons.warning_amber_rounded,
                 color: themeColorWarning,
                 background: themeColorWarningLight,
-                onPressed: () => shipmentNotifier.setOrderBy('exceeds'),
+                onPressed: () => mInOutNotifier.setOrderBy('exceeds'),
                 name: 'exceeds',
               ),
               SizedBox(width: 4),
@@ -349,7 +349,7 @@ class _ShipmentView extends ConsumerWidget {
                 icon: Icons.touch_app_outlined,
                 color: themeColorSuccessful,
                 background: themeColorSuccessfulLight,
-                onPressed: () => shipmentNotifier.setOrderBy('manually'),
+                onPressed: () => mInOutNotifier.setOrderBy('manually'),
                 name: 'manually',
               ),
             ],
@@ -369,7 +369,7 @@ class _ShipmentView extends ConsumerWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(themeBorderRadius),
-          color: shipmentState.orderBy == name
+          color: mInOutState.orderBy == name
               ? background
               : themeBackgroundColorLight,
         ),
@@ -381,11 +381,11 @@ class _ShipmentView extends ConsumerWidget {
               Icon(Icons.straight_rounded,
                   size: 18,
                   color:
-                      shipmentState.orderBy == name ? color : themeColorGray),
+                      mInOutState.orderBy == name ? color : themeColorGray),
               Icon(icon,
                   size: 18,
                   color:
-                      shipmentState.orderBy == name ? color : themeColorGray),
+                      mInOutState.orderBy == name ? color : themeColorGray),
             ],
           ),
         ),
@@ -393,17 +393,17 @@ class _ShipmentView extends ConsumerWidget {
     );
   }
 
-  Widget _buildShipmentList() {
-    final shipmentLines = shipmentState.shipment?.lines ?? [];
-    return shipmentState.viewShipment
+  Widget _buildMInOutList() {
+    final mInOutLines = mInOutState.mInOut?.lines ?? [];
+    return mInOutState.viewMInOut
         ? ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: shipmentLines.length,
+            itemCount: mInOutLines.length,
             itemBuilder: (context, index) {
-              final item = shipmentLines[index];
+              final item = mInOutLines[index];
               return GestureDetector(
-                onTap: () => _selectLine(context, shipmentNotifier, item),
+                onTap: () => _selectLine(context, mInOutNotifier, item),
                 child: Column(
                   children: [
                     Divider(height: 0),
@@ -513,8 +513,8 @@ class _ShipmentView extends ConsumerWidget {
         : SizedBox();
   }
 
-  Future<void> _showConfirmclearShipmentData(
-      BuildContext context, ShipmentNotifier shipmentNotifier) {
+  Future<void> _showConfirmclearMInOutData(
+      BuildContext context, MInOutNotifier mInOutNotifier) {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -528,7 +528,7 @@ class _ShipmentView extends ConsumerWidget {
           actions: <Widget>[
             CustomFilledButton(
               onPressed: () {
-                shipmentNotifier.clearShipmentData();
+                mInOutNotifier.clearMInOutData();
                 Navigator.of(context).pop();
               },
               label: 'Si',
@@ -548,7 +548,7 @@ class _ShipmentView extends ConsumerWidget {
   }
 
   Future<void> _selectLine(
-      BuildContext context, ShipmentNotifier shipmentNotifier, Line item) {
+      BuildContext context, MInOutNotifier mInOutNotifier, Line item) {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -617,7 +617,7 @@ class _ShipmentView extends ConsumerWidget {
                 : CustomFilledButton(
                     onPressed: () {
                       Navigator.of(context).pop();
-                      shipmentNotifier.onManualQuantityChange(
+                      mInOutNotifier.onManualQuantityChange(
                           item.manualQty != null && item.manualQty! > 0
                               ? item.manualQty.toString()
                               : item.movementQty.toString());
@@ -647,15 +647,15 @@ class _ShipmentView extends ConsumerWidget {
               initialValue: line.manualQty != null && line.manualQty! > 0
                   ? line.manualQty.toString()
                   : line.movementQty.toString(),
-              onChanged: shipmentNotifier.onManualQuantityChange,
+              onChanged: mInOutNotifier.onManualQuantityChange,
               onFieldSubmitted: (value) {
-                shipmentNotifier.confirmManualLine(line);
+                mInOutNotifier.confirmManualLine(line);
                 Navigator.of(context).pop();
               }),
           actions: <Widget>[
             CustomFilledButton(
               onPressed: () {
-                shipmentNotifier.confirmManualLine(line);
+                mInOutNotifier.confirmManualLine(line);
                 Navigator.of(context).pop();
               },
               label: 'Confirmar',
@@ -687,7 +687,7 @@ class _ShipmentView extends ConsumerWidget {
           actions: <Widget>[
             CustomFilledButton(
               onPressed: () {
-                shipmentNotifier.resetManualLine(line);
+                mInOutNotifier.resetManualLine(line);
                 Navigator.of(context).pop();
               },
               label: 'Si',
@@ -707,7 +707,7 @@ class _ShipmentView extends ConsumerWidget {
   }
 
   _buildListOver(BuildContext context, List<Barcode> barcodeList,
-      ShipmentNotifier shipmentNotifier) {
+      MInOutNotifier mInOutNotifier) {
     return Column(
       children: [
         SizedBox(height: 32),
@@ -721,9 +721,9 @@ class _ShipmentView extends ConsumerWidget {
             return BarcodeList(
               barcode: barcode,
               onPressedDelete: () => _showConfirmDeleteItemOver(
-                  context, shipmentNotifier, barcode),
+                  context, mInOutNotifier, barcode),
               onPressedrepetitions: () =>
-                  shipmentNotifier.selectRepeat(barcode.code),
+                  mInOutNotifier.selectRepeat(barcode.code),
             );
           }).toList(),
         ),
@@ -733,7 +733,7 @@ class _ShipmentView extends ConsumerWidget {
   }
 
   Future<void> _showConfirmDeleteItemOver(BuildContext context,
-      ShipmentNotifier shipmentNotifier, Barcode barcode) {
+      MInOutNotifier mInOutNotifier, Barcode barcode) {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -747,7 +747,7 @@ class _ShipmentView extends ConsumerWidget {
           actions: <Widget>[
             CustomFilledButton(
               onPressed: () {
-                shipmentNotifier.removeBarcode(barcode: barcode, isOver: true);
+                mInOutNotifier.removeBarcode(barcode: barcode, isOver: true);
                 Navigator.of(context).pop();
               },
               label: 'Si',
@@ -795,53 +795,53 @@ TableRow _buildTableRow(String label, String value, bool fontSizeTitle) {
 }
 
 class _ScanView extends ConsumerWidget {
-  final ShipmentStatus shipmentState;
-  final ShipmentNotifier shipmentNotifier;
+  final MInOutStatus mInOutState;
+  final MInOutNotifier mInOutNotifier;
 
   const _ScanView({
-    required this.shipmentState,
-    required this.shipmentNotifier,
+    required this.mInOutState,
+    required this.mInOutNotifier,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final barcodeList = shipmentState.uniqueView
-        ? shipmentState.scanBarcodeListUnique
-        : shipmentState.scanBarcodeListTotal;
+    final barcodeList = mInOutState.uniqueView
+        ? mInOutState.scanBarcodeListUnique
+        : mInOutState.scanBarcodeListTotal;
 
     return SafeArea(
       child: Column(
         children: [
           SizedBox(height: 4),
-          _buildActionFilterList(shipmentNotifier),
+          _buildActionFilterList(mInOutNotifier),
           SizedBox(height: 8),
           Divider(height: 0),
-          _buildBarcodeList(barcodeList, shipmentNotifier),
+          _buildBarcodeList(barcodeList, mInOutNotifier),
           Padding(
             padding: const EdgeInsets.all(4.0),
-            child: EnterBarcodeButton(shipmentNotifier),
+            child: EnterBarcodeButton(mInOutNotifier),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildActionFilterList(ShipmentNotifier shipmentNotifier) {
+  Widget _buildActionFilterList(MInOutNotifier mInOutNotifier) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _buildFilterList(
           text: 'Total',
-          counting: shipmentNotifier.getTotalCount().toString(),
-          isActive: !shipmentNotifier.getUniqueView(),
-          onPressed: () => shipmentNotifier.setUniqueView(false),
+          counting: mInOutNotifier.getTotalCount().toString(),
+          isActive: !mInOutNotifier.getUniqueView(),
+          onPressed: () => mInOutNotifier.setUniqueView(false),
         ),
         SizedBox(width: 8),
         _buildFilterList(
           text: 'Únicos',
-          counting: shipmentNotifier.getUniqueCount().toString(),
-          isActive: shipmentNotifier.getUniqueView(),
-          onPressed: () => shipmentNotifier.setUniqueView(true),
+          counting: mInOutNotifier.getUniqueCount().toString(),
+          isActive: mInOutNotifier.getUniqueView(),
+          onPressed: () => mInOutNotifier.setUniqueView(true),
         ),
       ],
     );
@@ -889,19 +889,19 @@ class _ScanView extends ConsumerWidget {
   }
 
   Widget _buildBarcodeList(
-      List<Barcode> barcodeList, ShipmentNotifier shipmentNotifier) {
+      List<Barcode> barcodeList, MInOutNotifier mInOutNotifier) {
     return Expanded(
       child: ListView.builder(
-        controller: shipmentNotifier.scanBarcodeListScrollController,
+        controller: mInOutNotifier.scanBarcodeListScrollController,
         itemCount: barcodeList.length,
         itemBuilder: (BuildContext context, int index) {
           final barcode = barcodeList[index];
           return BarcodeList(
             barcode: barcode,
             onPressedDelete: () =>
-                _showConfirmDeleteItem(context, shipmentNotifier, barcode),
+                _showConfirmDeleteItem(context, mInOutNotifier, barcode),
             onPressedrepetitions: () =>
-                shipmentNotifier.selectRepeat(barcode.code),
+                mInOutNotifier.selectRepeat(barcode.code),
           );
         },
       ),
@@ -909,7 +909,7 @@ class _ScanView extends ConsumerWidget {
   }
 
   Future<void> _showConfirmDeleteItem(BuildContext context,
-      ShipmentNotifier shipmentNotifier, Barcode barcode) {
+      MInOutNotifier mInOutNotifier, Barcode barcode) {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -923,7 +923,7 @@ class _ScanView extends ConsumerWidget {
           actions: <Widget>[
             CustomFilledButton(
               onPressed: () {
-                shipmentNotifier.removeBarcode(barcode: barcode);
+                mInOutNotifier.removeBarcode(barcode: barcode);
                 Navigator.of(context).pop();
               },
               label: 'Si',

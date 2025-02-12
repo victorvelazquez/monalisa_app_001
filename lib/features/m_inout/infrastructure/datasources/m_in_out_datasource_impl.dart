@@ -1,17 +1,17 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:monalisa_app_001/features/shared/domain/entities/response_api.dart';
-import 'package:monalisa_app_001/features/shipment/domain/datasources/shipment_datasource.dart';
-import 'package:monalisa_app_001/features/shipment/domain/entities/shipment.dart';
+import 'package:monalisa_app_001/features/m_inout/domain/datasources/m_inout_datasource.dart';
+import 'package:monalisa_app_001/features/m_inout/domain/entities/m_in_out.dart';
 
 import '../../../../config/config.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../shared/shared.dart';
 
-class ShipmentDataSourceImpl implements ShipmentDataSource {
+class MInOutDataSourceImpl implements MInOutDataSource {
   late final Dio dio;
 
-  ShipmentDataSourceImpl() {
+  MInOutDataSourceImpl() {
     _initDio();
   }
 
@@ -20,21 +20,21 @@ class ShipmentDataSourceImpl implements ShipmentDataSource {
   }
 
   @override
-  Future<Shipment> getShipmentAndLine(
-    String shipment,
+  Future<MInOut> getMInOutAndLine(
+    String mInOut,
     WidgetRef ref,
   ) async {
     try {
       final String url =
-          "/api/v1/models/m_inout?\$expand=m_inoutline&\$filter=DocumentNo%20eq%20'${shipment.toString()}'";
+          "/api/v1/models/m_inout?\$expand=m_inoutline&\$filter=DocumentNo%20eq%20'${mInOut.toString()}'";
       final response = await dio.get(url);
 
       if (response.statusCode == 200) {
         final responseApi = ResponseApi.jsonToEntity(response.data);
 
         if (responseApi.records != null && responseApi.records!.isNotEmpty) {
-          final shipment = responseApi.records!.first;
-          return shipment;
+          final mInOut = responseApi.records!.first;
+          return mInOut;
         } else {
           throw Exception('No se encontraron registros de shipment');
         }
