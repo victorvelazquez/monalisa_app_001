@@ -408,7 +408,8 @@ class _ShipmentView extends ConsumerWidget {
                   children: [
                     Divider(height: 0),
                     Container(
-                      color: item.verifiedStatus == 'exceeds'
+                      color: item.verifiedStatus == 'exceeds' ||
+                              item.verifiedStatus == 'manually-exceeds'
                           ? themeColorWarningLight
                           : null,
                       child: Row(
@@ -476,17 +477,26 @@ class _ShipmentView extends ConsumerWidget {
                                   ? Icons.check_circle_outline_rounded
                                   : item.verifiedStatus == 'exceeds'
                                       ? Icons.warning_amber_rounded
-                                      : item.verifiedStatus == 'manually'
+                                      : item.verifiedStatus ==
+                                                  'manually-correct' ||
+                                              item.verifiedStatus ==
+                                                  'manually-minor' ||
+                                              item.verifiedStatus ==
+                                                  'manually-exceeds'
                                           ? Icons.touch_app_outlined
                                           : item.verifiedStatus == 'minor'
                                               ? Icons
                                                   .radio_button_checked_rounded
                                               : Icons.circle_outlined,
                               color: item.verifiedStatus == 'correct' ||
-                                      item.verifiedStatus == 'manually'
+                                      item.verifiedStatus == 'manually-correct'
                                   ? themeColorSuccessful
                                   : item.verifiedStatus == 'minor' ||
-                                          item.verifiedStatus == 'exceeds'
+                                          item.verifiedStatus == 'exceeds' ||
+                                          item.verifiedStatus ==
+                                              'manually-minor' ||
+                                          item.verifiedStatus ==
+                                              'manually-exceeds'
                                       ? themeColorWarning
                                       : themeColorError,
                             ),
@@ -555,15 +565,33 @@ class _ShipmentView extends ConsumerWidget {
                     0: IntrinsicColumnWidth(),
                     1: FlexColumnWidth(),
                   },
-                  children: [
-                    _buildTableRow("UPC:", item.upc?.toString() ?? '', false),
-                    _buildTableRow(
-                        "Producto:", item.productName?.toString() ?? '', false),
-                    _buildTableRow(
-                        "Cantidad:", item.movementQty?.toString() ?? '0', true),
-                    _buildTableRow("Escaneado:",
-                        item.scanningQty?.toString() ?? '0', true),
-                  ],
+                  children: item.verifiedStatus == 'manually-correct' ||
+                          item.verifiedStatus == 'manually-minor' ||
+                          item.verifiedStatus == 'manually-exceeds'
+                      ? [
+                          _buildTableRow(
+                              "UPC:", item.upc?.toString() ?? '', false),
+                          _buildTableRow("Producto:",
+                              item.productName?.toString() ?? '', false),
+                          _buildTableRow("Cantidad:",
+                              item.movementQty?.toString() ?? '0', true),
+                          _buildTableRow("Escaneado:",
+                              item.scanningQty?.toString() ?? '0', true),
+                          _buildTableRow("Conf. Manual:",
+                              item.manualQty?.toString() ?? '0', true),
+                          _buildTableRow("Conf. Manual:",
+                              item.verifiedStatus?.toString() ?? '0', true),
+                        ]
+                      : [
+                          _buildTableRow(
+                              "UPC:", item.upc?.toString() ?? '', false),
+                          _buildTableRow("Producto:",
+                              item.productName?.toString() ?? '', false),
+                          _buildTableRow("Cantidad:",
+                              item.movementQty?.toString() ?? '0', true),
+                          _buildTableRow("Escaneado:",
+                              item.scanningQty?.toString() ?? '0', true),
+                        ],
                 ),
               ],
             ),
@@ -574,14 +602,103 @@ class _ShipmentView extends ConsumerWidget {
               label: 'Cerrar',
               icon: const Icon(Icons.close_rounded),
             ),
+            item.verifiedStatus == 'manually-correct' ||
+                    item.verifiedStatus == 'manually-minor' ||
+                    item.verifiedStatus == 'manually-exceeds'
+                ? CustomFilledButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _showResetManualLine(context, item);
+                    },
+                    label: 'Reiniciar',
+                    icon: const Icon(Icons.touch_app_outlined),
+                    buttonColor: themeColorGray,
+                  )
+                : CustomFilledButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      shipmentNotifier.onManualQuantityChange(
+                          item.manualQty != null && item.manualQty! > 0
+                              ? item.manualQty.toString()
+                              : item.movementQty.toString());
+                      _showInsertManualLine(context, item);
+                    },
+                    label: 'Manual',
+                    icon: const Icon(Icons.touch_app_outlined),
+                    buttonColor: themeColorGray,
+                  ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showInsertManualLine(BuildContext context, Line line) {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(themeBorderRadius),
+          ),
+          title: const Text('Confirmar Manual'),
+          content: CustomTextFormField(
+              hint: 'Ingrese la cantidad',
+              initialValue: line.manualQty != null && line.manualQty! > 0
+                  ? line.manualQty.toString()
+                  : line.movementQty.toString(),
+              onChanged: shipmentNotifier.onManualQuantityChange,
+              onFieldSubmitted: (value) {
+                shipmentNotifier.confirmManualLine(line);
+                Navigator.of(context).pop();
+              }),
+          actions: <Widget>[
             CustomFilledButton(
               onPressed: () {
-                shipmentNotifier.confirmManualLine(item);
+                shipmentNotifier.confirmManualLine(line);
                 Navigator.of(context).pop();
               },
-              label: 'Manual',
-              icon: const Icon(Icons.touch_app_outlined),
-              buttonColor: themeColorGrayLight,
+              label: 'Confirmar',
+              icon: const Icon(Icons.check),
+            ),
+            CustomFilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              label: 'Cancelar',
+              icon: const Icon(Icons.close_rounded),
+              buttonColor: themeColorGray,
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showResetManualLine(BuildContext context, Line line) {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(themeBorderRadius),
+          ),
+          title: const Text('Reiniciar Manual'),
+          content: const Text(
+              '¿Estás seguro de que deseas reiniciar la confirmación manual?'),
+          actions: <Widget>[
+            CustomFilledButton(
+              onPressed: () {
+                shipmentNotifier.resetManualLine(line);
+                Navigator.of(context).pop();
+              },
+              label: 'Si',
+              icon: const Icon(Icons.check),
+              buttonColor: themeColorError,
+            ),
+            CustomFilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              label: 'No',
+              icon: const Icon(Icons.close_rounded),
+              buttonColor: themeColorGray,
             ),
           ],
         );

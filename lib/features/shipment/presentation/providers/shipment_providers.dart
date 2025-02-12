@@ -81,14 +81,46 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
     );
   }
 
+  onManualQuantityChange(String value) {
+    if (value.trim().isNotEmpty) {
+      final int parsedValue = int.tryParse(value) ?? 0;
+      state = state.copyWith(
+        manualQty: parsedValue,
+      );
+    }
+  }
+
   void confirmManualLine(Line line) {
     final List<Line> updatedLines = state.shipment!.lines;
     final int index = updatedLines.indexWhere((l) => l.id == line.id);
+    String status = 'manually-correct';
     if (index != -1) {
-      updatedLines[index] = line.copyWith(verifiedStatus: 'manually');
+      if (state.manualQty == line.movementQty) {
+        status = 'manually-correct';
+      } else if (state.manualQty < line.movementQty!) {
+        status = 'manually-minor';
+      } else if (state.manualQty > line.movementQty!) {
+        status = 'manually-exceeds';
+      }
+      updatedLines[index] =
+          line.copyWith(manualQty: state.manualQty, verifiedStatus: status);
       state = state.copyWith(
         shipment: state.shipment!.copyWith(lines: updatedLines),
       );
+      updatedShipmentLine('');
+    }
+  }
+
+  void resetManualLine(Line line) {
+    final List<Line> updatedLines = state.shipment!.lines;
+    final int index = updatedLines.indexWhere((l) => l.id == line.id);
+    if (index != -1) {
+      updatedLines[index] =
+          line.copyWith(manualQty: 0, verifiedStatus: 'pending');
+      state = state.copyWith(
+        shipment: state.shipment!.copyWith(lines: updatedLines),
+      );
+      updatedShipmentLine('');
     }
   }
 
@@ -97,7 +129,7 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
       final List<Line> lines = state.shipment!.lines;
       for (final line in lines) {
         if (line.verifiedStatus != 'correct' &&
-            line.verifiedStatus != 'manually') {
+            line.verifiedStatus != 'manually-correct') {
           return false;
         }
       }
@@ -132,7 +164,6 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
   // Método para agregar un código de barras
   void addBarcode(String code) {
     if (code.trim().isEmpty) return;
-
     // Copia de la lista actual para trabajar con ella
     final List<Barcode> updatedTotalList = [...state.scanBarcodeListTotal];
 
@@ -173,7 +204,7 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
       );
     }
 
-    updatedVerifyList(updatedTotalList);
+    updatedBarcodeList(updatedTotalList: updatedTotalList, barcode: code);
 
     moveScrollToBottom();
   }
@@ -209,12 +240,14 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
         updatedTotalList.where((barcode) => barcode.repetitions > 0).toList();
 
     // Actualizar las listas
-    updatedVerifyList(filteredTotalList);
+    updatedBarcodeList(
+        updatedTotalList: filteredTotalList, barcode: barcode.code);
 
     moveScrollToBottom();
   }
 
-  void updatedVerifyList(List<Barcode> updatedTotalList) {
+  void updatedBarcodeList(
+      {required List<Barcode> updatedTotalList, required String barcode}) {
     // Reasignar índices a la lista total
     for (int i = 0; i < updatedTotalList.length; i++) {
       updatedTotalList[i] = updatedTotalList[i].copyWith(index: i + 1);
@@ -241,40 +274,69 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
       scanBarcodeListTotal: updatedTotalList,
       scanBarcodeListUnique: updatedUniqueList,
     );
+    updatedShipmentLine(barcode);
+  }
 
+  void updatedShipmentLine(String barcode) {
     // Verificar las líneas del shipment
     if (state.shipment != null && state.viewShipment) {
       List<Line> lines = state.shipment!.lines;
       List<Barcode> linesOver = [];
       if (lines.isNotEmpty) {
         for (int i = 0; i < lines.length; i++) {
-          lines[i] = lines[i].copyWith(
-            verifiedStatus: 'pending',
-            scanningQty: 0,
-          );
+          if ((lines[i].verifiedStatus != 'manually-correct' &&
+                  lines[i].verifiedStatus != 'manually-minor' &&
+                  lines[i].verifiedStatus != 'manually-exceeds') ||
+              lines[i].upc == barcode) {
+            lines[i] = lines[i].copyWith(
+              verifiedStatus: 'pending',
+              scanningQty: 0,
+              manualQty: 0,
+            );
+          }
         }
-        for (int i = 0; i < updatedUniqueList.length; i++) {
-          final barcode = updatedUniqueList[i];
+        for (int i = 0; i < state.scanBarcodeListUnique.length; i++) {
+          final barcode = state.scanBarcodeListUnique[i];
           final lineIndex =
               lines.indexWhere((line) => line.upc == barcode.code);
-
           if (lineIndex != -1) {
             final line = lines[lineIndex];
-            if (barcode.repetitions == line.movementQty) {
-              lines[lineIndex] = line.copyWith(
-                verifiedStatus: 'correct',
-                scanningQty: barcode.repetitions,
-              );
-            } else if (barcode.repetitions < line.movementQty!) {
-              lines[lineIndex] = line.copyWith(
-                verifiedStatus: 'minor',
-                scanningQty: barcode.repetitions,
-              );
-            } else if (barcode.repetitions > line.movementQty!) {
-              lines[lineIndex] = line.copyWith(
-                verifiedStatus: 'exceeds',
-                scanningQty: barcode.repetitions,
-              );
+            if (line.verifiedStatus == 'manually-correct' ||
+                line.verifiedStatus == 'manually-minor' ||
+                line.verifiedStatus == 'manually-exceeds') {
+              if (line.manualQty == line.movementQty) {
+                lines[lineIndex] = line.copyWith(
+                  verifiedStatus: 'manually-correct',
+                  scanningQty: barcode.repetitions,
+                );
+              } else if (line.manualQty! < line.movementQty!) {
+                lines[lineIndex] = line.copyWith(
+                  verifiedStatus: 'manually-minor',
+                  scanningQty: barcode.repetitions,
+                );
+              } else if (line.manualQty! > line.movementQty!) {
+                lines[lineIndex] = line.copyWith(
+                  verifiedStatus: 'manually-exceeds',
+                  scanningQty: barcode.repetitions,
+                );
+              }
+            } else {
+              if (barcode.repetitions == line.movementQty) {
+                lines[lineIndex] = line.copyWith(
+                  verifiedStatus: 'correct',
+                  scanningQty: barcode.repetitions,
+                );
+              } else if (barcode.repetitions < line.movementQty!) {
+                lines[lineIndex] = line.copyWith(
+                  verifiedStatus: 'minor',
+                  scanningQty: barcode.repetitions,
+                );
+              } else if (barcode.repetitions > line.movementQty!) {
+                lines[lineIndex] = line.copyWith(
+                  verifiedStatus: 'exceeds',
+                  scanningQty: barcode.repetitions,
+                );
+              }
             }
           } else {
             linesOver = [
@@ -373,15 +435,53 @@ class ShipmentNotifier extends StateNotifier<ShipmentStatus> {
       );
     } else {
       final List<Line> sortedLines = [...state.shipment!.lines];
-      sortedLines.sort((a, b) {
-        if (a.verifiedStatus == orderBy && b.verifiedStatus != orderBy) {
-          return -1;
-        } else if (a.verifiedStatus != orderBy && b.verifiedStatus == orderBy) {
-          return 1;
-        } else {
-          return 0;
-        }
-      });
+      if (orderBy == 'manually') {
+        orderBy = 'manually-minor';
+        sortedLines.sort((a, b) {
+          if (a.verifiedStatus == orderBy && b.verifiedStatus != orderBy) {
+            return -1;
+          } else if (a.verifiedStatus != orderBy &&
+              b.verifiedStatus == orderBy) {
+            return 1;
+          } else {
+            return 0;
+          }
+        });
+        orderBy = 'manually-exceeds';
+        sortedLines.sort((a, b) {
+          if (a.verifiedStatus == orderBy && b.verifiedStatus != orderBy) {
+            return -1;
+          } else if (a.verifiedStatus != orderBy &&
+              b.verifiedStatus == orderBy) {
+            return 1;
+          } else {
+            return 0;
+          }
+        });
+        orderBy = 'manually-correct';
+        sortedLines.sort((a, b) {
+          if (a.verifiedStatus == orderBy && b.verifiedStatus != orderBy) {
+            return -1;
+          } else if (a.verifiedStatus != orderBy &&
+              b.verifiedStatus == orderBy) {
+            return 1;
+          } else {
+            return 0;
+          }
+        });
+      } else {
+        sortedLines.sort((a, b) {
+          if (a.verifiedStatus == orderBy && b.verifiedStatus != orderBy) {
+            return -1;
+          } else if (a.verifiedStatus != orderBy &&
+              b.verifiedStatus == orderBy) {
+            return 1;
+          } else {
+            return 0;
+          }
+        });
+      }
+
       state = state.copyWith(
         orderBy: orderBy,
         shipment: state.shipment!.copyWith(lines: sortedLines),
@@ -400,6 +500,7 @@ class ShipmentStatus {
   final bool viewShipment;
   final bool uniqueView;
   final String orderBy;
+  final int manualQty;
   final String errorMessage;
   final bool isLoading;
 
@@ -412,6 +513,7 @@ class ShipmentStatus {
     this.viewShipment = false,
     this.uniqueView = false,
     this.orderBy = '',
+    this.manualQty = 0,
     this.errorMessage = '',
     this.isLoading = false,
   });
@@ -425,6 +527,7 @@ class ShipmentStatus {
     bool? viewShipment,
     bool? uniqueView,
     String? orderBy,
+    int? manualQty,
     String? errorMessage,
     bool? isLoading,
   }) =>
@@ -437,6 +540,7 @@ class ShipmentStatus {
         linesOver: linesOver ?? this.linesOver,
         viewShipment: viewShipment ?? this.viewShipment,
         orderBy: orderBy ?? this.orderBy,
+        manualQty: manualQty ?? this.manualQty,
         uniqueView: uniqueView ?? this.uniqueView,
         errorMessage: errorMessage ?? this.errorMessage,
         isLoading: isLoading ?? this.isLoading,
