@@ -50,7 +50,7 @@ class MInOutScreen extends ConsumerWidget {
           appBar: AppBar(
             title: TabBar(
               tabs: [
-                Tab(text: isShipment ? 'Shipment' : 'Recept'),
+                Tab(text: isShipment ? 'Shipment' : 'Receipt'),
                 Tab(text: 'Scan'),
               ],
               isScrollable: true,

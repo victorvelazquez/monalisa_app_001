@@ -48,7 +48,7 @@ const appHomeOptionCol1Items = <MenuItem>[
 
 const appHomeOptionCol2Items = <MenuItem>[
   MenuItem(
-    title: 'Material Recept',
+    title: 'Material Receipt',
     subTitle: '',
     link: '/mInOut/recept',
     icon: Icons.download,
@@ -60,7 +60,7 @@ const appHomeOptionCol2Items = <MenuItem>[
     icon: Icons.download,
   ),
   MenuItem(
-      title: 'Recept Confirm',
+      title: 'Receipt Confirm',
       subTitle: '',
       link: '/splash',
       icon: Icons.download),
