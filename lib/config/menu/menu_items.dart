@@ -26,15 +26,55 @@ const appMenuItems = <MenuItem>[
       icon: Icons.logout_outlined),
 ];
 
-const appHomeOptionItems = <MenuItem>[
+const appHomeOptionCol1Items = <MenuItem>[
   MenuItem(
-    title: 'Shipment Shipment',
+    title: 'Shipment',
     subTitle: '',
     link: '/shipment',
+    icon: Icons.upload,
+  ),
+  MenuItem(
+    title: 'PickUp /QA',
+    subTitle: '',
+    link: '/splash',
+    icon: Icons.upload,
+  ),
+  MenuItem(
+      title: 'Shipment Confirm',
+      subTitle: '',
+      link: '/splash',
+      icon: Icons.upload),
+];
+
+const appHomeOptionCol2Items = <MenuItem>[
+  MenuItem(
+    title: 'Material Recept',
+    subTitle: '',
+    link: '/shipment',
+    icon: Icons.download,
+  ),
+  MenuItem(
+    title: 'QA',
+    subTitle: '',
+    link: '/splash',
+    icon: Icons.download,
+  ),
+  MenuItem(
+      title: 'Recept Confirm',
+      subTitle: '',
+      link: '/splash',
+      icon: Icons.download),
+];
+
+const appHomeOptionCol3Items = <MenuItem>[
+  MenuItem(
+    title: 'Opción 1',
+    subTitle: '',
+    link: '/splash',
     icon: Icons.multiple_stop_outlined,
   ),
   MenuItem(
-    title: 'Reportes Reportes',
+    title: 'Opción 2',
     subTitle: '',
     link: '/splash',
     icon: Icons.pie_chart,

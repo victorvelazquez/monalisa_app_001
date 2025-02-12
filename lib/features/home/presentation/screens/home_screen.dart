@@ -19,23 +19,56 @@ class HomeScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-        child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            crossAxisSpacing: 4,
-            mainAxisSpacing: 4,
-          ),
-          itemCount: appHomeOptionItems.length,
-          itemBuilder: (context, index) {
-            final menuHomeOption = appHomeOptionItems[index];
-            return HomeOption(
-              title: menuHomeOption.title,
-              icon: menuHomeOption.icon,
-              onTap: () {
-                  context.push(menuHomeOption.link);
-              },
-            );
-          },
+        child: Row(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                itemCount: appHomeOptionCol1Items.length,
+                itemBuilder: (context, index) {
+                  final menuHomeOption = appHomeOptionCol1Items[index];
+                  return HomeOption(
+                    title: menuHomeOption.title,
+                    icon: menuHomeOption.icon,
+                    onTap: () {
+                      context.push(menuHomeOption.link);
+                    },
+                  );
+                },
+              ),
+            ),
+            SizedBox(width: 8),
+            Expanded(
+              child: ListView.builder(
+                itemCount: appHomeOptionCol2Items.length,
+                itemBuilder: (context, index) {
+                  final menuHomeOption = appHomeOptionCol2Items[index];
+                  return HomeOption(
+                    title: menuHomeOption.title,
+                    icon: menuHomeOption.icon,
+                    onTap: () {
+                      context.push(menuHomeOption.link);
+                    },
+                  );
+                },
+              ),
+            ),
+            SizedBox(width: 8),
+            Expanded(
+              child: ListView.builder(
+                itemCount: appHomeOptionCol3Items.length,
+                itemBuilder: (context, index) {
+                  final menuHomeOption = appHomeOptionCol3Items[index];
+                  return HomeOption(
+                    title: menuHomeOption.title,
+                    icon: menuHomeOption.icon,
+                    onTap: () {
+                      context.push(menuHomeOption.link);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
