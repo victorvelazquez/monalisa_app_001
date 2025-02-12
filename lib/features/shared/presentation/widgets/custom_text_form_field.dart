@@ -15,6 +15,7 @@ class CustomTextFormField extends StatelessWidget {
   final bool border;
   final Widget? prefixIcon;
   final Widget? suffixIcon;
+  final TextAlign textAlign;
 
   const CustomTextFormField({
     super.key,
@@ -31,6 +32,7 @@ class CustomTextFormField extends StatelessWidget {
     this.border = true,
     this.prefixIcon,
     this.suffixIcon,
+    this.textAlign = TextAlign.left,
   });
 
   @override
@@ -58,39 +60,40 @@ class CustomTextFormField extends StatelessWidget {
       child: SizedBox(
         height: 40,
         child: TextFormField(
+          textAlign: textAlign,
           onChanged: onChanged,
           onFieldSubmitted: onFieldSubmitted,
           validator: validator,
           obscureText: obscureText,
           keyboardType: keyboardType,
           style: TextStyle(
-            fontSize: themeFontSizeNormal,
+        fontSize: themeFontSizeNormal,
           ),
           maxLines: maxLines,
           initialValue: initialValue,
           decoration: InputDecoration(
-            floatingLabelBehavior: maxLines > 1
-                ? FloatingLabelBehavior.always
-                : FloatingLabelBehavior.auto,
-            floatingLabelStyle: TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.bold,
-              fontSize: themeFontSizeNormal,
-            ),
-            enabledBorder: inputBorder,
-            focusedBorder: inputBorder,
-            errorBorder: inputBorder.copyWith(
-              borderSide: const BorderSide(color: Colors.transparent),
-            ),
-            focusedErrorBorder: inputBorder.copyWith(
-              borderSide: const BorderSide(color: Colors.transparent),
-            ),
-            isDense: true,
-            label: label != null ? Text(label!) : null,
-            hintText: hint,
-            errorText: errorMessage,
-            prefixIcon: prefixIcon,
-            suffixIcon: suffixIcon,
+        floatingLabelBehavior: maxLines > 1
+            ? FloatingLabelBehavior.always
+            : FloatingLabelBehavior.auto,
+        floatingLabelStyle: TextStyle(
+          color: Colors.black,
+          fontWeight: FontWeight.bold,
+          fontSize: themeFontSizeNormal,
+        ),
+        enabledBorder: inputBorder,
+        focusedBorder: inputBorder,
+        errorBorder: inputBorder.copyWith(
+          borderSide: const BorderSide(color: Colors.transparent),
+        ),
+        focusedErrorBorder: inputBorder.copyWith(
+          borderSide: const BorderSide(color: Colors.transparent),
+        ),
+        isDense: true,
+        label: label != null ? Text(label!) : null,
+        hintText: hint,
+        errorText: errorMessage,
+        prefixIcon: prefixIcon,
+        suffixIcon: suffixIcon,
           ),
         ),
       ),

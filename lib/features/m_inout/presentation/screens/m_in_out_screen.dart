@@ -583,8 +583,6 @@ class _MInOutView extends ConsumerWidget {
                               item.scanningQty?.toString() ?? '0', true),
                           _buildTableRow("Conf. Manual:",
                               item.manualQty?.toString() ?? '0', true),
-                          _buildTableRow("Conf. Manual:",
-                              item.verifiedStatus?.toString() ?? '0', true),
                         ]
                       : [
                           _buildTableRow(
@@ -648,6 +646,7 @@ class _MInOutView extends ConsumerWidget {
           title: const Text('Confirmar Manual'),
           content: CustomTextFormField(
               hint: 'Ingrese la cantidad',
+              textAlign: TextAlign.center,
               initialValue: line.manualQty != null && line.manualQty! > 0
                   ? line.manualQty.toString()
                   : line.movementQty.toString(),
