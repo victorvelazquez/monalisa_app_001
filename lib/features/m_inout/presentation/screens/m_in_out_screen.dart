@@ -29,52 +29,66 @@ class MInOutScreen extends ConsumerWidget {
 
     final isShipment = type == 'shipment';
 
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: TabBar(
-            tabs: [
-              Tab(text: isShipment ? 'Shipment' : 'Recept'),
-              Tab(text: 'Scan'),
-            ],
-            isScrollable: true,
-            indicatorWeight: 4,
-            indicatorColor: themeColorPrimary,
-            dividerColor: themeColorPrimary,
-            tabAlignment: TabAlignment.start,
-            labelStyle: TextStyle(
-                fontSize: themeFontSizeTitle,
-                fontWeight: FontWeight.bold,
-                color: themeColorPrimary),
-            unselectedLabelStyle: TextStyle(fontSize: themeFontSizeLarge),
-          ),
-          actions: mInOutState.viewMInOut &&
-                  mInOutState.mInOut!.docStatus.id.toString() != 'CO'
-              ? [
-                  IconButton(
-                    onPressed: mInOutNotifier.isConfirmMInOut()
-                        ? () => mInOutNotifier.confirmMInOut()
-                        : () => _showConfirmMInOut(context),
-                    icon: Icon(
-                      Icons.check,
-                      color: mInOutNotifier.isConfirmMInOut()
-                          ? themeColorSuccessful
-                          : null,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        if (mInOutState.scanBarcodeListTotal.isNotEmpty) {
+          final shouldPop = await _showExitConfirmationDialog(context);
+          if (shouldPop && context.mounted) {
+            Navigator.of(context).pop();
+            mInOutNotifier.clearMInOutData();
+          }
+        } else {
+          Navigator.of(context).pop();
+          mInOutNotifier.clearMInOutData();
+        }
+      },
+      child: DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          appBar: AppBar(
+            title: TabBar(
+              tabs: [
+                Tab(text: isShipment ? 'Shipment' : 'Recept'),
+                Tab(text: 'Scan'),
+              ],
+              isScrollable: true,
+              indicatorWeight: 4,
+              indicatorColor: themeColorPrimary,
+              dividerColor: themeColorPrimary,
+              tabAlignment: TabAlignment.start,
+              labelStyle: TextStyle(
+                  fontSize: themeFontSizeTitle,
+                  fontWeight: FontWeight.bold,
+                  color: themeColorPrimary),
+              unselectedLabelStyle: TextStyle(fontSize: themeFontSizeLarge),
+            ),
+            actions: mInOutState.viewMInOut &&
+                    mInOutState.mInOut!.docStatus.id.toString() != 'CO'
+                ? [
+                    IconButton(
+                      onPressed: mInOutNotifier.isConfirmMInOut()
+                          ? () => mInOutNotifier.confirmMInOut()
+                          : () => _showConfirmMInOut(context),
+                      icon: Icon(
+                        Icons.check,
+                        color: mInOutNotifier.isConfirmMInOut()
+                            ? themeColorSuccessful
+                            : null,
+                      ),
                     ),
-                  ),
-                ]
-              : null,
-        ),
-        body: TabBarView(
-          children: [
-            _MInOutView(
-                mInOutState: mInOutState,
-                mInOutNotifier: mInOutNotifier),
-            _ScanView(
-                mInOutState: mInOutState,
-                mInOutNotifier: mInOutNotifier),
-          ],
+                  ]
+                : null,
+          ),
+          body: TabBarView(
+            children: [
+              _MInOutView(
+                  mInOutState: mInOutState, mInOutNotifier: mInOutNotifier),
+              _ScanView(
+                  mInOutState: mInOutState, mInOutNotifier: mInOutNotifier),
+            ],
+          ),
         ),
       ),
     );
@@ -101,6 +115,36 @@ class MInOutScreen extends ConsumerWidget {
         );
       },
     );
+  }
+
+  Future<bool> _showExitConfirmationDialog(BuildContext context) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(themeBorderRadius),
+            ),
+            title: const Text('¿Salir?'),
+            content: const Text('¿Realmente deseas salir de esta pantalla?'),
+            actions: <Widget>[
+              CustomFilledButton(
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+                label: 'Si',
+                icon: const Icon(Icons.check),
+                buttonColor: themeColorError,
+              ),
+              CustomFilledButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                label: 'No',
+                icon: const Icon(Icons.close_rounded),
+                buttonColor: themeColorGray,
+              ),
+            ],
+          ),
+        ) ??
+        false;
   }
 }
 
@@ -156,8 +200,7 @@ class _MInOutView extends ConsumerWidget {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(themeBorderRadius),
                         color:
-                            mInOutState.mInOut!.docStatus.id.toString() ==
-                                    'CO'
+                            mInOutState.mInOut!.docStatus.id.toString() == 'CO'
                                 ? themeColorSuccessfulLight
                                 : themeBackgroundColorLight,
                       ),
@@ -233,40 +276,35 @@ class _MInOutView extends ConsumerWidget {
                                 style: TextStyle(fontSize: themeFontSizeSmall),
                               ),
                               Text(
-                                DateFormat('dd/MM/yyyy').format(
-                                    mInOutState.mInOut!.movementDate),
+                                DateFormat('dd/MM/yyyy')
+                                    .format(mInOutState.mInOut!.movementDate),
                                 style: TextStyle(fontSize: themeFontSizeSmall),
                               ),
                               Text(
-                                mInOutState.mInOut!.cOrderId.identifier ??
+                                mInOutState.mInOut!.cOrderId.identifier ?? '',
+                                style: TextStyle(fontSize: themeFontSizeSmall),
+                              ),
+                              Text(
+                                DateFormat('dd/MM/yyyy')
+                                    .format(mInOutState.mInOut!.dateOrdered),
+                                style: TextStyle(fontSize: themeFontSizeSmall),
+                              ),
+                              Text(
+                                mInOutState.mInOut!.adOrgId.identifier ?? '',
+                                style: TextStyle(fontSize: themeFontSizeSmall),
+                              ),
+                              Text(
+                                mInOutState.mInOut!.mWarehouseId.identifier ??
                                     '',
                                 style: TextStyle(fontSize: themeFontSizeSmall),
                               ),
                               Text(
-                                DateFormat('dd/MM/yyyy').format(
-                                    mInOutState.mInOut!.dateOrdered),
-                                style: TextStyle(fontSize: themeFontSizeSmall),
-                              ),
-                              Text(
-                                mInOutState.mInOut!.adOrgId.identifier ??
+                                mInOutState.mInOut!.cBPartnerId.identifier ??
                                     '',
                                 style: TextStyle(fontSize: themeFontSizeSmall),
                               ),
                               Text(
-                                mInOutState
-                                        .mInOut!.mWarehouseId.identifier ??
-                                    '',
-                                style: TextStyle(fontSize: themeFontSizeSmall),
-                              ),
-                              Text(
-                                mInOutState
-                                        .mInOut!.cBPartnerId.identifier ??
-                                    '',
-                                style: TextStyle(fontSize: themeFontSizeSmall),
-                              ),
-                              Text(
-                                mInOutState.mInOut!.docStatus.identifier ??
-                                    '',
+                                mInOutState.mInOut!.docStatus.identifier ?? '',
                                 style: TextStyle(fontSize: themeFontSizeSmall),
                               ),
                             ],
@@ -384,12 +422,10 @@ class _MInOutView extends ConsumerWidget {
             children: [
               Icon(Icons.straight_rounded,
                   size: 18,
-                  color:
-                      mInOutState.orderBy == name ? color : themeColorGray),
+                  color: mInOutState.orderBy == name ? color : themeColorGray),
               Icon(icon,
                   size: 18,
-                  color:
-                      mInOutState.orderBy == name ? color : themeColorGray),
+                  color: mInOutState.orderBy == name ? color : themeColorGray),
             ],
           ),
         ),
@@ -723,8 +759,8 @@ class _MInOutView extends ConsumerWidget {
           children: barcodeList.map((barcode) {
             return BarcodeList(
               barcode: barcode,
-              onPressedDelete: () => _showConfirmDeleteItemOver(
-                  context, mInOutNotifier, barcode),
+              onPressedDelete: () =>
+                  _showConfirmDeleteItemOver(context, mInOutNotifier, barcode),
               onPressedrepetitions: () =>
                   mInOutNotifier.selectRepeat(barcode.code),
             );
@@ -735,8 +771,8 @@ class _MInOutView extends ConsumerWidget {
     );
   }
 
-  Future<void> _showConfirmDeleteItemOver(BuildContext context,
-      MInOutNotifier mInOutNotifier, Barcode barcode) {
+  Future<void> _showConfirmDeleteItemOver(
+      BuildContext context, MInOutNotifier mInOutNotifier, Barcode barcode) {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -911,8 +947,8 @@ class _ScanView extends ConsumerWidget {
     );
   }
 
-  Future<void> _showConfirmDeleteItem(BuildContext context,
-      MInOutNotifier mInOutNotifier, Barcode barcode) {
+  Future<void> _showConfirmDeleteItem(
+      BuildContext context, MInOutNotifier mInOutNotifier, Barcode barcode) {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
