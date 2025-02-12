@@ -30,7 +30,7 @@ const appHomeOptionCol1Items = <MenuItem>[
   MenuItem(
     title: 'Shipment',
     subTitle: '',
-    link: '/mInOut',
+    link: '/mInOut/shipment',
     icon: Icons.upload,
   ),
   MenuItem(
@@ -50,7 +50,7 @@ const appHomeOptionCol2Items = <MenuItem>[
   MenuItem(
     title: 'Material Recept',
     subTitle: '',
-    link: '/mInOut',
+    link: '/mInOut/recept',
     icon: Icons.download,
   ),
   MenuItem(

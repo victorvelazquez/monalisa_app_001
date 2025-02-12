@@ -39,8 +39,11 @@ final goRouterProvider = Provider((ref) {
 
       ///* MInOut Routes
       GoRoute(
-        path: '/mInOut',
-        builder: (context, state) => const MInOutScreen(),
+        path: '/mInOut/:type',
+        builder: (context, state) {
+          final type = state.pathParameters['type'];
+          return MInOutScreen(type: type);
+        },
       ),
 
     ],

@@ -10,7 +10,9 @@ import '../providers/m_in_out_providers.dart';
 import '../widgets/enter_barcode_button.dart';
 
 class MInOutScreen extends ConsumerWidget {
-  const MInOutScreen({super.key});
+  final String? type;
+
+  const MInOutScreen({super.key, this.type});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -25,13 +27,15 @@ class MInOutScreen extends ConsumerWidget {
       }
     });
 
+    final isShipment = type == 'shipment';
+
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: AppBar(
           title: TabBar(
             tabs: [
-              Tab(text: 'Shipment'),
+              Tab(text: isShipment ? 'Shipment' : 'Recept'),
               Tab(text: 'Scan'),
             ],
             isScrollable: true,
