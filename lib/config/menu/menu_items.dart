@@ -50,7 +50,7 @@ const appHomeOptionCol2Items = <MenuItem>[
   MenuItem(
     title: 'Material Receipt',
     subTitle: '',
-    link: '/mInOut/recept',
+    link: '/mInOut/receipt',
     icon: Icons.download,
   ),
   MenuItem(
