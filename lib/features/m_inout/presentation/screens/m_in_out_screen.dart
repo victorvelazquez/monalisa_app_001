@@ -10,9 +10,9 @@ import '../providers/m_in_out_providers.dart';
 import '../widgets/enter_barcode_button.dart';
 
 class MInOutScreen extends ConsumerWidget {
-  final String? type;
+  final String type;
 
-  const MInOutScreen({super.key, this.type});
+  const MInOutScreen({super.key, required this.type});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -26,8 +26,6 @@ class MInOutScreen extends ConsumerWidget {
           ..showSnackBar(SnackBar(content: Text(next.errorMessage)));
       }
     });
-
-    final isShipment = type == 'shipment';
 
     return PopScope(
       canPop: false,
@@ -50,7 +48,7 @@ class MInOutScreen extends ConsumerWidget {
           appBar: AppBar(
             title: TabBar(
               tabs: [
-                Tab(text: isShipment ? 'Shipment' : 'Receipt'),
+                Tab(text: type == 'shipment' ? 'Shipment' : 'Receipt'),
                 Tab(text: 'Scan'),
               ],
               isScrollable: true,
@@ -84,7 +82,9 @@ class MInOutScreen extends ConsumerWidget {
           body: TabBarView(
             children: [
               _MInOutView(
-                  mInOutState: mInOutState, mInOutNotifier: mInOutNotifier),
+                  mInOutState: mInOutState,
+                  mInOutNotifier: mInOutNotifier,
+                  type: type),
               _ScanView(
                   mInOutState: mInOutState, mInOutNotifier: mInOutNotifier),
             ],
@@ -151,10 +151,12 @@ class MInOutScreen extends ConsumerWidget {
 class _MInOutView extends ConsumerWidget {
   final MInOutStatus mInOutState;
   final MInOutNotifier mInOutNotifier;
+  final String type;
 
   const _MInOutView({
     required this.mInOutState,
     required this.mInOutNotifier,
+    required this.type,
   });
 
   @override
@@ -164,7 +166,7 @@ class _MInOutView extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildMInOutHeader(context, ref),
+            _buildMInOutHeader(context, ref, type),
             const SizedBox(height: 5),
             _buildActionOrderList(mInOutNotifier),
             const SizedBox(height: 5),
@@ -182,7 +184,7 @@ class _MInOutView extends ConsumerWidget {
     );
   }
 
-  Widget _buildMInOutHeader(BuildContext context, WidgetRef ref) {
+  Widget _buildMInOutHeader(BuildContext context, WidgetRef ref, String type) {
     return mInOutState.isLoading
         ? Container(
             width: double.infinity,
@@ -319,7 +321,7 @@ class _MInOutView extends ConsumerWidget {
                         icon: Icon(Icons.clear, size: 20),
                         onPressed: mInOutState.scanBarcodeListTotal.isNotEmpty
                             ? () => _showConfirmclearMInOutData(
-                                context, mInOutNotifier)
+                                context, mInOutNotifier, mInOutState)
                             : () => mInOutNotifier.clearMInOutData(),
                       ),
                     ),
@@ -331,13 +333,16 @@ class _MInOutView extends ConsumerWidget {
                 child: CustomTextFormField(
                   hint: 'Ingresar documento',
                   onChanged: mInOutNotifier.onDocChange,
-                  onFieldSubmitted: (value) =>
-                      mInOutNotifier.getMInOutAndLine(ref),
+                  onFieldSubmitted: (value) {
+                    mInOutNotifier.setIsSOTrx(type);
+                    mInOutNotifier.getMInOutAndLine(ref);
+                  },
                   prefixIcon: Icon(Icons.qr_code_scanner_rounded),
                   suffixIcon: IconButton(
                     icon: Icon(Icons.send_rounded),
                     color: themeColorPrimary,
                     onPressed: () {
+                      mInOutNotifier.setIsSOTrx(type);
                       mInOutNotifier.getMInOutAndLine(ref);
                     },
                   ),
@@ -553,8 +558,8 @@ class _MInOutView extends ConsumerWidget {
         : SizedBox();
   }
 
-  Future<void> _showConfirmclearMInOutData(
-      BuildContext context, MInOutNotifier mInOutNotifier) {
+  Future<void> _showConfirmclearMInOutData(BuildContext context,
+      MInOutNotifier mInOutNotifier, MInOutStatus mInOutState) {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -562,9 +567,9 @@ class _MInOutView extends ConsumerWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(themeBorderRadius),
           ),
-          title: const Text('Limpiar Shipment'),
-          content:
-              const Text('¿Estás seguro de que deseas limpiar este Shipment?'),
+          title: Text('Limpiar ${mInOutState.title}'),
+          content: Text(
+              '¿Estás seguro de que deseas limpiar este ${mInOutState.title}?'),
           actions: <Widget>[
             CustomFilledButton(
               onPressed: () {

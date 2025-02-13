@@ -22,11 +22,13 @@ class MInOutDataSourceImpl implements MInOutDataSource {
   @override
   Future<MInOut> getMInOutAndLine(
     String mInOut,
+    bool isSOTrx,
     WidgetRef ref,
   ) async {
+    final String title = isSOTrx ? 'Shipment' : 'Material Receipt';
     try {
       final String url =
-          "/api/v1/models/m_inout?\$expand=m_inoutline&\$filter=DocumentNo%20eq%20'${mInOut.toString()}'";
+          "/api/v1/models/m_inout?\$expand=m_inoutline&\$filter=DocumentNo%20eq%20'${mInOut.toString()}'%20AND%20IsSOTrx%20eq%20$isSOTrx";
       final response = await dio.get(url);
 
       if (response.statusCode == 200) {
@@ -36,11 +38,11 @@ class MInOutDataSourceImpl implements MInOutDataSource {
           final mInOut = responseApi.records!.first;
           return mInOut;
         } else {
-          throw Exception('No se encontraron registros de shipment');
+          throw Exception('No se encontraron registros del $title');
         }
       } else {
         throw Exception(
-            'Error al cargar los datos del shipment: ${response.statusCode}');
+            'Error al cargar los datos del $title: ${response.statusCode}');
       }
     } on DioException catch (e) {
       final authDataNotifier = ref.read(authProvider.notifier);

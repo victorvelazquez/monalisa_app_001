@@ -12,7 +12,7 @@ class MInOutRepositoryImpl implements MInOutRepository {
       : dataSource = dataSource ?? MInOutDataSourceImpl();
   
   @override
-  Future<MInOut> getMInOutAndLine(String mInOut, WidgetRef ref) {
-    return dataSource.getMInOutAndLine(mInOut, ref);
+  Future<MInOut> getMInOutAndLine(String mInOut, bool isSOTrx, WidgetRef ref) {
+    return dataSource.getMInOutAndLine(mInOut, isSOTrx, ref);
   }
 }

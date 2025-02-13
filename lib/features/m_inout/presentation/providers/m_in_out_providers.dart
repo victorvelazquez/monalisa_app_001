@@ -6,7 +6,8 @@ import 'package:monalisa_app_001/features/m_inout/domain/repositories/m_in_out_r
 import '../../domain/entities/barcode.dart';
 import '../../infrastructure/repositories/m_in_out_repository_impl.dart';
 
-final mInOutProvider = StateNotifierProvider<MInOutNotifier, MInOutStatus>((ref) {
+final mInOutProvider =
+    StateNotifierProvider<MInOutNotifier, MInOutStatus>((ref) {
   return MInOutNotifier(mInOutRepository: MInOutRepositoryImpl());
 });
 
@@ -23,6 +24,14 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
           viewMInOut: false,
         ));
 
+  void setIsSOTrx(String value) {
+    if (value == 'shipment') {
+      state = state.copyWith(isSOTrx: true, title: 'Shipment');
+    } else {
+      state = state.copyWith(isSOTrx: false, title: 'Receipt');
+    }
+  }
+
   void onDocChange(String value) {
     if (value.trim().isNotEmpty) {
       state = state.copyWith(doc: value, errorMessage: '');
@@ -30,18 +39,32 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
   }
 
   Future<void> getMInOutAndLine(WidgetRef ref) async {
-    if (state.doc.trim().isNotEmpty) {
-      state = state.copyWith(isLoading: true, errorMessage: '');
-      try {
-        final mInOutResponse = await mInOutRepository.getMInOutAndLine(state.doc, ref);
-        state = state.copyWith(mInOut: mInOutResponse, isLoading: false, viewMInOut: true);
-      } catch (e) {
-        state = state.copyWith(
-          errorMessage: 'Error al obtener el shipment: ${e.toString()}',
-          viewMInOut: false,
-          isLoading: false,
-        );
-      }
+    state = state.copyWith(isLoading: true, errorMessage: '');
+    if (state.doc.trim().isEmpty) {
+      state = state.copyWith(
+        errorMessage: 'El documento no puede estar vacío',
+        isLoading: false,
+      );
+      return;
+    }
+
+    try {
+      final mInOutResponse = await mInOutRepository.getMInOutAndLine(
+          state.doc, state.isSOTrx, ref);
+      final filteredLines = mInOutResponse.lines
+          .where((line) => line.mProductId != null)
+          .toList();
+      state = state.copyWith(
+        mInOut: mInOutResponse.copyWith(lines: filteredLines),
+        isLoading: false,
+        viewMInOut: true,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        viewMInOut: false,
+        isLoading: false,
+      );
     }
   }
 
@@ -49,6 +72,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     state = state.copyWith(
       doc: '',
       mInOut: state.mInOut?.copyWith(id: null, lines: null),
+      isSOTrx: false,
       scanBarcodeListTotal: [],
       scanBarcodeListUnique: [],
       linesOver: [],
@@ -70,8 +94,10 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     final int index = updatedLines.indexWhere((l) => l.id == line.id);
     if (index != -1) {
       final status = _getManualStatus(line);
-      updatedLines[index] = line.copyWith(manualQty: state.manualQty, verifiedStatus: status);
-      state = state.copyWith(mInOut: state.mInOut!.copyWith(lines: updatedLines));
+      updatedLines[index] =
+          line.copyWith(manualQty: state.manualQty, verifiedStatus: status);
+      state =
+          state.copyWith(mInOut: state.mInOut!.copyWith(lines: updatedLines));
       updatedMInOutLine('');
     }
   }
@@ -80,28 +106,35 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     final List<Line> updatedLines = state.mInOut!.lines;
     final int index = updatedLines.indexWhere((l) => l.id == line.id);
     if (index != -1) {
-      updatedLines[index] = line.copyWith(manualQty: 0, verifiedStatus: 'pending');
-      state = state.copyWith(mInOut: state.mInOut!.copyWith(lines: updatedLines));
+      updatedLines[index] =
+          line.copyWith(manualQty: 0, verifiedStatus: 'pending');
+      state =
+          state.copyWith(mInOut: state.mInOut!.copyWith(lines: updatedLines));
       updatedMInOutLine('');
     }
   }
 
   bool isConfirmMInOut() {
     return state.mInOut?.lines.every((line) =>
-        line.verifiedStatus == 'correct' || line.verifiedStatus == 'manually-correct') ?? false;
+            line.verifiedStatus == 'correct' ||
+            line.verifiedStatus == 'manually-correct') ??
+        false;
   }
 
   Future<void> confirmMInOut() async {
-    state = state.copyWith(isLoading: true, viewMInOut: false, errorMessage: '');
-    try {// final mInOutResponse = await mInOutRepository.confirmMInOut(code);
+    state =
+        state.copyWith(isLoading: true, viewMInOut: false, errorMessage: '');
+    try {
+      // final mInOutResponse = await mInOutRepository.confirmMInOut(code);
       await Future.delayed(const Duration(seconds: 2));
       state = state.copyWith(
         // mInOut: mInOutResponse,
         isLoading: false,
         viewMInOut: true,
-      );    } catch (e) {
+      );
+    } catch (e) {
       state = state.copyWith(
-        errorMessage: 'Error al confirmar el shipment: ${e.toString()}',
+        errorMessage: 'Error al confirmar el ${state.title}: ${e.toString()}',
         viewMInOut: false,
         isLoading: false,
       );
@@ -111,13 +144,15 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
   void addBarcode(String code) {
     if (code.trim().isEmpty) return;
     final List<Barcode> updatedTotalList = [...state.scanBarcodeListTotal];
-    final existingBarcodes = updatedTotalList.where((barcode) => barcode.code == code).toList();
+    final existingBarcodes =
+        updatedTotalList.where((barcode) => barcode.code == code).toList();
 
     if (existingBarcodes.isNotEmpty) {
       final int newRepetitions = existingBarcodes.first.repetitions + 1;
       for (int i = 0; i < updatedTotalList.length; i++) {
         if (updatedTotalList[i].code == code) {
-          updatedTotalList[i] = updatedTotalList[i].copyWith(repetitions: newRepetitions);
+          updatedTotalList[i] =
+              updatedTotalList[i].copyWith(repetitions: newRepetitions);
         }
       }
       updatedTotalList.add(Barcode(
@@ -152,17 +187,21 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       int newRepetitions = barcodeToRemove.repetitions - 1;
       for (int i = 0; i < updatedTotalList.length; i++) {
         if (updatedTotalList[i].code == barcodeToRemove.code) {
-          updatedTotalList[i] = updatedTotalList[i].copyWith(repetitions: newRepetitions);
+          updatedTotalList[i] =
+              updatedTotalList[i].copyWith(repetitions: newRepetitions);
         }
       }
     }
 
-    final filteredTotalList = updatedTotalList.where((barcode) => barcode.repetitions > 0).toList();
-    updatedBarcodeList(updatedTotalList: filteredTotalList, barcode: barcode.code);
+    final filteredTotalList =
+        updatedTotalList.where((barcode) => barcode.repetitions > 0).toList();
+    updatedBarcodeList(
+        updatedTotalList: filteredTotalList, barcode: barcode.code);
     moveScrollToBottom();
   }
 
-  void updatedBarcodeList({required List<Barcode> updatedTotalList, required String barcode}) {
+  void updatedBarcodeList(
+      {required List<Barcode> updatedTotalList, required String barcode}) {
     for (int i = 0; i < updatedTotalList.length; i++) {
       updatedTotalList[i] = updatedTotalList[i].copyWith(index: i + 1);
     }
@@ -171,7 +210,8 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     for (final barcode in updatedTotalList) {
       if (!uniqueMap.containsKey(barcode.code) ||
           uniqueMap[barcode.code]!.repetitions < barcode.repetitions) {
-        uniqueMap[barcode.code] = barcode.copyWith(repetitions: barcode.repetitions);
+        uniqueMap[barcode.code] =
+            barcode.copyWith(repetitions: barcode.repetitions);
       }
     }
 
@@ -196,7 +236,8 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
                 lines[i].verifiedStatus != 'manually-minor' &&
                 lines[i].verifiedStatus != 'manually-exceeds') ||
             lines[i].upc == barcode) {
-          lines[i] = lines[i].copyWith(verifiedStatus: 'pending', scanningQty: 0, manualQty: 0);
+          lines[i] = lines[i].copyWith(
+              verifiedStatus: 'pending', scanningQty: 0, manualQty: 0);
         }
       }
       for (final barcode in state.scanBarcodeListUnique) {
@@ -208,7 +249,8 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
           linesOver.add(barcode.copyWith(index: linesOver.length + 1));
         }
       }
-      state = state.copyWith(mInOut: state.mInOut!.copyWith(lines: lines), linesOver: linesOver);
+      state = state.copyWith(
+          mInOut: state.mInOut!.copyWith(lines: lines), linesOver: linesOver);
     }
   }
 
@@ -254,10 +296,12 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     final List<Line> sortedLines = [...state.mInOut!.lines];
     if (state.orderBy == orderBy) {
       sortedLines.sort((a, b) => a.line!.compareTo(b.line!));
-      state = state.copyWith(orderBy: 'line', mInOut: state.mInOut!.copyWith(lines: sortedLines));
+      state = state.copyWith(
+          orderBy: 'line', mInOut: state.mInOut!.copyWith(lines: sortedLines));
     } else {
       _sortLinesByStatus(sortedLines, orderBy);
-      state = state.copyWith(orderBy: orderBy, mInOut: state.mInOut!.copyWith(lines: sortedLines));
+      state = state.copyWith(
+          orderBy: orderBy, mInOut: state.mInOut!.copyWith(lines: sortedLines));
     }
   }
 
@@ -281,11 +325,14 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       );
     } else {
       if (barcode.repetitions == line.movementQty) {
-        return line.copyWith(verifiedStatus: 'correct', scanningQty: barcode.repetitions);
+        return line.copyWith(
+            verifiedStatus: 'correct', scanningQty: barcode.repetitions);
       } else if (barcode.repetitions < line.movementQty!) {
-        return line.copyWith(verifiedStatus: 'minor', scanningQty: barcode.repetitions);
+        return line.copyWith(
+            verifiedStatus: 'minor', scanningQty: barcode.repetitions);
       } else {
-        return line.copyWith(verifiedStatus: 'exceeds', scanningQty: barcode.repetitions);
+        return line.copyWith(
+            verifiedStatus: 'exceeds', scanningQty: barcode.repetitions);
       }
     }
   }
@@ -331,6 +378,8 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
 class MInOutStatus {
   final String doc;
   final MInOut? mInOut;
+  final bool isSOTrx;
+  final String title;
   final List<Barcode> scanBarcodeListTotal;
   final List<Barcode> scanBarcodeListUnique;
   final List<Barcode> linesOver;
@@ -344,6 +393,8 @@ class MInOutStatus {
   MInOutStatus({
     this.doc = '',
     this.mInOut,
+    this.isSOTrx = false,
+    this.title = 'Shipment',
     required this.scanBarcodeListTotal,
     required this.scanBarcodeListUnique,
     this.linesOver = const [],
@@ -358,6 +409,8 @@ class MInOutStatus {
   MInOutStatus copyWith({
     String? doc,
     MInOut? mInOut,
+    bool? isSOTrx,
+    String? title,
     List<Barcode>? scanBarcodeListTotal,
     List<Barcode>? scanBarcodeListUnique,
     List<Barcode>? linesOver,
@@ -371,8 +424,11 @@ class MInOutStatus {
       MInOutStatus(
         doc: doc ?? this.doc,
         mInOut: mInOut ?? this.mInOut,
+        isSOTrx: isSOTrx ?? this.isSOTrx,
+        title: title ?? this.title,
         scanBarcodeListTotal: scanBarcodeListTotal ?? this.scanBarcodeListTotal,
-        scanBarcodeListUnique: scanBarcodeListUnique ?? this.scanBarcodeListUnique,
+        scanBarcodeListUnique:
+            scanBarcodeListUnique ?? this.scanBarcodeListUnique,
         linesOver: linesOver ?? this.linesOver,
         viewMInOut: viewMInOut ?? this.viewMInOut,
         orderBy: orderBy ?? this.orderBy,

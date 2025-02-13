@@ -41,7 +41,7 @@ final goRouterProvider = Provider((ref) {
       GoRoute(
         path: '/mInOut/:type',
         builder: (context, state) {
-          final type = state.pathParameters['type'];
+          final type = state.pathParameters['type'] ?? 'shipment';
           return MInOutScreen(type: type);
         },
       ),
