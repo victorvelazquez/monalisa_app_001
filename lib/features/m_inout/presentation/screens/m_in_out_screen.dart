@@ -125,7 +125,7 @@ class MInOutScreen extends ConsumerWidget {
               borderRadius: BorderRadius.circular(themeBorderRadius),
             ),
             title: const Text('¿Salir?'),
-            content: const Text('¿Realmente deseas salir de esta pantalla?'),
+            content: const Text('¿Realmente deseas salir de esta pantalla? Se perderá todo el trabajo actual realizado.'),
             actions: <Widget>[
               CustomFilledButton(
                 onPressed: () {
@@ -373,15 +373,6 @@ class _MInOutView extends ConsumerWidget {
                 name: 'minor',
               ),
               SizedBox(width: 4),
-              // correcto
-              _buildOrderList(
-                icon: Icons.check_circle_outline_rounded,
-                color: themeColorSuccessful,
-                background: themeColorSuccessfulLight,
-                onPressed: () => mInOutNotifier.setOrderBy('correct'),
-                name: 'correct',
-              ),
-              SizedBox(width: 4),
               // supera
               _buildOrderList(
                 icon: Icons.warning_amber_rounded,
@@ -398,6 +389,15 @@ class _MInOutView extends ConsumerWidget {
                 background: themeColorSuccessfulLight,
                 onPressed: () => mInOutNotifier.setOrderBy('manually'),
                 name: 'manually',
+              ),
+              SizedBox(width: 4),
+              // correcto
+              _buildOrderList(
+                icon: Icons.check_circle_outline_rounded,
+                color: themeColorSuccessful,
+                background: themeColorSuccessfulLight,
+                onPressed: () => mInOutNotifier.setOrderBy('correct'),
+                name: 'correct',
               ),
             ],
           )
