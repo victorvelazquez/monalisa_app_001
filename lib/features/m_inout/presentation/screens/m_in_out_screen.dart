@@ -334,18 +334,19 @@ class _MInOutView extends ConsumerWidget {
                   hint: 'Ingresar documento',
                   onChanged: mInOutNotifier.onDocChange,
                   onFieldSubmitted: (value) {
-                    mInOutNotifier.setIsSOTrx(type);
-                    mInOutNotifier.getMInOutAndLine(ref);
+                  mInOutNotifier.setIsSOTrx(type);
+                  mInOutNotifier.getMInOutAndLine(ref);
                   },
                   prefixIcon: Icon(Icons.qr_code_scanner_rounded),
                   suffixIcon: IconButton(
-                    icon: Icon(Icons.send_rounded),
-                    color: themeColorPrimary,
-                    onPressed: () {
-                      mInOutNotifier.setIsSOTrx(type);
-                      mInOutNotifier.getMInOutAndLine(ref);
-                    },
+                  icon: Icon(Icons.send_rounded),
+                  color: themeColorPrimary,
+                  onPressed: () {
+                    mInOutNotifier.setIsSOTrx(type);
+                    mInOutNotifier.getMInOutAndLine(ref);
+                  },
                   ),
+                  autofocus: true,
                 ),
               );
   }

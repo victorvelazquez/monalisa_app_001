@@ -16,6 +16,7 @@ class CustomTextFormField extends StatelessWidget {
   final Widget? prefixIcon;
   final Widget? suffixIcon;
   final TextAlign textAlign;
+  final bool autofocus;
 
   const CustomTextFormField({
     super.key,
@@ -33,13 +34,14 @@ class CustomTextFormField extends StatelessWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.textAlign = TextAlign.left,
+    this.autofocus = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final inputBorder = OutlineInputBorder(
-      borderSide: BorderSide(
-          color: border ? themeColorGrayLight : Colors.transparent),
+      borderSide:
+          BorderSide(color: border ? themeColorGrayLight : Colors.transparent),
       borderRadius: BorderRadius.circular(themeBorderRadius),
     );
 
@@ -67,33 +69,34 @@ class CustomTextFormField extends StatelessWidget {
           obscureText: obscureText,
           keyboardType: keyboardType,
           style: TextStyle(
-        fontSize: themeFontSizeNormal,
+            fontSize: themeFontSizeNormal,
           ),
           maxLines: maxLines,
           initialValue: initialValue,
+          autofocus: autofocus,
           decoration: InputDecoration(
-        floatingLabelBehavior: maxLines > 1
-            ? FloatingLabelBehavior.always
-            : FloatingLabelBehavior.auto,
-        floatingLabelStyle: TextStyle(
-          color: Colors.black,
-          fontWeight: FontWeight.bold,
-          fontSize: themeFontSizeNormal,
-        ),
-        enabledBorder: inputBorder,
-        focusedBorder: inputBorder,
-        errorBorder: inputBorder.copyWith(
-          borderSide: const BorderSide(color: Colors.transparent),
-        ),
-        focusedErrorBorder: inputBorder.copyWith(
-          borderSide: const BorderSide(color: Colors.transparent),
-        ),
-        isDense: true,
-        label: label != null ? Text(label!) : null,
-        hintText: hint,
-        errorText: errorMessage,
-        prefixIcon: prefixIcon,
-        suffixIcon: suffixIcon,
+            floatingLabelBehavior: maxLines > 1
+                ? FloatingLabelBehavior.always
+                : FloatingLabelBehavior.auto,
+            floatingLabelStyle: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: themeFontSizeNormal,
+            ),
+            enabledBorder: inputBorder,
+            focusedBorder: inputBorder,
+            errorBorder: inputBorder.copyWith(
+              borderSide: const BorderSide(color: Colors.transparent),
+            ),
+            focusedErrorBorder: inputBorder.copyWith(
+              borderSide: const BorderSide(color: Colors.transparent),
+            ),
+            isDense: true,
+            label: label != null ? Text(label!) : null,
+            hintText: hint,
+            errorText: errorMessage,
+            prefixIcon: prefixIcon,
+            suffixIcon: suffixIcon,
           ),
         ),
       ),
