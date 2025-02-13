@@ -1,7 +1,10 @@
+import 'package:monalisa_app_001/features/shared/domain/entities/ad_entity_id.dart';
+
 class Line {
   int? id;
   int? line;
   int? movementQty;
+  AdEntityId? mProductId;
   String? upc;
   String? productName;
   String? verifiedStatus;
@@ -12,6 +15,7 @@ class Line {
     this.id,
     this.line,
     this.movementQty,
+    this.mProductId,
     this.upc,
     this.productName,
     this.verifiedStatus,
@@ -23,6 +27,7 @@ class Line {
         id: json["id"],
         line: json["Line"],
         movementQty: json["MovementQty"],
+        mProductId: AdEntityId.jsonToEntity(json["M_Product_ID"] ?? {}),
         upc: json["UPC"],
         productName: json["ProductName"],
       );
@@ -31,6 +36,7 @@ class Line {
     int? id,
     int? line,
     int? movementQty,
+    AdEntityId? mProductId,
     String? upc,
     String? productName,
     String? verifiedStatus,
@@ -41,6 +47,7 @@ class Line {
       id: id ?? this.id,
       line: line ?? this.line,
       movementQty: movementQty ?? this.movementQty,
+      mProductId: mProductId ?? this.mProductId,
       upc: upc ?? this.upc,
       productName: productName ?? this.productName,
       verifiedStatus: verifiedStatus ?? this.verifiedStatus,

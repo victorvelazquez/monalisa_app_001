@@ -52,7 +52,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       final mInOutResponse = await mInOutRepository.getMInOutAndLine(
           state.doc, state.isSOTrx, ref);
       final filteredLines = mInOutResponse.lines
-          .where((line) => line.mProductId != null)
+          .where((line) => line.mProductId?.id != null)
           .toList();
       state = state.copyWith(
         mInOut: mInOutResponse.copyWith(lines: filteredLines),
