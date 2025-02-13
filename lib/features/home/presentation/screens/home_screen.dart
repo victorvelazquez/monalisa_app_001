@@ -20,8 +20,10 @@ class HomeScreen extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Expanded(
+            SizedBox(
+              width: 100,
               child: ListView.builder(
                 itemCount: appHomeOptionCol1Items.length,
                 itemBuilder: (context, index) {
@@ -36,8 +38,9 @@ class HomeScreen extends StatelessWidget {
                 },
               ),
             ),
-            SizedBox(width: 8),
-            Expanded(
+            SizedBox(width: 40),
+            SizedBox(
+              width: 100,
               child: ListView.builder(
                 itemCount: appHomeOptionCol2Items.length,
                 itemBuilder: (context, index) {
@@ -52,22 +55,22 @@ class HomeScreen extends StatelessWidget {
                 },
               ),
             ),
-            SizedBox(width: 8),
-            Expanded(
-              child: ListView.builder(
-                itemCount: appHomeOptionCol3Items.length,
-                itemBuilder: (context, index) {
-                  final menuHomeOption = appHomeOptionCol3Items[index];
-                  return HomeOption(
-                    title: menuHomeOption.title,
-                    icon: menuHomeOption.icon,
-                    onTap: () {
-                      context.push(menuHomeOption.link);
-                    },
-                  );
-                },
-              ),
-            ),
+            // SizedBox(width: 8),
+            // Expanded(
+            //   child: ListView.builder(
+            //     itemCount: appHomeOptionCol3Items.length,
+            //     itemBuilder: (context, index) {
+            //       final menuHomeOption = appHomeOptionCol3Items[index];
+            //       return HomeOption(
+            //         title: menuHomeOption.title,
+            //         icon: menuHomeOption.icon,
+            //         onTap: () {
+            //           context.push(menuHomeOption.link);
+            //         },
+            //       );
+            //     },
+            //   ),
+            // ),
           ],
         ),
       ),

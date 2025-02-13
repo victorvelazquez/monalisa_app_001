@@ -33,17 +33,17 @@ const appHomeOptionCol1Items = <MenuItem>[
     link: '/mInOut/shipment',
     icon: Icons.upload,
   ),
-  MenuItem(
-    title: 'PickUp /QA',
-    subTitle: '',
-    link: '/splash',
-    icon: Icons.upload,
-  ),
-  MenuItem(
-      title: 'Shipment Confirm',
-      subTitle: '',
-      link: '/splash',
-      icon: Icons.upload),
+  // MenuItem(
+  //   title: 'PickUp /QA',
+  //   subTitle: '',
+  //   link: '/splash',
+  //   icon: Icons.upload,
+  // ),
+  // MenuItem(
+  //     title: 'Shipment Confirm',
+  //     subTitle: '',
+  //     link: '/splash',
+  //     icon: Icons.upload),
 ];
 
 const appHomeOptionCol2Items = <MenuItem>[
@@ -53,17 +53,17 @@ const appHomeOptionCol2Items = <MenuItem>[
     link: '/mInOut/receipt',
     icon: Icons.download,
   ),
-  MenuItem(
-    title: 'QA',
-    subTitle: '',
-    link: '/splash',
-    icon: Icons.download,
-  ),
-  MenuItem(
-      title: 'Receipt Confirm',
-      subTitle: '',
-      link: '/splash',
-      icon: Icons.download),
+  // MenuItem(
+  //   title: 'QA',
+  //   subTitle: '',
+  //   link: '/splash',
+  //   icon: Icons.download,
+  // ),
+  // MenuItem(
+  //     title: 'Receipt Confirm',
+  //     subTitle: '',
+  //     link: '/splash',
+  //     icon: Icons.download),
 ];
 
 const appHomeOptionCol3Items = <MenuItem>[
