@@ -22,6 +22,7 @@ class SideMenuState extends ConsumerState<SideMenu> {
   Widget build(BuildContext context) {
     final hasNotch = MediaQuery.of(context).viewPadding.top > 35;
     final authDataState = ref.watch(authProvider);
+    final size = MediaQuery.of(context).size;
 
     return NavigationDrawer(
       elevation: 1,
@@ -93,6 +94,16 @@ class SideMenuState extends ConsumerState<SideMenu> {
                   ),
                 ),
               ],
+            ),
+          ),
+        ),
+        Container(
+          height: size.height - 400,
+          alignment: Alignment.bottomCenter,
+          child: Text(
+            'Versión: 1.0.0',
+            style: TextStyle(
+              color: Colors.grey,
             ),
           ),
         ),
