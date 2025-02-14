@@ -67,7 +67,7 @@ class MInOutScreen extends ConsumerWidget {
                 ? [
                     IconButton(
                       onPressed: mInOutNotifier.isConfirmMInOut()
-                          ? () => mInOutNotifier.confirmMInOut()
+                          ? () => mInOutNotifier.setDocAction(ref)
                           : () => _showConfirmMInOut(context),
                       icon: Icon(
                         Icons.check,

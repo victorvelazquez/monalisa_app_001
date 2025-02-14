@@ -11,13 +11,12 @@ class ModelSetDocAction {
     this.docAction,
   });
 
-  // factory ModelSetDocAction.jsonToEntity(Map<String, dynamic> json) =>
-  //     ModelSetDocAction(
-  //       serviceType: json["serviceType"],
-  //       tableName: json["tableName"],
-  //       recordId: json["recordID"],
-  //       docAction: json["docAction"],
-  //     );
+  Map<String, dynamic> toJson() => {
+        "serviceType": serviceType,
+        "tableName": tableName,
+        "recordID": recordId,
+        "docAction": docAction,
+      };
 
   ModelSetDocAction copyWith({
     String? serviceType,

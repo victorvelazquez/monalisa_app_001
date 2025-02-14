@@ -19,16 +19,16 @@ class AdLoginRequest {
         this.stage,
     });
 
-    // factory AdLoginRequest.jsonToEntity(Map<String, dynamic> json) => AdLoginRequest(
-    //     user: json["user"],
-    //     pass: json["pass"],
-    //     lang: json["lang"],
-    //     clientId: json["ClientID"],
-    //     roleId: json["RoleID"],
-    //     orgId: json["OrgID"],
-    //     warehouseId: json["WarehouseID"],
-    //     stage: json["stage"],
-    // );
+    Map<String, dynamic> toJson() => {
+        'user': user,
+        'pass': pass,
+        'lang': lang,
+        'ClientID': clientId,
+        'RoleID': roleId,
+        'OrgID': orgId,
+        'WarehouseID': warehouseId,
+        'stage': stage,
+    };
 
     AdLoginRequest copyWith({
         String? user,

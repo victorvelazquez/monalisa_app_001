@@ -121,20 +121,31 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
         false;
   }
 
-  Future<void> confirmMInOut() async {
-    state =
-        state.copyWith(isLoading: true, viewMInOut: false, errorMessage: '');
-    try {
-      // final mInOutResponse = await mInOutRepository.confirmMInOut(code);
-      await Future.delayed(const Duration(seconds: 2));
+  Future<void> setDocAction(WidgetRef ref) async {
+    state = state.copyWith(isLoading: true, viewMInOut: false, errorMessage: '');
+    if (state.mInOut?.id == null) {
       state = state.copyWith(
-        // mInOut: mInOutResponse,
+        errorMessage: 'MInOut ID is null',
+        isLoading: false,
+        viewMInOut: true,
+      );
+      return;
+    }
+
+    try {
+      final mInOutResponse = await mInOutRepository.setDocAction(
+          state.mInOut!.id!, state.isSOTrx, ref);
+      final filteredLines = mInOutResponse.lines
+          .where((line) => line.mProductId?.id != null)
+          .toList();
+      state = state.copyWith(
+        mInOut: mInOutResponse.copyWith(lines: filteredLines),
         isLoading: false,
         viewMInOut: true,
       );
     } catch (e) {
       state = state.copyWith(
-        errorMessage: 'Error al confirmar el ${state.title}: ${e.toString()}',
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
         viewMInOut: false,
         isLoading: false,
       );
