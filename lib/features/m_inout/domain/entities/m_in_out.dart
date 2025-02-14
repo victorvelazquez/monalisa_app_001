@@ -29,18 +29,18 @@ class MInOut {
         this.lines = const [],
     });
 
-    factory MInOut.jsonToEntity(Map<String, dynamic> json) => MInOut(
+    factory MInOut.fromJson(Map<String, dynamic> json) => MInOut(
         id: json["id"],
         movementDate: DateTime.parse(json["MovementDate"]),
-        adOrgId: AdEntityId.jsonToEntity(json["AD_Org_ID"]),
+        adOrgId: AdEntityId.fromJson(json["AD_Org_ID"]),
         isSoTrx: json["IsSOTrx"],
         documentNo: json["DocumentNo"],
-        cBPartnerId: AdEntityId.jsonToEntity(json["C_BPartner_ID"]),
-        mWarehouseId: AdEntityId.jsonToEntity(json["M_Warehouse_ID"]),
-        cOrderId: AdEntityId.jsonToEntity(json["C_Order_ID"]),
+        cBPartnerId: AdEntityId.fromJson(json["C_BPartner_ID"]),
+        mWarehouseId: AdEntityId.fromJson(json["M_Warehouse_ID"]),
+        cOrderId: AdEntityId.fromJson(json["C_Order_ID"]),
         dateOrdered: DateTime.parse(json["DateOrdered"]),
-        docStatus: AdEntityId.jsonToEntity(json["DocStatus"]),
-        lines: List<Line>.from(json["m_inoutline"].map((x) => Line.jsonToEntity(x))),
+        docStatus: AdEntityId.fromJson(json["DocStatus"]),
+        lines: List<Line>.from(json["m_inoutline"].map((x) => Line.fromJson(x))),
     );
 
     MInOut copyWith({

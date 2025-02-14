@@ -11,7 +11,20 @@ class AdEntityId {
     this.modelName,
   });
 
-  factory AdEntityId.jsonToEntity(Map<String, dynamic> json) => AdEntityId(
+  AdEntityId copyWith({
+    String? propertyLabel,
+    String? id,
+    String? identifier,
+    String? modelName,
+  }) =>
+      AdEntityId(
+        propertyLabel: propertyLabel ?? this.propertyLabel,
+        id: id ?? this.id,
+        identifier: identifier ?? this.identifier,
+        modelName: modelName ?? this.modelName,
+      );
+
+  factory AdEntityId.fromJson(Map<String, dynamic> json) => AdEntityId(
         propertyLabel: json["propertyLabel"],
         id: json["id"].toString() != "null" ? json["id"].toString() : null,
         identifier: json["identifier"],

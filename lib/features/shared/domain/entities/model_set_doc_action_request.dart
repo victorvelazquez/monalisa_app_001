@@ -11,8 +11,8 @@ class ModelSetDocActionRequest {
   });
 
   Map<String, dynamic> toJson() => {
-        'modelSetDocAction': modelSetDocAction?.toJson(),
-        'adLoginRequest': adLoginRequest?.toJson(),
+        'ModelSetDocAction': modelSetDocAction?.toJson(),
+        'ADLoginRequest': adLoginRequest?.toJson(),
       };
 
   ModelSetDocActionRequest copyWith({

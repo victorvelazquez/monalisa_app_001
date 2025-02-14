@@ -17,7 +17,7 @@ class MInOutRepositoryImpl implements MInOutRepository {
   }
   
   @override
-  Future<MInOut> setDocAction(int mInOutID, bool isSOTrx, WidgetRef ref) {
-    return dataSource.setDocAction(mInOutID, isSOTrx, ref);
+  Future<MInOut> setDocAction(MInOut mInOut, bool isSOTrx, WidgetRef ref) {
+    return dataSource.setDocAction(mInOut, isSOTrx, ref);
   }
 }

@@ -28,6 +28,7 @@ class DioClient {
         if (token != null) {
           options.headers['Authorization'] = 'Bearer $token';
         }
+        options.headers['Accept'] = 'application/json';
         return handler.next(options); // continuar con la solicitud
       },
     ));

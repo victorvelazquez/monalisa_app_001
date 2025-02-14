@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:monalisa_app_001/features/shared/domain/entities/response_api.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/datasources/m_inout_datasource.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/m_in_out.dart';
+import 'package:monalisa_app_001/features/shared/domain/entities/standard_response.dart';
 
 import '../../../../config/config.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -35,7 +36,7 @@ class MInOutDataSourceImpl implements MInOutDataSource {
       final response = await dio.get(url);
 
       if (response.statusCode == 200) {
-        final responseApi = ResponseApi.jsonToEntity(response.data);
+        final responseApi = ResponseApi.fromJson(response.data);
 
         if (responseApi.records != null && responseApi.records!.isNotEmpty) {
           final mInOut = responseApi.records!.first;
@@ -57,45 +58,54 @@ class MInOutDataSourceImpl implements MInOutDataSource {
 
   @override
   Future<MInOut> setDocAction(
-    int mInOutID,
+    MInOut mInOut,
     bool isSOTrx,
     WidgetRef ref,
   ) async {
-    final serviceType = isSOTrx ? 'SetDocumentActionShipment' : 'SetDocumentActionMaterialReceipt';
+    // final serviceType = isSOTrx
+    //     ? 'SetDocumentActionShipment'
+    //     : 'SetDocumentActionMaterialReceipt';
     final String title = isSOTrx ? 'Shipment' : 'Material Receipt';
     try {
       final String url =
           "/ADInterface/services/rest/model_adservice/set_docaction";
 
       final authData = ref.read(authProvider);
-      final request = ModelSetDocActionRequest(
-        modelSetDocAction: ModelSetDocAction(
-          serviceType: serviceType,
-          tableName: 'M_InOut',
-          recordId: mInOutID,
-          docAction: 'CO',
-        ),
-        adLoginRequest: AdLoginRequest(
-          user: authData.userName,
-          pass: authData.password,
-          lang: "es_PY",
-          clientId: authData.selectedClient!.id,
-          roleId: authData.selectedRole!.id,
-          orgId: authData.selectedOrganization!.id,
-          warehouseId: authData.selectedWarehouse!.id,
-          stage: 9,
-        ),
-      );
-      final response = await dio.post(url, data: request.toJson());
+      final request = {
+        'ModelSetDocActionRequest': ModelSetDocActionRequest(
+          modelSetDocAction: ModelSetDocAction(
+            serviceType: 'SetDocumentActionShipment',
+            tableName: 'M_InOut',
+            recordId: mInOut.id,
+            docAction: 'CO',
+          ),
+          adLoginRequest: AdLoginRequest(
+            user: authData.userName,
+            pass: authData.password,
+            lang: "es_PY",
+            clientId: authData.selectedClient!.id,
+            roleId: authData.selectedRole!.id,
+            orgId: authData.selectedOrganization!.id,
+            warehouseId: authData.selectedWarehouse!.id,
+            stage: 9,
+          ),
+        ).toJson()
+      };
+
+      final response = await dio.post(url, data: request);
 
       if (response.statusCode == 200) {
-        final responseApi = ResponseApi.jsonToEntity(response.data);
-
-        if (responseApi.records != null && responseApi.records!.isNotEmpty) {
-          final mInOut = responseApi.records!.first;
-          return mInOut;
+        final standardResponse = StandardResponse.fromJson(response.data['StandardResponse']);
+        if (standardResponse.isError == false) {
+          final mInOutResponse = await getMInOutAndLine(
+          mInOut.documentNo!.toString(), isSOTrx, ref);
+          if (mInOutResponse.id == mInOut.id) {
+            return mInOut;
+          } else {
+            throw Exception('Error al confirmar el $title');
+          }
         } else {
-          throw Exception('No se encontraron registros del $title');
+          throw Exception(standardResponse.error ?? 'Unknown error');
         }
       } else {
         throw Exception(

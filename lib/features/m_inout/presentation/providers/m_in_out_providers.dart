@@ -122,7 +122,8 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
   }
 
   Future<void> setDocAction(WidgetRef ref) async {
-    state = state.copyWith(isLoading: true, viewMInOut: false, errorMessage: '');
+    state =
+        state.copyWith(isLoading: true, viewMInOut: false, errorMessage: '');
     if (state.mInOut?.id == null) {
       state = state.copyWith(
         errorMessage: 'MInOut ID is null',
@@ -131,22 +132,18 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       );
       return;
     }
-
     try {
       final mInOutResponse = await mInOutRepository.setDocAction(
-          state.mInOut!.id!, state.isSOTrx, ref);
-      final filteredLines = mInOutResponse.lines
-          .where((line) => line.mProductId?.id != null)
-          .toList();
+          state.mInOut!, state.isSOTrx, ref);
       state = state.copyWith(
-        mInOut: mInOutResponse.copyWith(lines: filteredLines),
+        mInOut: mInOutResponse.copyWith(lines: state.mInOut!.lines),
         isLoading: false,
         viewMInOut: true,
       );
     } catch (e) {
       state = state.copyWith(
         errorMessage: e.toString().replaceAll('Exception: ', ''),
-        viewMInOut: false,
+        viewMInOut: true,
         isLoading: false,
       );
     }

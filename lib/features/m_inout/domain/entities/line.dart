@@ -23,11 +23,11 @@ class Line {
     this.manualQty,
   });
 
-  factory Line.jsonToEntity(Map<String, dynamic> json) => Line(
+  factory Line.fromJson(Map<String, dynamic> json) => Line(
         id: json["id"],
         line: json["Line"],
         movementQty: json["MovementQty"],
-        mProductId: AdEntityId.jsonToEntity(json["M_Product_ID"] ?? {}),
+        mProductId: AdEntityId.fromJson(json["M_Product_ID"] ?? {}),
         upc: json["UPC"],
         productName: json["ProductName"],
       );

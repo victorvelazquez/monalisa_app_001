@@ -17,12 +17,12 @@ class ResponseApi {
         this.records,
     });
 
-    factory ResponseApi.jsonToEntity(Map<String, dynamic> json) => ResponseApi(
+    factory ResponseApi.fromJson(Map<String, dynamic> json) => ResponseApi(
         pageCount: json["page-count"],
         recordsSize: json["records-size"],
         skipRecords: json["skip-records"],
         rowCount: json["row-count"],
         arrayCount: json["array-count"],
-        records: List<MInOut>.from(json["records"].map((x) => MInOut.jsonToEntity(x))),        
+        records: List<MInOut>.from(json["records"].map((x) => MInOut.fromJson(x))),        
     );
 }

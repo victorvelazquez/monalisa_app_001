@@ -4,5 +4,5 @@ import '../entities/m_in_out.dart';
 
 abstract class MInOutRepository {
   Future<MInOut> getMInOutAndLine(String mInOut, bool isSOTrx, WidgetRef ref);
-  Future<MInOut> setDocAction(int mInOutID, bool isSOTrx, WidgetRef ref);
+  Future<MInOut> setDocAction(MInOut mInOut, bool isSOTrx, WidgetRef ref);
 }
