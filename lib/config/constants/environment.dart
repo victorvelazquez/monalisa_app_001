@@ -1,8 +1,10 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-
 class Environment {
+  static String apiUrl = '';
+  static String token = '';
+  static bool validateCertificate = false;
+
   static initEnvironment() async {
-    await dotenv.load(fileName: '.env');
+    // await dotenv.load(fileName: '.env');
   }
 
   // static String apiUrl =
@@ -11,7 +13,9 @@ class Environment {
   // static bool validateCertificate =
   //     dotenv.env['VALIDATE_CERTIFICATE']?.toLowerCase() == 'true';
 
-  static String apiUrl = 'https://idempiere-dev.monalisa.com.py:8443';
+  
 
-  static bool validateCertificate = false;
+  // static String apiUrl = 'https://idempiere-dev.monalisa.com.py:8443';
+  
+
 }

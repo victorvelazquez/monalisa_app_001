@@ -40,4 +40,9 @@ class AuthRepositoryImpl implements AuthRepository {
     return dataSource.getAuthData(
         clientId, roleId, organizationId, warehouseId);
   }
+  
+  @override
+  Future<bool> validateUrl(String url) {
+    return dataSource.validateUrl(url);
+  }
 }

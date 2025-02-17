@@ -17,12 +17,10 @@ class DioConfiguration {
         securityContext.setTrustedCertificatesBytes(certBytes);
 
         adapter.createHttpClient = () => HttpClient(context: securityContext);
-        print('Validación del certificado habilitada.');
       } else {
         adapter.createHttpClient = () => HttpClient()
           ..badCertificateCallback =
               (X509Certificate cert, String host, int port) => true;
-        print('Validación del certificado deshabilitada.');
       }
 
       dio.httpClientAdapter = adapter;

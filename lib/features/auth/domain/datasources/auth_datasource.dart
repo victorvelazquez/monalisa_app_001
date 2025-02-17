@@ -6,6 +6,7 @@ import '../dtos/role_dto.dart';
 import '../dtos/warehouse_dto.dart';
 
 abstract class AuthDataSource {
+  Future<bool> validateUrl(String url);
   Future<LoginDto> login(String userName, String password);
   // Future<String> checkAuthStatus();
   Future<RoleDto> getRoles(int clientId);

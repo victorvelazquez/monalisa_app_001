@@ -74,9 +74,22 @@ class _LoginFormState extends ConsumerState<_LoginForm> {
       padding: const EdgeInsets.symmetric(horizontal: 50),
       child: Column(
         children: [
+          SizedBox(height: 20),
+          GestureDetector(
+            onLongPress: () {
+              ref.read(authProvider.notifier).setShowUrlApi();
+              setState(() {});
+            },
+            child: Text('Iniciar', style: textStyles.titleLarge),
+          ),
           const SizedBox(height: 20),
-          Text('Iniciar', style: textStyles.titleLarge),
-          const SizedBox(height: 20),
+          ref.read(authProvider).showUrlApi ? CustomTextFormField(
+            label: 'Url Api',
+            initialValue: ref.read(authProvider).urlApi,
+            onChanged: ref.read(authProvider.notifier).onUrlApiChanged,
+            border: false,
+          ) : const SizedBox(),
+          ref.read(authProvider).showUrlApi ? const SizedBox(height: 16) : const SizedBox(),
           CustomTextFormField(
             label: 'Usuario',
             onChanged: ref.read(loginFormProvider.notifier).onUserNameChange,
@@ -110,4 +123,46 @@ class _LoginFormState extends ConsumerState<_LoginForm> {
       ),
     );
   }
+
+  // Future<dynamic> showInsertUrl(BuildContext context) {
+  //   return showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         shape: RoundedRectangleBorder(
+  //           borderRadius: BorderRadius.circular(themeBorderRadius),
+  //         ),
+  //         title: Text('URL del API'),
+  //         content: CustomTextFormField(
+  //           initialValue: ref.read(authProvider).urlApi,
+  //           onChanged: ref.read(authProvider.notifier).onUrlApiChanged,
+  //           errorMessage: ref.read(authProvider).urlApiError != '' ? ref.read(authProvider).urlApiError : null,
+  //           border: false,
+  //           autofocus: true,
+  //         ),
+  //         actions: <Widget>[
+  //           CustomFilledButton(
+  //             onPressed: () async {
+  //               final isValid =
+  //                   await ref.read(authProvider.notifier).setUrlApi();
+  //               if (isValid) {
+  //                 if (context.mounted) {
+  //                   Navigator.of(context).pop();
+  //                 }
+  //               }
+  //             },
+  //             label: 'Guardar',
+  //             icon: const Icon(Icons.check),
+  //           ),
+  //           CustomFilledButton(
+  //             onPressed: () => Navigator.of(context).pop(),
+  //             label: 'Cancelar',
+  //             icon: const Icon(Icons.close_rounded),
+  //             buttonColor: themeColorGray,
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 }

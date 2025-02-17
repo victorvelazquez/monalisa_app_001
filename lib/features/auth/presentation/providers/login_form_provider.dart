@@ -81,16 +81,4 @@ class LoginFormState {
         userName: userName ?? this.userName,
         password: password ?? this.password,
       );
-
-  @override
-  String toString() {
-    return '''
-      LoginFormState:
-        isPosting: $isPosting
-        isFormPosted: $isFormPosted
-        isValid: $isValid
-        userName: $userName
-        password: $password
-    ''';
-  }
 }

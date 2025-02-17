@@ -117,4 +117,17 @@ class AuthDataSourceImpl implements AuthDataSource {
       throw Exception('ERROR: ${e.toString()}');
     }
   }
+
+  @override
+  Future<bool> validateUrl(String url) async {
+    try {
+      Environment.apiUrl = url;
+      final response = await dio.get(url);
+      Environment.apiUrl = '';
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error validating URL: $e');
+      return false;
+    }
+  }
 }

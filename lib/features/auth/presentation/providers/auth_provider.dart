@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:monalisa_app_001/config/config.dart';
 import 'package:monalisa_app_001/features/auth/infrastructure/infrastructure.dart';
 import 'package:monalisa_app_001/features/shared/infrastructure/errors/custom_error.dart';
 import 'package:monalisa_app_001/features/shared/infrastructure/services/services.dart';
@@ -39,10 +40,69 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   void _initialize() async {
+    state = state.copyWith(
+      showUrlApi: false,
+    );
     try {
-      await checkAuthStatus();
+      bool urlApi = await loadUrlApi();
+      if (urlApi) {
+        await checkAuthStatus();
+      } else {
+        logout();
+      }
     } catch (e) {
       logout(CustomErrorClean(e).clean);
+    }
+  }
+
+  void setShowUrlApi() {
+    state = state.copyWith(
+      showUrlApi: true,
+    );
+  }
+
+  void onUrlApiChanged(String value) {
+    final url = value.trim();
+    state = state.copyWith(
+      urlApi: url,
+      errorMessage: '',
+    );
+  }
+
+  Future<bool> setUrlApi() async {
+    bool isValid = await validateUrl(state.urlApi);
+    if (!isValid) {
+      state = state.copyWith(
+        urlApiError: 'La URL ingresada no responde.',
+      );
+      return false;
+    }
+    state = state.copyWith(
+      urlApiError: null,
+    );
+    await keyValueStorageService.setKeyValue('urlApi', state.urlApi);
+    Environment.apiUrl = state.urlApi;
+    return true;
+  }
+
+  Future<bool> validateUrl(String url) async {
+    final validateResponse = await authRepository.validateUrl(url);
+    return validateResponse;
+  }
+
+  Future<String> getUrlApi() async {
+    try {
+      final urlApi = await keyValueStorageService.getValue<String>('urlApi');
+      if (urlApi == null || urlApi.isEmpty) {
+        return '';
+      }
+      state = state.copyWith(
+        urlApi: urlApi.trim(),
+      );
+      return urlApi;
+    } catch (e) {
+      log('Error al obtener la url del API: $e');
+      return '';
     }
   }
 
@@ -53,6 +113,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
     );
 
     try {
+      bool urlApi = await setUrlApi();
+
+      if (!urlApi) {
+        String mensage = state.urlApiError.isNotEmpty ? state.urlApiError : '';
+        throw Exception(mensage);
+      }
+
       final loginResponse = await authRepository.login(userName, password);
 
       if (loginResponse.clients.isEmpty) {
@@ -64,9 +131,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
         token: loginResponse.token,
         userName: userName,
         password: password,
+        showUrlApi: false,
       );
-
-      await _setToken(loginResponse.token);
+      Environment.token = loginResponse.token;
 
       await updateClient(loginResponse.clients.first, preferLocalData: true);
 
@@ -102,11 +169,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
       authDataDto.organization = state.selectedOrganization;
       authDataDto.warehouse = state.selectedWarehouse;
       authDataDto.userId = authDataResponse.userId;
+      authDataDto.token = authDataResponse.token;
       authDataDto.refreshToken = authDataResponse.refreshToken;
       authDataDto.userName = state.userName;
       authDataDto.password = state.password;
 
-      _setToken(authDataResponse.token ?? '');
       _setAuthData(authDataDto);
 
       final user = state.userName;
@@ -116,6 +183,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final warehouse = state.selectedWarehouse?.name ?? '';
       final authInfo = '$user@$client/$organization/$warehouse/$role';
 
+      Environment.token = authDataResponse.token!;
       state = state.copyWith(
         token: authDataResponse.token,
         authStatus: AuthStatus.authenticated,
@@ -176,6 +244,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
     );
   }
 
+  Future<bool> loadUrlApi() async {
+    final urlApi = await keyValueStorageService.getValue<String>('urlApi');
+    if (urlApi != null && urlApi.isNotEmpty) {
+      state = state.copyWith(urlApi: urlApi);
+      Environment.apiUrl = urlApi;
+      return true;
+    }
+    return false;
+  }
+
   Future<void> checkAuthStatus() async {
     state = state.copyWith(authStatus: AuthStatus.checking);
     try {
@@ -199,10 +277,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> _setAuthData(AuthDataDto authDataDto) async {
     final jsonString = jsonEncode(authDataDto);
     await keyValueStorageService.setKeyValue('authData', jsonString);
-  }
-
-  Future<void> _setToken(String token) async {
-    await keyValueStorageService.setKeyValue('token', token);
   }
 
   Future<AuthDataDto?> _getAuthData() async {
@@ -331,6 +405,9 @@ class AuthState {
   final bool isLoading;
   final bool isSaving;
   final String errorMessage;
+  final bool showUrlApi;
+  final String urlApi;
+  final String urlApiError;
 
   AuthState({
     this.token,
@@ -349,6 +426,9 @@ class AuthState {
     this.isLoading = true,
     this.isSaving = false,
     this.errorMessage = '',
+    this.showUrlApi = false,
+    this.urlApi = '',
+    this.urlApiError = '',
   });
 
   AuthState copyWith({
@@ -368,6 +448,9 @@ class AuthState {
     bool? isLoading,
     bool? isSaving,
     String? errorMessage,
+    bool? showUrlApi,
+    String? urlApi,
+    String? urlApiError,
   }) =>
       AuthState(
         token: token ?? this.token,
@@ -386,5 +469,8 @@ class AuthState {
         errorMessage: errorMessage ?? this.errorMessage,
         isLoading: isLoading ?? this.isLoading,
         isSaving: isSaving ?? this.isSaving,
+        showUrlApi: showUrlApi ?? this.showUrlApi,
+        urlApi: urlApi ?? this.urlApi,
+        urlApiError: urlApiError ?? this.urlApiError,
       );
 }
