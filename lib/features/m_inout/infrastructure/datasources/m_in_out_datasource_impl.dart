@@ -66,6 +66,12 @@ class MInOutDataSourceImpl implements MInOutDataSource {
     //     ? 'SetDocumentActionShipment'
     //     : 'SetDocumentActionMaterialReceipt';
     final String title = isSOTrx ? 'Shipment' : 'Material Receipt';
+    String status = 'DR';
+    if (mInOut.docStatus.id.toString() == 'DR') {
+      status = 'IP';
+    } else if (mInOut.docStatus.id.toString() == 'IP') {
+      status = 'CO';
+    }
     try {
       final String url =
           "/ADInterface/services/rest/model_adservice/set_docaction";
@@ -77,7 +83,7 @@ class MInOutDataSourceImpl implements MInOutDataSource {
             serviceType: 'SetDocumentActionShipment',
             tableName: 'M_InOut',
             recordId: mInOut.id,
-            docAction: 'CO',
+            docAction: status,
           ),
           adLoginRequest: AdLoginRequest(
             user: authData.userName,
@@ -95,10 +101,11 @@ class MInOutDataSourceImpl implements MInOutDataSource {
       final response = await dio.post(url, data: request);
 
       if (response.statusCode == 200) {
-        final standardResponse = StandardResponse.fromJson(response.data['StandardResponse']);
+        final standardResponse =
+            StandardResponse.fromJson(response.data['StandardResponse']);
         if (standardResponse.isError == false) {
           final mInOutResponse = await getMInOutAndLine(
-          mInOut.documentNo!.toString(), isSOTrx, ref);
+              mInOut.documentNo!.toString(), isSOTrx, ref);
           if (mInOutResponse.id == mInOut.id) {
             return mInOut;
           } else {

@@ -230,6 +230,8 @@ class _MInOutView extends ConsumerWidget {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(themeBorderRadius),
                         color:
+                        mInOutState.mInOut!.docStatus.id.toString() == 'IP'
+                                ? themeColorWarningLight :
                             mInOutState.mInOut!.docStatus.id.toString() == 'CO'
                                 ? themeColorSuccessfulLight
                                 : themeBackgroundColorLight,
