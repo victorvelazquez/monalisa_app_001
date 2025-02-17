@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../constants/roles_app.dart';
+
 class MenuItem {
   final String title;
   final String subTitle;
@@ -26,13 +28,14 @@ const appMenuItems = <MenuItem>[
       icon: Icons.logout_outlined),
 ];
 
-const appHomeOptionCol1Items = <MenuItem>[
-  MenuItem(
-    title: 'Shipment',
-    subTitle: '',
-    link: '/mInOut/shipment',
-    icon: Icons.upload,
-  ),
+var appHomeOptionCol1Items = <MenuItem>[
+  if (RolesApp.appShipment)
+    const MenuItem(
+      title: 'Shipment',
+      subTitle: '',
+      link: '/mInOut/shipment',
+      icon: Icons.upload,
+    ),
   // MenuItem(
   //   title: 'PickUp /QA',
   //   subTitle: '',
@@ -46,13 +49,14 @@ const appHomeOptionCol1Items = <MenuItem>[
   //     icon: Icons.upload),
 ];
 
-const appHomeOptionCol2Items = <MenuItem>[
-  MenuItem(
-    title: 'Material Receipt',
-    subTitle: '',
-    link: '/mInOut/receipt',
-    icon: Icons.download,
-  ),
+var appHomeOptionCol2Items = <MenuItem>[
+  if (RolesApp.appReceipt)
+    const MenuItem(
+      title: 'Material Receipt',
+      subTitle: '',
+      link: '/mInOut/receipt',
+      icon: Icons.download,
+    ),
   // MenuItem(
   //   title: 'QA',
   //   subTitle: '',

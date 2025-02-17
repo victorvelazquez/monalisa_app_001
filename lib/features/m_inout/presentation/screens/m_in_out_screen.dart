@@ -5,6 +5,7 @@ import 'package:monalisa_app_001/features/shared/shared.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/line.dart';
 import 'package:monalisa_app_001/features/m_inout/presentation/widgets/barcode_list.dart';
 import 'package:intl/intl.dart';
+import '../../../../config/constants/roles_app.dart';
 import '../../domain/entities/barcode.dart';
 import '../providers/m_in_out_providers.dart';
 import '../widgets/enter_barcode_button.dart';
@@ -66,14 +67,17 @@ class MInOutScreen extends ConsumerWidget {
                     mInOutState.mInOut!.docStatus.id.toString() != 'CO'
                 ? [
                     IconButton(
-                      onPressed: mInOutNotifier.isConfirmMInOut()
+                      onPressed: RolesApp.appShipmentComplete && type == 'shipment' ||
+                        RolesApp.appReceiptComplete && type == 'receipt'
+                        ? mInOutNotifier.isConfirmMInOut()
                           ? () => mInOutNotifier.setDocAction(ref)
-                          : () => _showConfirmMInOut(context),
+                          : () => _showConfirmMInOut(context)
+                        : () => _showWithoutRole(context),
                       icon: Icon(
-                        Icons.check,
-                        color: mInOutNotifier.isConfirmMInOut()
-                            ? themeColorSuccessful
-                            : null,
+                      Icons.check,
+                      color: mInOutNotifier.isConfirmMInOut()
+                        ? themeColorSuccessful
+                        : null,
                       ),
                     ),
                   ]
@@ -117,6 +121,29 @@ class MInOutScreen extends ConsumerWidget {
     );
   }
 
+  Future<void> _showWithoutRole (BuildContext context) {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(themeBorderRadius),
+          ),
+            title: const Text('Acción no permitida'),
+            content: const Text(
+              'No tienes los roles necesarios para realizar esta acción.'),
+          actions: <Widget>[
+            CustomFilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              label: 'Cerrar',
+              icon: const Icon(Icons.close_rounded),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<bool> _showExitConfirmationDialog(BuildContext context) async {
     return await showDialog<bool>(
           context: context,
@@ -125,7 +152,8 @@ class MInOutScreen extends ConsumerWidget {
               borderRadius: BorderRadius.circular(themeBorderRadius),
             ),
             title: const Text('¿Salir?'),
-            content: const Text('¿Realmente deseas salir de esta pantalla? Se perderá todo el trabajo actual realizado.'),
+            content: const Text(
+                '¿Realmente deseas salir de esta pantalla? Se perderá todo el trabajo actual realizado.'),
             actions: <Widget>[
               CustomFilledButton(
                 onPressed: () {
@@ -334,17 +362,17 @@ class _MInOutView extends ConsumerWidget {
                   hint: 'Ingresar documento',
                   onChanged: mInOutNotifier.onDocChange,
                   onFieldSubmitted: (value) {
-                  mInOutNotifier.setIsSOTrx(type);
-                  mInOutNotifier.getMInOutAndLine(ref);
-                  },
-                  prefixIcon: Icon(Icons.qr_code_scanner_rounded),
-                  suffixIcon: IconButton(
-                  icon: Icon(Icons.send_rounded),
-                  color: themeColorPrimary,
-                  onPressed: () {
                     mInOutNotifier.setIsSOTrx(type);
                     mInOutNotifier.getMInOutAndLine(ref);
                   },
+                  prefixIcon: Icon(Icons.qr_code_scanner_rounded),
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.send_rounded),
+                    color: themeColorPrimary,
+                    onPressed: () {
+                      mInOutNotifier.setIsSOTrx(type);
+                      mInOutNotifier.getMInOutAndLine(ref);
+                    },
                   ),
                   autofocus: true,
                 ),
@@ -646,31 +674,34 @@ class _MInOutView extends ConsumerWidget {
               label: 'Cerrar',
               icon: const Icon(Icons.close_rounded),
             ),
-            item.verifiedStatus == 'manually-correct' ||
-                    item.verifiedStatus == 'manually-minor' ||
-                    item.verifiedStatus == 'manually-exceeds'
-                ? CustomFilledButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      _showResetManualLine(context, item);
-                    },
-                    label: 'Reiniciar',
-                    icon: const Icon(Icons.touch_app_outlined),
-                    buttonColor: themeColorGray,
-                  )
-                : CustomFilledButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      mInOutNotifier.onManualQuantityChange(
-                          item.manualQty != null && item.manualQty! > 0
-                              ? item.manualQty.toString()
-                              : item.movementQty.toString());
-                      _showInsertManualLine(context, item);
-                    },
-                    label: 'Manual',
-                    icon: const Icon(Icons.touch_app_outlined),
-                    buttonColor: themeColorGray,
-                  ),
+            RolesApp.appShipmentManual && type == 'shipment' ||
+                    RolesApp.appReceiptManual && type == 'receipt'
+                ? item.verifiedStatus == 'manually-correct' ||
+                        item.verifiedStatus == 'manually-minor' ||
+                        item.verifiedStatus == 'manually-exceeds'
+                    ? CustomFilledButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          _showResetManualLine(context, item);
+                        },
+                        label: 'Reiniciar',
+                        icon: const Icon(Icons.touch_app_outlined),
+                        buttonColor: themeColorGray,
+                      )
+                    : CustomFilledButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          mInOutNotifier.onManualQuantityChange(
+                              item.manualQty != null && item.manualQty! > 0
+                                  ? item.manualQty.toString()
+                                  : item.movementQty.toString());
+                          _showInsertManualLine(context, item);
+                        },
+                        label: 'Manual',
+                        icon: const Icon(Icons.touch_app_outlined),
+                        buttonColor: themeColorGray,
+                      )
+                : SizedBox(),
           ],
         );
       },
