@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-const themeColorPrimary = Color.fromRGBO(25, 35, 70, 1);
+// const themeColorPrimary = Color.fromRGBO(25, 35, 70, 1);
+const themeColorPrimary = Color.fromRGBO(31, 44, 80, 1);
 const themeColorPrimaryLight = Color.fromRGBO(140, 150, 255, 1);
 
 const themeBackgroundColor = Colors.white;

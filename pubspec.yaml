@@ -21,6 +21,7 @@ dependencies:
   shared_preferences: ^2.3.5
   webview_flutter: ^4.10.0
   intl: ^0.20.2
+  flutter_launcher_icons: ^0.14.3
 
 dev_dependencies:
   flutter_test:
@@ -37,3 +38,10 @@ flutter:
     - assets/images/
     - assets/loaders/
     - google_fonts/montserrat_alternates/
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/icono-monalisa.png"  # Ruta de tu icono
+  adaptive_icon_foreground: "assets/images/icono-monalisa.png"  # Opcional
+  adaptive_icon_background: "#ffffff"  # Fondo del icono adaptativo (Android)
