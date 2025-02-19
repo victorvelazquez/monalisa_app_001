@@ -31,22 +31,24 @@ class EnterBarcodeButtonState extends State<EnterBarcodeButton> {
   }
 
   void _handleKeyEvent(KeyEvent event) {
-    if (event is KeyDownEvent) {
-      final String? character = event.character;
+    if (event.logicalKey == LogicalKeyboardKey.enter) {
+      addBarcode();
+      return;
+    }
 
-      if (event.logicalKey == LogicalKeyboardKey.enter) {
-        widget.mInOutNotifier.addBarcode(scannedData);
-        setState(() {
-          scannedData = "";
-        });
-        return;
-      }
+    if (event.character != null && event.character!.isNotEmpty) {
+      setState(() {
+        scannedData += event.character!;
+      });
+    }
+  }
 
-      if (character != null && character.isNotEmpty) {
-        setState(() {
-          scannedData += character;
-        });
-      }
+  void addBarcode() {
+    if (scannedData.isNotEmpty) {
+      widget.mInOutNotifier.addBarcode(scannedData);
+      setState(() {
+        scannedData = "";
+      });
     }
   }
 
@@ -57,6 +59,7 @@ class EnterBarcodeButtonState extends State<EnterBarcodeButton> {
       onKeyEvent: _handleKeyEvent,
       child: GestureDetector(
         onTap: () {
+          addBarcode();
           _focusNode.requestFocus();
         },
         child: Container(
