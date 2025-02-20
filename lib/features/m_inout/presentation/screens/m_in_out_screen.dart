@@ -17,7 +17,7 @@ class MInOutScreen extends ConsumerStatefulWidget {
 
   const MInOutScreen({super.key, required this.type});
 
-    @override
+  @override
   MInOutScreenState createState() => MInOutScreenState();
 }
 
@@ -90,7 +90,8 @@ class MInOutScreenState extends ConsumerState<MInOutScreen> {
                       IconButton(
                         onPressed: RolesApp.appShipmentComplete &&
                                     mInOutState.title == 'Shipment' ||
-                                RolesApp.appReceiptComplete && mInOutState.title == 'Receipt'
+                                RolesApp.appReceiptComplete &&
+                                    mInOutState.title == 'Receipt'
                             ? mInOutNotifier.isConfirmMInOut()
                                 ? () => mInOutNotifier.setDocAction(ref)
                                 : () => _showConfirmMInOut(context)
@@ -108,8 +109,7 @@ class MInOutScreenState extends ConsumerState<MInOutScreen> {
             body: TabBarView(
               children: [
                 _MInOutView(
-                    mInOutState: mInOutState,
-                    mInOutNotifier: mInOutNotifier),
+                    mInOutState: mInOutState, mInOutNotifier: mInOutNotifier),
                 _ScanView(
                     mInOutState: mInOutState, mInOutNotifier: mInOutNotifier),
               ],
@@ -402,8 +402,11 @@ class _MInOutView extends ConsumerWidget {
               icon: Icon(Icons.clear, size: 20),
               onPressed: mInOutState.scanBarcodeListTotal.isNotEmpty
                   ? () => _showConfirmclearMInOutData(
-                      context, mInOutNotifier, mInOutState)
-                  : () => mInOutNotifier.clearMInOutData(),
+                      context, mInOutNotifier, mInOutState, ref)
+                  : () {
+                      mInOutNotifier.clearMInOutData();
+                      mInOutNotifier.getMInOutList(ref);
+                    },
             ),
           ),
         ],
@@ -920,7 +923,7 @@ class _MInOutView extends ConsumerWidget {
   }
 
   Future<void> _showConfirmclearMInOutData(BuildContext context,
-      MInOutNotifier mInOutNotifier, MInOutStatus mInOutState) {
+      MInOutNotifier mInOutNotifier, MInOutStatus mInOutState, WidgetRef ref) {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -936,6 +939,7 @@ class _MInOutView extends ConsumerWidget {
               onPressed: () {
                 mInOutNotifier.clearMInOutData();
                 Navigator.of(context).pop();
+                mInOutNotifier.getMInOutList(ref);
               },
               label: 'Si',
               icon: const Icon(Icons.check),
@@ -995,7 +999,8 @@ class _MInOutView extends ConsumerWidget {
               label: 'Cerrar',
               icon: const Icon(Icons.close_rounded),
             ),
-            if ((RolesApp.appShipmentManual && mInOutState.title == 'Shipment') ||
+            if ((RolesApp.appShipmentManual &&
+                    mInOutState.title == 'Shipment') ||
                 (RolesApp.appReceiptManual && mInOutState.title == 'receipt'))
               CustomFilledButton(
                 onPressed: () {

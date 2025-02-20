@@ -75,7 +75,6 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       state = state.copyWith(
         isLoadingListMInOutConfirm: false,
       );
-      print('response ok');
       return mInOutConfirmResponse;
     } catch (e) {
       state = state.copyWith(
