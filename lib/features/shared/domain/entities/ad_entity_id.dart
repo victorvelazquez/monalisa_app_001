@@ -25,9 +25,9 @@ class AdEntityId {
       );
 
   factory AdEntityId.fromJson(Map<String, dynamic> json) => AdEntityId(
-        propertyLabel: json["propertyLabel"],
+        propertyLabel: json["propertyLabel"] ?? '',
         id: json["id"].toString() != "null" ? json["id"].toString() : null,
-        identifier: json["identifier"],
-        modelName: json["model-name"],
+        identifier: json["identifier"] ?? '',
+        modelName: json["model-name"] ?? '',
       );
 }

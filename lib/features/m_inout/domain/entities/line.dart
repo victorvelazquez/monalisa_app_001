@@ -6,6 +6,7 @@ class Line {
   int? movementQty;
   AdEntityId? mProductId;
   String? upc;
+  String? sku;
   String? productName;
   String? verifiedStatus;
   int? scanningQty;
@@ -17,6 +18,7 @@ class Line {
     this.movementQty,
     this.mProductId,
     this.upc,
+    this.sku,
     this.productName,
     this.verifiedStatus,
     this.scanningQty,
@@ -29,6 +31,7 @@ class Line {
         movementQty: json["MovementQty"],
         mProductId: AdEntityId.fromJson(json["M_Product_ID"] ?? {}),
         upc: json["UPC"],
+        sku: json["SKU"],
         productName: json["ProductName"],
       );
 
@@ -38,6 +41,7 @@ class Line {
     int? movementQty,
     AdEntityId? mProductId,
     String? upc,
+    String? sku,
     String? productName,
     String? verifiedStatus,
     int? scanningQty,
@@ -49,6 +53,7 @@ class Line {
       movementQty: movementQty ?? this.movementQty,
       mProductId: mProductId ?? this.mProductId,
       upc: upc ?? this.upc,
+      sku: sku ?? this.sku,
       productName: productName ?? this.productName,
       verifiedStatus: verifiedStatus ?? this.verifiedStatus,
       scanningQty: scanningQty ?? this.scanningQty,

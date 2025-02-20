@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:monalisa_app_001/config/config.dart';
+import 'package:monalisa_app_001/features/m_inout/domain/entities/m_in_out.dart';
+import 'package:monalisa_app_001/features/m_inout/domain/entities/m_in_out_confirm.dart';
 import 'package:monalisa_app_001/features/shared/shared.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/line.dart';
 import 'package:monalisa_app_001/features/m_inout/presentation/widgets/barcode_list.dart';
@@ -10,13 +12,30 @@ import '../../domain/entities/barcode.dart';
 import '../providers/m_in_out_providers.dart';
 import '../widgets/enter_barcode_button.dart';
 
-class MInOutScreen extends ConsumerWidget {
+class MInOutScreen extends ConsumerStatefulWidget {
   final String type;
 
   const MInOutScreen({super.key, required this.type});
 
+    @override
+  MInOutScreenState createState() => MInOutScreenState();
+}
+
+class MInOutScreenState extends ConsumerState<MInOutScreen> {
+  late MInOutNotifier mInOutNotifier;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      mInOutNotifier = ref.read(mInOutProvider.notifier);
+      mInOutNotifier.setIsSOTrx(widget.type);
+      mInOutNotifier.getMInOutList(ref);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final mInOutState = ref.watch(mInOutProvider);
     final mInOutNotifier = ref.read(mInOutProvider.notifier);
 
@@ -45,53 +64,56 @@ class MInOutScreen extends ConsumerWidget {
       },
       child: DefaultTabController(
         length: 2,
-        child: Scaffold(
-          appBar: AppBar(
-            title: TabBar(
-              tabs: [
-                Tab(text: type == 'shipment' ? 'Shipment' : 'Receipt'),
-                Tab(text: 'Scan'),
-              ],
-              isScrollable: true,
-              indicatorWeight: 4,
-              indicatorColor: themeColorPrimary,
-              dividerColor: themeColorPrimary,
-              tabAlignment: TabAlignment.start,
-              labelStyle: TextStyle(
-                  fontSize: themeFontSizeTitle,
-                  fontWeight: FontWeight.bold,
-                  color: themeColorPrimary),
-              unselectedLabelStyle: TextStyle(fontSize: themeFontSizeLarge),
-            ),
-            actions: mInOutState.viewMInOut &&
-                    mInOutState.mInOut!.docStatus.id.toString() != 'CO'
-                ? [
-                    IconButton(
-                      onPressed: RolesApp.appShipmentComplete && type == 'shipment' ||
-                        RolesApp.appReceiptComplete && type == 'receipt'
-                        ? mInOutNotifier.isConfirmMInOut()
-                          ? () => mInOutNotifier.setDocAction(ref)
-                          : () => _showConfirmMInOut(context)
-                        : () => _showWithoutRole(context),
-                      icon: Icon(
-                      Icons.check,
-                      color: mInOutNotifier.isConfirmMInOut()
-                        ? themeColorSuccessful
-                        : null,
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Scaffold(
+            appBar: AppBar(
+              title: TabBar(
+                tabs: [
+                  Tab(text: mInOutState.title),
+                  Tab(text: 'Scan'),
+                ],
+                isScrollable: true,
+                indicatorWeight: 4,
+                indicatorColor: themeColorPrimary,
+                dividerColor: themeColorPrimary,
+                tabAlignment: TabAlignment.start,
+                labelStyle: TextStyle(
+                    fontSize: themeFontSizeTitle,
+                    fontWeight: FontWeight.bold,
+                    color: themeColorPrimary),
+                unselectedLabelStyle: TextStyle(fontSize: themeFontSizeLarge),
+              ),
+              actions: mInOutState.viewMInOut &&
+                      mInOutState.mInOut!.docStatus.id.toString() != 'CO'
+                  ? [
+                      IconButton(
+                        onPressed: RolesApp.appShipmentComplete &&
+                                    mInOutState.title == 'Shipment' ||
+                                RolesApp.appReceiptComplete && mInOutState.title == 'Receipt'
+                            ? mInOutNotifier.isConfirmMInOut()
+                                ? () => mInOutNotifier.setDocAction(ref)
+                                : () => _showConfirmMInOut(context)
+                            : () => _showWithoutRole(context),
+                        icon: Icon(
+                          Icons.check,
+                          color: mInOutNotifier.isConfirmMInOut()
+                              ? themeColorSuccessful
+                              : null,
+                        ),
                       ),
-                    ),
-                  ]
-                : null,
-          ),
-          body: TabBarView(
-            children: [
-              _MInOutView(
-                  mInOutState: mInOutState,
-                  mInOutNotifier: mInOutNotifier,
-                  type: type),
-              _ScanView(
-                  mInOutState: mInOutState, mInOutNotifier: mInOutNotifier),
-            ],
+                    ]
+                  : null,
+            ),
+            body: TabBarView(
+              children: [
+                _MInOutView(
+                    mInOutState: mInOutState,
+                    mInOutNotifier: mInOutNotifier),
+                _ScanView(
+                    mInOutState: mInOutState, mInOutNotifier: mInOutNotifier),
+              ],
+            ),
           ),
         ),
       ),
@@ -121,7 +143,7 @@ class MInOutScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _showWithoutRole (BuildContext context) {
+  Future<void> _showWithoutRole(BuildContext context) {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -129,8 +151,8 @@ class MInOutScreen extends ConsumerWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(themeBorderRadius),
           ),
-            title: const Text('Acción no permitida'),
-            content: const Text(
+          title: const Text('Acción no permitida'),
+          content: const Text(
               'No tienes los roles necesarios para realizar esta acción.'),
           actions: <Widget>[
             CustomFilledButton(
@@ -179,260 +201,266 @@ class MInOutScreen extends ConsumerWidget {
 class _MInOutView extends ConsumerWidget {
   final MInOutStatus mInOutState;
   final MInOutNotifier mInOutNotifier;
-  final String type;
 
   const _MInOutView({
     required this.mInOutState,
     required this.mInOutNotifier,
-    required this.type,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SafeArea(
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildMInOutHeader(context, ref, type),
-            const SizedBox(height: 5),
-            _buildActionOrderList(mInOutNotifier),
-            const SizedBox(height: 5),
-            _buildMInOutList(),
-            mInOutState.linesOver.isNotEmpty
-                ? _buildListOver(
-                    context,
-                    mInOutState.linesOver,
-                    mInOutNotifier,
-                  )
-                : SizedBox(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMInOutHeader(BuildContext context, WidgetRef ref, String type) {
-    return mInOutState.isLoading
-        ? Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(30),
-            child: const Center(child: CircularProgressIndicator()),
-          )
-        : mInOutState.viewMInOut
-            ? Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Stack(
+      child: mInOutState.isLoading
+          ? Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(30),
+              child: const Center(child: CircularProgressIndicator()),
+            )
+          : !mInOutState.viewMInOut
+              ? Column(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(themeBorderRadius),
-                        color:
-                        mInOutState.mInOut!.docStatus.id.toString() == 'IP'
-                                ? themeColorWarningLight :
-                            mInOutState.mInOut!.docStatus.id.toString() == 'CO'
-                                ? themeColorSuccessfulLight
-                                : themeBackgroundColorLight,
+                    SizedBox(height: 4),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: CustomTextFormField(
+                        hint: 'Ingresar documento',
+                        onChanged: mInOutNotifier.onDocChange,
+                        onFieldSubmitted: (value) {
+                          mInOutNotifier.getMInOutAndLine(ref);
+                        },
+                        prefixIcon: Icon(Icons.qr_code_scanner_rounded),
+                        suffixIcon: IconButton(
+                          icon: Icon(Icons.send_rounded),
+                          color: themeColorPrimary,
+                          onPressed: () {
+                            mInOutNotifier.getMInOutAndLine(ref);
+                          },
+                        ),
                       ),
-                      child: Row(
+                    ),
+                    SizedBox(height: 8),
+                    if (mInOutState.mInOutList.isNotEmpty) Divider(height: 0),
+                    Expanded(
+                      child: ListView(
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Doc. No.: ',
-                                style: const TextStyle(
-                                  fontSize: themeFontSizeSmall,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                'Date: ',
-                                style: const TextStyle(
-                                  fontSize: themeFontSizeSmall,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                'Order: ',
-                                style: const TextStyle(
-                                  fontSize: themeFontSizeSmall,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                'O. Date: ',
-                                style: const TextStyle(
-                                  fontSize: themeFontSizeSmall,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                'Org.: ',
-                                style: const TextStyle(
-                                  fontSize: themeFontSizeSmall,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                'Whs.: ',
-                                style: const TextStyle(
-                                  fontSize: themeFontSizeSmall,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                'BP: ',
-                                style: const TextStyle(
-                                  fontSize: themeFontSizeSmall,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                'Status: ',
-                                style: const TextStyle(
-                                  fontSize: themeFontSizeSmall,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(width: 10),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                mInOutState.mInOut!.documentNo ?? '',
-                                style: TextStyle(fontSize: themeFontSizeSmall),
-                              ),
-                              Text(
-                                DateFormat('dd/MM/yyyy')
-                                    .format(mInOutState.mInOut!.movementDate),
-                                style: TextStyle(fontSize: themeFontSizeSmall),
-                              ),
-                              Text(
-                                mInOutState.mInOut!.cOrderId.identifier ?? '',
-                                style: TextStyle(fontSize: themeFontSizeSmall),
-                              ),
-                              Text(
-                                DateFormat('dd/MM/yyyy')
-                                    .format(mInOutState.mInOut!.dateOrdered),
-                                style: TextStyle(fontSize: themeFontSizeSmall),
-                              ),
-                              Text(
-                                mInOutState.mInOut!.adOrgId.identifier ?? '',
-                                style: TextStyle(fontSize: themeFontSizeSmall),
-                              ),
-                              Text(
-                                mInOutState.mInOut!.mWarehouseId.identifier ??
-                                    '',
-                                style: TextStyle(fontSize: themeFontSizeSmall),
-                              ),
-                              Text(
-                                mInOutState.mInOut!.cBPartnerId.identifier ??
-                                    '',
-                                style: TextStyle(fontSize: themeFontSizeSmall),
-                              ),
-                              Text(
-                                mInOutState.mInOut!.docStatus.identifier ?? '',
-                                style: TextStyle(fontSize: themeFontSizeSmall),
-                              ),
-                            ],
-                          ),
+                          _buildMInOutList(ref),
                         ],
                       ),
                     ),
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: IconButton(
-                        icon: Icon(Icons.clear, size: 20),
-                        onPressed: mInOutState.scanBarcodeListTotal.isNotEmpty
-                            ? () => _showConfirmclearMInOutData(
-                                context, mInOutNotifier, mInOutState)
-                            : () => mInOutNotifier.clearMInOutData(),
+                  ],
+                )
+              : Expanded(
+                  child: ListView(
+                    children: [
+                      _buildMInOutHeader(context, ref),
+                      const SizedBox(height: 5),
+                      _buildActionOrderList(mInOutNotifier),
+                      const SizedBox(height: 5),
+                      _buildMInOutLineList(),
+                      mInOutState.linesOver.isNotEmpty
+                          ? _buildListOver(
+                              context,
+                              mInOutState.linesOver,
+                              mInOutNotifier,
+                            )
+                          : SizedBox(),
+                    ],
+                  ),
+                ),
+    );
+  }
+
+  Widget _buildMInOutHeader(BuildContext context, WidgetRef ref) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Stack(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(themeBorderRadius),
+              color: mInOutState.mInOut!.docStatus.id.toString() == 'IP'
+                  ? themeColorWarningLight
+                  : mInOutState.mInOut!.docStatus.id.toString() == 'CO'
+                      ? themeColorSuccessfulLight
+                      : themeBackgroundColorLight,
+            ),
+            child: Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Doc. No.: ',
+                      style: const TextStyle(
+                        fontSize: themeFontSizeSmall,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Date: ',
+                      style: const TextStyle(
+                        fontSize: themeFontSizeSmall,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Order: ',
+                      style: const TextStyle(
+                        fontSize: themeFontSizeSmall,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'O. Date: ',
+                      style: const TextStyle(
+                        fontSize: themeFontSizeSmall,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Org.: ',
+                      style: const TextStyle(
+                        fontSize: themeFontSizeSmall,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Whs.: ',
+                      style: const TextStyle(
+                        fontSize: themeFontSizeSmall,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'BP: ',
+                      style: const TextStyle(
+                        fontSize: themeFontSizeSmall,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Status: ',
+                      style: const TextStyle(
+                        fontSize: themeFontSizeSmall,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
-              )
-            : Padding(
-                padding: const EdgeInsets.all(16),
-                child: CustomTextFormField(
-                  hint: 'Ingresar documento',
-                  onChanged: mInOutNotifier.onDocChange,
-                  onFieldSubmitted: (value) {
-                    mInOutNotifier.setIsSOTrx(type);
-                    mInOutNotifier.getMInOutAndLine(ref);
-                  },
-                  prefixIcon: Icon(Icons.qr_code_scanner_rounded),
-                  suffixIcon: IconButton(
-                    icon: Icon(Icons.send_rounded),
-                    color: themeColorPrimary,
-                    onPressed: () {
-                      mInOutNotifier.setIsSOTrx(type);
-                      mInOutNotifier.getMInOutAndLine(ref);
-                    },
-                  ),
-                  autofocus: true,
+                SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      mInOutState.mInOut!.documentNo ?? '',
+                      style: TextStyle(fontSize: themeFontSizeSmall),
+                    ),
+                    Text(
+                      mInOutState.mInOut!.movementDate != null
+                          ? DateFormat('dd/MM/yyyy')
+                              .format(mInOutState.mInOut!.movementDate!)
+                          : '',
+                      style: TextStyle(fontSize: themeFontSizeSmall),
+                    ),
+                    Text(
+                      mInOutState.mInOut!.cOrderId.identifier ?? '',
+                      style: TextStyle(fontSize: themeFontSizeSmall),
+                    ),
+                    Text(
+                      mInOutState.mInOut!.dateOrdered != null
+                          ? DateFormat('dd/MM/yyyy')
+                              .format(mInOutState.mInOut!.dateOrdered!)
+                          : '',
+                      style: TextStyle(fontSize: themeFontSizeSmall),
+                    ),
+                    Text(
+                      mInOutState.mInOut!.adOrgId.identifier ?? '',
+                      style: TextStyle(fontSize: themeFontSizeSmall),
+                    ),
+                    Text(
+                      mInOutState.mInOut!.mWarehouseId.identifier ?? '',
+                      style: TextStyle(fontSize: themeFontSizeSmall),
+                    ),
+                    Text(
+                      mInOutState.mInOut!.cBPartnerId.identifier ?? '',
+                      style: TextStyle(fontSize: themeFontSizeSmall),
+                    ),
+                    Text(
+                      mInOutState.mInOut!.docStatus.identifier ?? '',
+                      style: TextStyle(fontSize: themeFontSizeSmall),
+                    ),
+                  ],
                 ),
-              );
+              ],
+            ),
+          ),
+          Positioned(
+            right: 0,
+            top: 0,
+            child: IconButton(
+              icon: Icon(Icons.clear, size: 20),
+              onPressed: mInOutState.scanBarcodeListTotal.isNotEmpty
+                  ? () => _showConfirmclearMInOutData(
+                      context, mInOutNotifier, mInOutState)
+                  : () => mInOutNotifier.clearMInOutData(),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildActionOrderList(MInOutNotifier mInOutNotifier) {
-    return mInOutState.viewMInOut
-        ? Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // pendiente
-              _buildOrderList(
-                icon: Icons.circle_outlined,
-                color: themeColorError,
-                background: themeColorErrorLight,
-                onPressed: () => mInOutNotifier.setOrderBy('pending'),
-                name: 'pending',
-              ),
-              SizedBox(width: 4),
-              // menor
-              _buildOrderList(
-                icon: Icons.radio_button_checked_rounded,
-                color: themeColorWarning,
-                background: themeColorWarningLight,
-                onPressed: () => mInOutNotifier.setOrderBy('minor'),
-                name: 'minor',
-              ),
-              SizedBox(width: 4),
-              // supera
-              _buildOrderList(
-                icon: Icons.warning_amber_rounded,
-                color: themeColorWarning,
-                background: themeColorWarningLight,
-                onPressed: () => mInOutNotifier.setOrderBy('exceeds'),
-                name: 'exceeds',
-              ),
-              SizedBox(width: 4),
-              // manual
-              _buildOrderList(
-                icon: Icons.touch_app_outlined,
-                color: themeColorSuccessful,
-                background: themeColorSuccessfulLight,
-                onPressed: () => mInOutNotifier.setOrderBy('manually'),
-                name: 'manually',
-              ),
-              SizedBox(width: 4),
-              // correcto
-              _buildOrderList(
-                icon: Icons.check_circle_outline_rounded,
-                color: themeColorSuccessful,
-                background: themeColorSuccessfulLight,
-                onPressed: () => mInOutNotifier.setOrderBy('correct'),
-                name: 'correct',
-              ),
-            ],
-          )
-        : SizedBox();
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // pendiente
+        _buildOrderList(
+          icon: Icons.circle_outlined,
+          color: themeColorError,
+          background: themeColorErrorLight,
+          onPressed: () => mInOutNotifier.setOrderBy('pending'),
+          name: 'pending',
+        ),
+        SizedBox(width: 4),
+        // menor
+        _buildOrderList(
+          icon: Icons.radio_button_checked_rounded,
+          color: themeColorWarning,
+          background: themeColorWarningLight,
+          onPressed: () => mInOutNotifier.setOrderBy('minor'),
+          name: 'minor',
+        ),
+        SizedBox(width: 4),
+        // supera
+        _buildOrderList(
+          icon: Icons.warning_amber_rounded,
+          color: themeColorWarning,
+          background: themeColorWarningLight,
+          onPressed: () => mInOutNotifier.setOrderBy('exceeds'),
+          name: 'exceeds',
+        ),
+        SizedBox(width: 4),
+        // manual
+        _buildOrderList(
+          icon: Icons.touch_app_outlined,
+          color: themeColorSuccessful,
+          background: themeColorSuccessfulLight,
+          onPressed: () => mInOutNotifier.setOrderBy('manually'),
+          name: 'manually',
+        ),
+        SizedBox(width: 4),
+        // correcto
+        _buildOrderList(
+          icon: Icons.check_circle_outline_rounded,
+          color: themeColorSuccessful,
+          background: themeColorSuccessfulLight,
+          onPressed: () => mInOutNotifier.setOrderBy('correct'),
+          name: 'correct',
+        ),
+      ],
+    );
   }
 
   Widget _buildOrderList({
@@ -469,75 +497,381 @@ class _MInOutView extends ConsumerWidget {
     );
   }
 
-  Widget _buildMInOutList() {
-    final mInOutLines = mInOutState.mInOut?.lines ?? [];
-    return mInOutState.viewMInOut
-        ? ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: mInOutLines.length,
-            itemBuilder: (context, index) {
-              final item = mInOutLines[index];
-              return GestureDetector(
-                onTap: () => _selectLine(context, mInOutNotifier, item),
-                child: Column(
-                  children: [
-                    Divider(height: 0),
-                    Container(
-                      color: item.verifiedStatus == 'exceeds' ||
-                              item.verifiedStatus == 'manually-exceeds'
-                          ? themeColorWarningLight
-                          : null,
-                      child: Row(
+  Widget _buildMInOutList(WidgetRef ref) {
+    final mInOut = mInOutState.mInOutList;
+    return mInOut.isNotEmpty
+        ? Column(
+            children: [
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: mInOut.length,
+                itemBuilder: (context, index) {
+                  final item = mInOut[index];
+                  return GestureDetector(
+                    onTap: () async {
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (BuildContext context) {
+                          return Center(
+                            child: CircularProgressIndicator(
+                              color: themeBackgroundColor,
+                            ),
+                          );
+                        },
+                      );
+                      List<MInOutConfirm> mInOutConfirmList =
+                          await mInOutNotifier.getMInOutConfirmList(
+                              item.id!, ref);
+                      if (context.mounted) {
+                        Navigator.of(context).pop();
+                        _showSelectMInOutConfirm(mInOutConfirmList, context,
+                            mInOutNotifier, mInOutState);
+                      }
+                    },
+                    child: Column(
+                      children: [
+                        Divider(height: 0),
+                        Container(
+                          color: item.docStatus.id == 'IP'
+                              ? themeColorWarningLight
+                              : null,
+                          child: Row(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+                                child: Text(
+                                  item.movementDate != null
+                                      ? DateFormat('dd/MM/yyyy')
+                                          .format(item.movementDate!)
+                                      : '',
+                                  style: TextStyle(
+                                      fontSize: themeFontSizeSmall,
+                                      color: themeColorGray),
+                                ),
+                              ),
+                              Expanded(
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 8),
+                                  child: Text(
+                                    item.documentNo.toString(),
+                                    style: const TextStyle(
+                                      fontSize: themeFontSizeLarge,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: GestureDetector(
+                                  onTap: () => _showMInOutData(context, item),
+                                  child: Icon(
+                                    Icons.info_rounded,
+                                    color: themeColorPrimary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Divider(height: 0),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
+          )
+        : mInOutState.isLoadingListMInOut
+            ? Padding(
+                padding: const EdgeInsets.only(top: 32),
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            : Padding(
+                padding: const EdgeInsets.only(top: 32),
+                child: Center(
+                  child: CustomFilledButton(
+                    label: 'Cargar lista',
+                    onPressed: () {
+                      mInOutNotifier.getMInOutList(ref);
+                    },
+                  ),
+                ),
+              );
+  }
+
+  Future<void> _showSelectMInOutConfirm(
+      List<MInOutConfirm> mInOutConfirmList,
+      BuildContext context,
+      MInOutNotifier mInOutNotifier,
+      MInOutStatus mInOutState) {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(themeBorderRadius),
+          ),
+          title: Text('${mInOutState.title} Confirm'),
+          content: mInOutConfirmList.isNotEmpty
+              ? ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: mInOutConfirmList.length,
+                  itemBuilder: (context, index) {
+                    final item = mInOutConfirmList[index];
+                    return GestureDetector(
+                      onTap: () {},
+                      child: Column(
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
-                            child: Text(
-                              item.line.toString(),
-                              style: TextStyle(
+                          Divider(height: 0),
+                          Row(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+                                child: Text(
+                                  item.mInOutId.identifier ?? '',
+                                  style: TextStyle(
+                                      fontSize: themeFontSizeSmall,
+                                      color: themeColorGray),
+                                ),
+                              ),
+                              Expanded(
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 8),
+                                  child: Text(
+                                    item.documentNo.toString(),
+                                    style: const TextStyle(
+                                      fontSize: themeFontSizeLarge,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Divider(height: 0),
+                        ],
+                      ),
+                    );
+                  },
+                )
+              : Text('No hay confirmaciones pendientes.'),
+          actions: <Widget>[
+            CustomFilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              label: 'Cerrar',
+              icon: const Icon(Icons.close_rounded),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showMInOutData(BuildContext context, MInOut mInOut) {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(themeBorderRadius),
+          ),
+          title: Text(mInOutState.title),
+          content: SingleChildScrollView(
+            child: Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Doc. No.: ',
+                      style: const TextStyle(
+                        fontSize: themeFontSizeSmall,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Date: ',
+                      style: const TextStyle(
+                        fontSize: themeFontSizeSmall,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Order: ',
+                      style: const TextStyle(
+                        fontSize: themeFontSizeSmall,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'O. Date: ',
+                      style: const TextStyle(
+                        fontSize: themeFontSizeSmall,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Org.: ',
+                      style: const TextStyle(
+                        fontSize: themeFontSizeSmall,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Whs.: ',
+                      style: const TextStyle(
+                        fontSize: themeFontSizeSmall,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'BP: ',
+                      style: const TextStyle(
+                        fontSize: themeFontSizeSmall,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Status: ',
+                      style: const TextStyle(
+                        fontSize: themeFontSizeSmall,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      mInOut.documentNo ?? '',
+                      style: TextStyle(fontSize: themeFontSizeSmall),
+                    ),
+                    Text(
+                      mInOut.movementDate != null
+                          ? DateFormat('dd/MM/yyyy')
+                              .format(mInOut.movementDate!)
+                          : '',
+                      style: TextStyle(fontSize: themeFontSizeSmall),
+                    ),
+                    Text(
+                      mInOut.cOrderId.identifier ?? '',
+                      style: TextStyle(fontSize: themeFontSizeSmall),
+                    ),
+                    Text(
+                      mInOut.dateOrdered != null
+                          ? DateFormat('dd/MM/yyyy').format(mInOut.dateOrdered!)
+                          : '',
+                      style: TextStyle(fontSize: themeFontSizeSmall),
+                    ),
+                    Text(
+                      mInOut.adOrgId.identifier ?? '',
+                      style: TextStyle(fontSize: themeFontSizeSmall),
+                    ),
+                    Text(
+                      mInOut.mWarehouseId.identifier ?? '',
+                      style: TextStyle(fontSize: themeFontSizeSmall),
+                    ),
+                    Text(
+                      mInOut.cBPartnerId.identifier ?? '',
+                      style: TextStyle(fontSize: themeFontSizeSmall),
+                    ),
+                    Text(
+                      mInOut.docStatus.identifier ?? '',
+                      style: TextStyle(fontSize: themeFontSizeSmall),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            CustomFilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              label: 'Cerrar',
+              icon: const Icon(Icons.close_rounded),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildMInOutLineList() {
+    final mInOutLines = mInOutState.mInOut?.lines ?? [];
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: mInOutLines.length,
+      itemBuilder: (context, index) {
+        final item = mInOutLines[index];
+        return GestureDetector(
+          onTap: () => _selectLine(context, mInOutNotifier, item),
+          child: Column(
+            children: [
+              Divider(height: 0),
+              Container(
+                color: item.verifiedStatus == 'exceeds' ||
+                        item.verifiedStatus == 'manually-exceeds'
+                    ? themeColorWarningLight
+                    : null,
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+                      child: Text(
+                        item.line.toString(),
+                        style: TextStyle(
+                            fontSize: themeFontSizeSmall,
+                            color: themeColorGray),
+                      ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            reverse: true,
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8),
+                              child: Text(
+                                item.upc?.isNotEmpty == true
+                                    ? item.upc.toString()
+                                    : '',
+                                style: const TextStyle(
+                                  fontSize: themeFontSizeLarge,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8),
+                              child: Text(
+                                '${item.sku ?? ''} - ${item.productName.toString()}',
+                                style: TextStyle(
                                   fontSize: themeFontSizeSmall,
-                                  color: themeColorGray),
+                                  color: themeColorGray,
+                                ),
+                              ),
                             ),
                           ),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  reverse: true,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8),
-                                    child: Text(
-                                      item.upc?.isNotEmpty == true
-                                          ? item.upc.toString()
-                                          : '',
-                                      style: const TextStyle(
-                                        fontSize: themeFontSizeLarge,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  reverse: true,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8),
-                                    child: Text(
-                                      item.productName.toString(),
-                                      style: TextStyle(
-                                        fontSize: themeFontSizeSmall,
-                                        color: themeColorGray,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Padding(
+                        ],
+                      ),
+                    ),
+                    mInOutState.mInOut!.docStatus.id.toString() != 'DR'
+                        ? Padding(
                             padding: const EdgeInsets.all(8),
                             child: Text(
                               item.movementQty.toString(),
@@ -545,48 +879,44 @@ class _MInOutView extends ConsumerWidget {
                                   fontSize: themeFontSizeLarge,
                                   fontWeight: FontWeight.bold),
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: Icon(
-                              item.verifiedStatus == 'correct'
-                                  ? Icons.check_circle_outline_rounded
-                                  : item.verifiedStatus == 'exceeds'
-                                      ? Icons.warning_amber_rounded
-                                      : item.verifiedStatus ==
-                                                  'manually-correct' ||
-                                              item.verifiedStatus ==
-                                                  'manually-minor' ||
-                                              item.verifiedStatus ==
-                                                  'manually-exceeds'
-                                          ? Icons.touch_app_outlined
-                                          : item.verifiedStatus == 'minor'
-                                              ? Icons
-                                                  .radio_button_checked_rounded
-                                              : Icons.circle_outlined,
-                              color: item.verifiedStatus == 'correct' ||
-                                      item.verifiedStatus == 'manually-correct'
-                                  ? themeColorSuccessful
-                                  : item.verifiedStatus == 'minor' ||
-                                          item.verifiedStatus == 'exceeds' ||
-                                          item.verifiedStatus ==
-                                              'manually-minor' ||
-                                          item.verifiedStatus ==
-                                              'manually-exceeds'
-                                      ? themeColorWarning
-                                      : themeColorError,
-                            ),
-                          ),
-                        ],
+                          )
+                        : SizedBox(width: 5),
+                    Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Icon(
+                        item.verifiedStatus == 'correct'
+                            ? Icons.check_circle_outline_rounded
+                            : item.verifiedStatus == 'exceeds'
+                                ? Icons.warning_amber_rounded
+                                : item.verifiedStatus == 'manually-correct' ||
+                                        item.verifiedStatus ==
+                                            'manually-minor' ||
+                                        item.verifiedStatus ==
+                                            'manually-exceeds'
+                                    ? Icons.touch_app_outlined
+                                    : item.verifiedStatus == 'minor'
+                                        ? Icons.radio_button_checked_rounded
+                                        : Icons.circle_outlined,
+                        color: item.verifiedStatus == 'correct' ||
+                                item.verifiedStatus == 'manually-correct'
+                            ? themeColorSuccessful
+                            : item.verifiedStatus == 'minor' ||
+                                    item.verifiedStatus == 'exceeds' ||
+                                    item.verifiedStatus == 'manually-minor' ||
+                                    item.verifiedStatus == 'manually-exceeds'
+                                ? themeColorWarning
+                                : themeColorError,
                       ),
                     ),
-                    Divider(height: 0),
                   ],
                 ),
-              );
-            },
-          )
-        : SizedBox();
+              ),
+              Divider(height: 0),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _showConfirmclearMInOutData(BuildContext context,
@@ -637,35 +967,24 @@ class _MInOutView extends ConsumerWidget {
             child: Column(
               children: [
                 Table(
-                  columnWidths: {
+                  columnWidths: const {
                     0: IntrinsicColumnWidth(),
                     1: FlexColumnWidth(),
                   },
-                  children: item.verifiedStatus == 'manually-correct' ||
-                          item.verifiedStatus == 'manually-minor' ||
-                          item.verifiedStatus == 'manually-exceeds'
-                      ? [
-                          _buildTableRow(
-                              "UPC:", item.upc?.toString() ?? '', false),
-                          _buildTableRow("Producto:",
-                              item.productName?.toString() ?? '', false),
-                          _buildTableRow("Cantidad:",
-                              item.movementQty?.toString() ?? '0', true),
-                          _buildTableRow("Escaneado:",
-                              item.scanningQty?.toString() ?? '0', true),
-                          _buildTableRow("Conf. Manual:",
-                              item.manualQty?.toString() ?? '0', true),
-                        ]
-                      : [
-                          _buildTableRow(
-                              "UPC:", item.upc?.toString() ?? '', false),
-                          _buildTableRow("Producto:",
-                              item.productName?.toString() ?? '', false),
-                          _buildTableRow("Cantidad:",
-                              item.movementQty?.toString() ?? '0', true),
-                          _buildTableRow("Escaneado:",
-                              item.scanningQty?.toString() ?? '0', true),
-                        ],
+                  children: [
+                    _buildTableRow("UPC:", item.upc?.toString() ?? '', false),
+                    _buildTableRow("SKU:", item.sku?.toString() ?? '', false),
+                    _buildTableRow(
+                        "Producto:", item.productName?.toString() ?? '', false),
+                    if (mInOutState.mInOut!.docStatus.id.toString() != 'DR')
+                      _buildTableRow("Cantidad:",
+                          item.movementQty?.toString() ?? '0', true),
+                    _buildTableRow("Escaneado:",
+                        item.scanningQty?.toString() ?? '0', true),
+                    if (item.verifiedStatus?.contains('manually') ?? false)
+                      _buildTableRow("Conf. Manual:",
+                          item.manualQty?.toString() ?? '0', true),
+                  ],
                 ),
               ],
             ),
@@ -676,34 +995,27 @@ class _MInOutView extends ConsumerWidget {
               label: 'Cerrar',
               icon: const Icon(Icons.close_rounded),
             ),
-            RolesApp.appShipmentManual && type == 'shipment' ||
-                    RolesApp.appReceiptManual && type == 'receipt'
-                ? item.verifiedStatus == 'manually-correct' ||
-                        item.verifiedStatus == 'manually-minor' ||
-                        item.verifiedStatus == 'manually-exceeds'
-                    ? CustomFilledButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          _showResetManualLine(context, item);
-                        },
-                        label: 'Reiniciar',
-                        icon: const Icon(Icons.touch_app_outlined),
-                        buttonColor: themeColorGray,
-                      )
-                    : CustomFilledButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          mInOutNotifier.onManualQuantityChange(
-                              item.manualQty != null && item.manualQty! > 0
-                                  ? item.manualQty.toString()
-                                  : item.movementQty.toString());
-                          _showInsertManualLine(context, item);
-                        },
-                        label: 'Manual',
-                        icon: const Icon(Icons.touch_app_outlined),
-                        buttonColor: themeColorGray,
-                      )
-                : SizedBox(),
+            if ((RolesApp.appShipmentManual && mInOutState.title == 'Shipment') ||
+                (RolesApp.appReceiptManual && mInOutState.title == 'receipt'))
+              CustomFilledButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  if (item.verifiedStatus?.contains('manually') ?? false) {
+                    _showResetManualLine(context, item);
+                  } else {
+                    mInOutNotifier.onManualQuantityChange(
+                        item.manualQty != null && item.manualQty! > 0
+                            ? item.manualQty.toString()
+                            : item.movementQty.toString());
+                    _showInsertManualLine(context, item);
+                  }
+                },
+                label: (item.verifiedStatus?.contains('manually') ?? false)
+                    ? 'Reiniciar'
+                    : 'Manual',
+                icon: const Icon(Icons.touch_app_outlined),
+                buttonColor: themeColorGray,
+              ),
           ],
         );
       },

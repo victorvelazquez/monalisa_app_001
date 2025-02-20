@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/line.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/m_in_out.dart';
+import 'package:monalisa_app_001/features/m_inout/domain/entities/m_in_out_confirm.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/repositories/m_in_out_repositiry.dart';
 import '../../domain/entities/barcode.dart';
 import '../../infrastructure/repositories/m_in_out_repository_impl.dart';
@@ -17,6 +18,8 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
 
   MInOutNotifier({required this.mInOutRepository})
       : super(MInOutStatus(
+          mInOutList: [],
+          doc: '',
           scanBarcodeListTotal: [],
           scanBarcodeListUnique: [],
           linesOver: [],
@@ -29,6 +32,57 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       state = state.copyWith(isSOTrx: true, title: 'Shipment');
     } else {
       state = state.copyWith(isSOTrx: false, title: 'Receipt');
+    }
+  }
+
+  Future<void> getMInOutList(WidgetRef ref) async {
+    state = state.copyWith(isLoadingListMInOut: true, errorMessage: '');
+    try {
+      final mInOutResponse =
+          await mInOutRepository.getMInOutList(state.isSOTrx, ref);
+      if (mInOutResponse.isEmpty) {
+        state = state.copyWith(
+          mInOutList: [],
+          isLoadingListMInOut: false,
+        );
+        return;
+      }
+      state = state.copyWith(
+        mInOutList: mInOutResponse,
+        isLoadingListMInOut: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        mInOutList: [],
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        isLoadingListMInOut: false,
+      );
+    }
+  }
+
+  Future<List<MInOutConfirm>> getMInOutConfirmList(
+      int mInOutId, WidgetRef ref) async {
+    state = state.copyWith(isLoadingListMInOutConfirm: true, errorMessage: '');
+    try {
+      final mInOutConfirmResponse = await mInOutRepository.getMInOutConfirmList(
+          mInOutId, state.isSOTrx, ref);
+      if (mInOutConfirmResponse.isEmpty) {
+        state = state.copyWith(
+          isLoadingListMInOutConfirm: false,
+        );
+        return [];
+      }
+      state = state.copyWith(
+        isLoadingListMInOutConfirm: false,
+      );
+      print('response ok');
+      return mInOutConfirmResponse;
+    } catch (e) {
+      state = state.copyWith(
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        isLoadingListMInOutConfirm: false,
+      );
+      return [];
     }
   }
 
@@ -70,6 +124,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
 
   void clearMInOutData() {
     state = state.copyWith(
+      mInOutList: [],
       doc: '',
       mInOut: state.mInOut?.copyWith(id: null, lines: null),
       isSOTrx: false,
@@ -81,6 +136,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       orderBy: 'line',
       errorMessage: '',
       isLoading: false,
+      isLoadingListMInOutConfirm: false,
     );
   }
 
@@ -384,6 +440,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
 }
 
 class MInOutStatus {
+  final List<MInOut> mInOutList;
   final String doc;
   final MInOut? mInOut;
   final bool isSOTrx;
@@ -397,8 +454,11 @@ class MInOutStatus {
   final int manualQty;
   final String errorMessage;
   final bool isLoading;
+  final bool isLoadingListMInOut;
+  final bool isLoadingListMInOutConfirm;
 
   MInOutStatus({
+    this.mInOutList = const [],
     this.doc = '',
     this.mInOut,
     this.isSOTrx = false,
@@ -412,9 +472,12 @@ class MInOutStatus {
     this.manualQty = 0,
     this.errorMessage = '',
     this.isLoading = false,
+    this.isLoadingListMInOut = false,
+    this.isLoadingListMInOutConfirm = false,
   });
 
   MInOutStatus copyWith({
+    List<MInOut>? mInOutList,
     String? doc,
     MInOut? mInOut,
     bool? isSOTrx,
@@ -428,8 +491,11 @@ class MInOutStatus {
     int? manualQty,
     String? errorMessage,
     bool? isLoading,
+    bool? isLoadingListMInOut,
+    bool? isLoadingListMInOutConfirm,
   }) =>
       MInOutStatus(
+        mInOutList: mInOutList ?? this.mInOutList,
         doc: doc ?? this.doc,
         mInOut: mInOut ?? this.mInOut,
         isSOTrx: isSOTrx ?? this.isSOTrx,
@@ -444,5 +510,8 @@ class MInOutStatus {
         uniqueView: uniqueView ?? this.uniqueView,
         errorMessage: errorMessage ?? this.errorMessage,
         isLoading: isLoading ?? this.isLoading,
+        isLoadingListMInOut: isLoadingListMInOut ?? this.isLoadingListMInOut,
+        isLoadingListMInOutConfirm:
+            isLoadingListMInOutConfirm ?? this.isLoadingListMInOutConfirm,
       );
 }

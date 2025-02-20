@@ -22,7 +22,7 @@ class CustomErrorDioException implements Exception {
             'Credenciales incorrectas. Vuelve a intentarlo.');
       } else if (e.response?.statusMessage == 'Unauthorized') {
         authNotifier?.checkAuthStatus() ?? () {};
-        throw Exception('Sesión caducada. Por favor, intente nuevamente.');
+        throw Exception('Sesión renovada. Por favor, intente nuevamente.');
       } else {
         throw Exception(e.response?.data['message'] ??
             'Credenciales incorrectas. Vuelve a intentarlo.');

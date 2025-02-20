@@ -11,16 +11,84 @@ import '../../../shared/domain/entities/ad_login_request.dart';
 import '../../../shared/domain/entities/model_set_doc_action.dart';
 import '../../../shared/domain/entities/model_set_doc_action_request.dart';
 import '../../../shared/shared.dart';
+import '../../domain/entities/m_in_out_confirm.dart';
 
 class MInOutDataSourceImpl implements MInOutDataSource {
   late final Dio dio;
+  late final Future<void> _dioInitialized;
 
   MInOutDataSourceImpl() {
-    _initDio();
+    _dioInitialized = _initDio();
   }
 
   Future<void> _initDio() async {
     dio = await DioClient.create();
+  }
+
+  @override
+  Future<List<MInOut>> getMInOutList(bool isSOTrx, WidgetRef ref) async {
+    await _dioInitialized;
+    final String title = isSOTrx ? 'Shipment' : 'Material Receipt';
+    final int warehouseID = ref.read(authProvider).selectedWarehouse!.id;
+
+    try {
+      final String url =
+          "/api/v1/models/m_inout?\$filter=IsSOTrx%20eq%20$isSOTrx%20AND%20M_Warehouse_ID%20eq%20$warehouseID%20AND%20(DocStatus%20eq%20'DR'%20OR%20DocStatus%20eq%20'IP')";
+
+      final response = await dio.get(url);
+
+      if (response.statusCode == 200) {
+        final responseApi = ResponseApi<MInOut>.fromJson(response.data, MInOut.fromJson);
+
+        if (responseApi.records != null && responseApi.records!.isNotEmpty) {
+          final mInOutList = responseApi.records!;
+          return mInOutList;
+        } else {
+          return [];
+        }
+      } else {
+        throw Exception(
+            'Error al obtener la lista de $title: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      final authDataNotifier = ref.read(authProvider.notifier);
+      throw CustomErrorDioException(e, authDataNotifier);
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future<List<MInOutConfirm>> getMInOutConfirmList(
+      int mInOutId, bool isSOTrx, WidgetRef ref) async {
+    await _dioInitialized;
+    final String title = isSOTrx ? 'Shipment' : 'Material Receipt';
+
+    try {
+      final String url =
+          "/api/v1/models/m_inoutConfirm?\$filter=M_InOut_ID%20eq%20$mInOutId";
+
+      final response = await dio.get(url);
+
+      if (response.statusCode == 200) {
+        final responseApi = ResponseApi<MInOutConfirm>.fromJson(response.data, MInOutConfirm.fromJson);
+
+        if (responseApi.records != null && responseApi.records!.isNotEmpty) {
+          final mInOutConfirmList = responseApi.records!;
+          return mInOutConfirmList;
+        } else {
+          return [];
+        }
+      } else {
+        throw Exception(
+            'Error al obtener la lista de $title: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      final authDataNotifier = ref.read(authProvider.notifier);
+      throw CustomErrorDioException(e, authDataNotifier);
+    } catch (e) {
+      throw Exception(e.toString());
+    }
   }
 
   @override
@@ -29,6 +97,7 @@ class MInOutDataSourceImpl implements MInOutDataSource {
     bool isSOTrx,
     WidgetRef ref,
   ) async {
+    await _dioInitialized;
     final String title = isSOTrx ? 'Shipment' : 'Material Receipt';
     try {
       final String url =
@@ -36,7 +105,7 @@ class MInOutDataSourceImpl implements MInOutDataSource {
       final response = await dio.get(url);
 
       if (response.statusCode == 200) {
-        final responseApi = ResponseApi.fromJson(response.data);
+        final responseApi = ResponseApi<MInOut>.fromJson(response.data, MInOut.fromJson);
 
         if (responseApi.records != null && responseApi.records!.isNotEmpty) {
           final mInOut = responseApi.records!.first;
@@ -62,9 +131,7 @@ class MInOutDataSourceImpl implements MInOutDataSource {
     bool isSOTrx,
     WidgetRef ref,
   ) async {
-    // final serviceType = isSOTrx
-    //     ? 'SetDocumentActionShipment'
-    //     : 'SetDocumentActionMaterialReceipt';
+    await _dioInitialized;
     final String title = isSOTrx ? 'Shipment' : 'Material Receipt';
     String status = 'DR';
     if (mInOut.docStatus.id.toString() == 'DR') {
