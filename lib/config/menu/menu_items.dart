@@ -43,12 +43,13 @@ var appHomeOptionCol1Items = <MenuItem>[
       link: '/mInOut/shipmentconfirm',
       icon: Icons.upload,
     ),
-  // MenuItem(
-  //   title: 'PickUp /QA',
-  //   subTitle: '',
-  //   link: '/splash',
-  //   icon: Icons.upload,
-  // ),
+  if (RolesApp.appShipmentconfirm)
+    const MenuItem(
+      title: 'Pick Confirm',
+      subTitle: '',
+      link: '/mInOut/shipmentpickconfirm',
+      icon: Icons.upload,
+    ),
 ];
 
 var appHomeOptionCol2Items = <MenuItem>[
@@ -66,12 +67,13 @@ var appHomeOptionCol2Items = <MenuItem>[
       link: '/mInOut/receiptconfirm',
       icon: Icons.download,
     ),
-  // MenuItem(
-  //   title: 'QA',
-  //   subTitle: '',
-  //   link: '/splash',
-  //   icon: Icons.download,
-  // ),
+  if (RolesApp.appReceiptconfirm)
+    const MenuItem(
+      title: 'QA Confirm',
+      subTitle: '',
+      link: '/mInOut/receiptqaconfirm',
+      icon: Icons.upload,
+    ),
 ];
 
 const appHomeOptionCol3Items = <MenuItem>[

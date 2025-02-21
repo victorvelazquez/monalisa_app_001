@@ -85,7 +85,7 @@ class MInOutScreenState extends ConsumerState<MInOutScreen> {
                 unselectedLabelStyle: TextStyle(fontSize: themeFontSizeLarge),
               ),
               actions: mInOutState.viewMInOut &&
-                      mInOutState.mInOut!.docStatus.id.toString() != 'CO'
+                      mInOutState.mInOut?.docStatus.id.toString() != 'CO'
                   ? [
                       IconButton(
                         onPressed: RolesApp.appShipmentComplete &&
@@ -210,47 +210,45 @@ class _MInOutView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SafeArea(
-      child: mInOutState.isLoading
-          ? Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(30),
-              child: const Center(child: CircularProgressIndicator()),
+      child: !mInOutState.viewMInOut
+          ? Column(
+              children: [
+                SizedBox(height: 4),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: CustomTextFormField(
+                    hint: 'Ingresar documento',
+                    onChanged: mInOutNotifier.onDocChange,
+                    onFieldSubmitted: (value) async {
+                      await _loadMInOutAndLine(context, ref);
+                    },
+                    prefixIcon: Icon(Icons.qr_code_scanner_rounded),
+                    suffixIcon: IconButton(
+                      icon: Icon(Icons.send_rounded),
+                      color: themeColorPrimary,
+                      onPressed: () async {
+                        await _loadMInOutAndLine(context, ref);
+                      },
+                    ),
+                  ),
+                ),
+                SizedBox(height: 8),
+                if (mInOutState.mInOutList.isNotEmpty) Divider(height: 0),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: ListView(
+                      children: [
+                        _buildMInOutList(ref),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             )
-          : !mInOutState.viewMInOut
-              ? Column(
-                  children: [
-                    SizedBox(height: 4),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: CustomTextFormField(
-                        hint: 'Ingresar documento',
-                        onChanged: mInOutNotifier.onDocChange,
-                        onFieldSubmitted: (value) async {
-                          await _loadMInOutAndLine(context, ref);
-                        },
-                        prefixIcon: Icon(Icons.qr_code_scanner_rounded),
-                        suffixIcon: IconButton(
-                          icon: Icon(Icons.send_rounded),
-                          color: themeColorPrimary,
-                          onPressed: () async {
-                            await _loadMInOutAndLine(context, ref);
-                          },
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    if (mInOutState.mInOutList.isNotEmpty) Divider(height: 0),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: ListView(
-                          children: [
-                            _buildMInOutList(ref),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
+          : mInOutState.isLoading
+              ? SizedBox(
+                  child: const Center(child: CircularProgressIndicator()),
                 )
               : ListView(
                   children: [
@@ -272,11 +270,11 @@ class _MInOutView extends ConsumerWidget {
   }
 
   Future<void> _loadMInOutAndLine(BuildContext context, WidgetRef ref) async {
-    _showScreenLoading(context);
-    final mInOut = await mInOutNotifier.getMInOutAndLine(ref);
-    if (mInOut.id != null) {
-      if (mInOutState.mInOutType == MInOutType.shipmentConfirm ||
-          mInOutState.mInOutType == MInOutType.receiptConfirm) {
+    if (mInOutState.mInOutType == MInOutType.shipmentConfirm ||
+        mInOutState.mInOutType == MInOutType.receiptConfirm) {
+      _showScreenLoading(context);
+      final mInOut = await mInOutNotifier.getMInOutAndLine(ref);
+      if (mInOut.id != null) {
         final mInOutConfirmList =
             await mInOutNotifier.getMInOutConfirmList(mInOut.id!, ref);
         if (context.mounted) {
@@ -287,8 +285,8 @@ class _MInOutView extends ConsumerWidget {
       } else if (context.mounted) {
         Navigator.of(context).pop();
       }
-    } else if (context.mounted) {
-      Navigator.of(context).pop();
+    } else {
+      mInOutNotifier.getMInOutAndLine(ref);
     }
   }
 
@@ -553,16 +551,16 @@ class _MInOutView extends ConsumerWidget {
   }
 
   Widget _buildMInOutList(WidgetRef ref) {
-    final mInOut = mInOutState.mInOutList;
-    return mInOut.isNotEmpty
+    final mInOutList = mInOutState.mInOutList;
+    return mInOutList.isNotEmpty
         ? Column(
             children: [
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: mInOut.length,
+                itemCount: mInOutList.length,
                 itemBuilder: (context, index) {
-                  final item = mInOut[index];
+                  final item = mInOutList[index];
                   return GestureDetector(
                     onTap: () async {
                       mInOutNotifier.onDocChange(item.documentNo.toString());
@@ -622,7 +620,7 @@ class _MInOutView extends ConsumerWidget {
               ),
             ],
           )
-        : mInOutState.isLoadingListMInOut
+        : mInOutState.isLoadingMInOutList
             ? Padding(
                 padding: const EdgeInsets.only(top: 32),
                 child: Center(

@@ -57,50 +57,42 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
   }
 
   Future<void> getMInOutList(WidgetRef ref) async {
-    state = state.copyWith(isLoadingListMInOut: true, errorMessage: '');
+    state = state.copyWith(isLoadingMInOutList: true, errorMessage: '');
     try {
       final mInOutResponse =
           await mInOutRepository.getMInOutList(state.isSOTrx, ref);
       if (mInOutResponse.isEmpty) {
         state = state.copyWith(
           mInOutList: [],
-          isLoadingListMInOut: false,
+          isLoadingMInOutList: false,
         );
         return;
       }
       state = state.copyWith(
         mInOutList: mInOutResponse,
-        isLoadingListMInOut: false,
+        isLoadingMInOutList: false,
       );
     } catch (e) {
       state = state.copyWith(
         mInOutList: [],
         errorMessage: e.toString().replaceAll('Exception: ', ''),
-        isLoadingListMInOut: false,
+        isLoadingMInOutList: false,
       );
     }
   }
 
   Future<List<MInOutConfirm>> getMInOutConfirmList(
       int mInOutId, WidgetRef ref) async {
-    state = state.copyWith(isLoadingListMInOutConfirm: true, errorMessage: '');
     try {
       final mInOutConfirmResponse = await mInOutRepository.getMInOutConfirmList(
           mInOutId, state.isSOTrx, ref);
       if (mInOutConfirmResponse.isEmpty) {
-        state = state.copyWith(
-          isLoadingListMInOutConfirm: false,
-        );
         return [];
       }
-      state = state.copyWith(
-        isLoadingListMInOutConfirm: false,
-      );
       return mInOutConfirmResponse;
     } catch (e) {
       state = state.copyWith(
         errorMessage: e.toString().replaceAll('Exception: ', ''),
-        isLoadingListMInOutConfirm: false,
       );
       return [];
     }
@@ -113,11 +105,16 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
   }
 
   Future<MInOut> getMInOutAndLine(WidgetRef ref) async {
-    state = state.copyWith(isLoadingListMInOutConfirm: true, errorMessage: '');
+    if (state.mInOutType == MInOutType.shipment ||
+        state.mInOutType == MInOutType.receipt) {
+      state =
+          state.copyWith(isLoading: true, viewMInOut: true, errorMessage: '');
+    }
     if (state.doc.trim().isEmpty) {
       state = state.copyWith(
         errorMessage: 'El documento no puede estar vacío',
-        isLoadingListMInOutConfirm: false,
+        isLoading: false,
+        viewMInOut: false,
       );
       throw Exception('El documento no puede estar vacío');
     }
@@ -134,13 +131,14 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
             ? true
             : false,
         mInOut: mInOutResponse.copyWith(lines: filteredLines),
-        isLoadingListMInOutConfirm: false,
+        isLoading: false,
       );
       return mInOutResponse;
     } catch (e) {
       state = state.copyWith(
         errorMessage: e.toString().replaceAll('Exception: ', ''),
-        isLoadingListMInOutConfirm: false,
+        isLoading: false,
+        viewMInOut: false,
       );
       throw Exception(e.toString());
     }
@@ -148,7 +146,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
 
   Future<MInOutConfirm> getMInOutConfirmAndLine(
       int mInOutConfirmId, WidgetRef ref) async {
-    state = state.copyWith(isLoading: true, errorMessage: '');
+    state = state.copyWith(isLoading: true, viewMInOut: true, errorMessage: '');
     try {
       final mInOutConfirmResponse = await mInOutRepository
           .getMInOutConfirmAndLine(mInOutConfirmId, state.isSOTrx, ref);
@@ -161,7 +159,8 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
           orElse: () => LineConfirm(id: -1),
         );
         return line.copyWith(
-          confirmId: matchingConfirmLine.id! > 0 ? matchingConfirmLine.id : null,
+          confirmId:
+              matchingConfirmLine.id! > 0 ? matchingConfirmLine.id : null,
           confirmTargetQty: matchingConfirmLine.targetQty,
           confirmConfirmedQty: matchingConfirmLine.confirmedQty,
           confirmDifferenceQty: matchingConfirmLine.differenceQty,
@@ -176,7 +175,6 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
         mInOutConfirm: mInOutConfirmResponse,
         mInOut: state.mInOut!.copyWith(lines: filteredLines),
         isLoading: false,
-        viewMInOut: true,
       );
       return mInOutConfirmResponse;
     } catch (e) {
@@ -205,7 +203,6 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       orderBy: 'line',
       errorMessage: '',
       isLoading: false,
-      isLoadingListMInOutConfirm: false,
     );
   }
 
@@ -527,8 +524,7 @@ class MInOutStatus {
   final int manualQty;
   final String errorMessage;
   final bool isLoading;
-  final bool isLoadingListMInOut;
-  final bool isLoadingListMInOutConfirm;
+  final bool isLoadingMInOutList;
 
   MInOutStatus({
     this.doc = '',
@@ -547,8 +543,7 @@ class MInOutStatus {
     this.manualQty = 0,
     this.errorMessage = '',
     this.isLoading = false,
-    this.isLoadingListMInOut = false,
-    this.isLoadingListMInOutConfirm = false,
+    this.isLoadingMInOutList = false,
   });
 
   MInOutStatus copyWith({
@@ -568,8 +563,7 @@ class MInOutStatus {
     int? manualQty,
     String? errorMessage,
     bool? isLoading,
-    bool? isLoadingListMInOut,
-    bool? isLoadingListMInOutConfirm,
+    bool? isLoadingMInOutList,
   }) =>
       MInOutStatus(
         doc: doc ?? this.doc,
@@ -589,8 +583,6 @@ class MInOutStatus {
         uniqueView: uniqueView ?? this.uniqueView,
         errorMessage: errorMessage ?? this.errorMessage,
         isLoading: isLoading ?? this.isLoading,
-        isLoadingListMInOut: isLoadingListMInOut ?? this.isLoadingListMInOut,
-        isLoadingListMInOutConfirm:
-            isLoadingListMInOutConfirm ?? this.isLoadingListMInOutConfirm,
+        isLoadingMInOutList: isLoadingMInOutList ?? this.isLoadingMInOutList,
       );
 }
