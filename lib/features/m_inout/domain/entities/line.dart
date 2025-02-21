@@ -11,6 +11,7 @@ class Line {
   String? verifiedStatus;
   int? scanningQty;
   int? manualQty;
+  int? confirmId;
 
   Line({
     this.id,
@@ -23,6 +24,7 @@ class Line {
     this.verifiedStatus,
     this.scanningQty,
     this.manualQty,
+    this.confirmId,
   });
 
   factory Line.fromJson(Map<String, dynamic> json) => Line(
@@ -46,6 +48,7 @@ class Line {
     String? verifiedStatus,
     int? scanningQty,
     int? manualQty,
+    int? confirmId,
   }) {
     return Line(
       id: id ?? this.id,
@@ -58,6 +61,7 @@ class Line {
       verifiedStatus: verifiedStatus ?? this.verifiedStatus,
       scanningQty: scanningQty ?? this.scanningQty,
       manualQty: manualQty ?? this.manualQty,
+      confirmId: confirmId ?? this.confirmId,
     );
   }
 }

@@ -38,7 +38,8 @@ class MInOutDataSourceImpl implements MInOutDataSource {
       final response = await dio.get(url);
 
       if (response.statusCode == 200) {
-        final responseApi = ResponseApi<MInOut>.fromJson(response.data, MInOut.fromJson);
+        final responseApi =
+            ResponseApi<MInOut>.fromJson(response.data, MInOut.fromJson);
 
         if (responseApi.records != null && responseApi.records!.isNotEmpty) {
           final mInOutList = responseApi.records!;
@@ -71,7 +72,8 @@ class MInOutDataSourceImpl implements MInOutDataSource {
       final response = await dio.get(url);
 
       if (response.statusCode == 200) {
-        final responseApi = ResponseApi<MInOutConfirm>.fromJson(response.data, MInOutConfirm.fromJson);
+        final responseApi = ResponseApi<MInOutConfirm>.fromJson(
+            response.data, MInOutConfirm.fromJson);
 
         if (responseApi.records != null && responseApi.records!.isNotEmpty) {
           final mInOutConfirmList = responseApi.records!;
@@ -105,11 +107,47 @@ class MInOutDataSourceImpl implements MInOutDataSource {
       final response = await dio.get(url);
 
       if (response.statusCode == 200) {
-        final responseApi = ResponseApi<MInOut>.fromJson(response.data, MInOut.fromJson);
+        final responseApi =
+            ResponseApi<MInOut>.fromJson(response.data, MInOut.fromJson);
 
         if (responseApi.records != null && responseApi.records!.isNotEmpty) {
           final mInOut = responseApi.records!.first;
           return mInOut;
+        } else {
+          throw Exception('No se encontraron registros del $title');
+        }
+      } else {
+        throw Exception(
+            'Error al cargar los datos del $title: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      final authDataNotifier = ref.read(authProvider.notifier);
+      throw CustomErrorDioException(e, authDataNotifier);
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future<MInOutConfirm> getMInOutConfirmAndLine(
+    int mInOutConfirmId,
+    bool isSOTrx,
+    WidgetRef ref,
+  ) async {
+    await _dioInitialized;
+    final String title = isSOTrx ? 'Shipment' : 'Material Receipt';
+    try {
+      final String url =
+          "/api/v1/models/m_inoutconfirm?\$expand=m_inoutlineconfirm&\$filter=M_InOutConfirm_ID%20eq%20$mInOutConfirmId";
+      final response = await dio.get(url);
+
+      if (response.statusCode == 200) {
+        final responseApi = ResponseApi<MInOutConfirm>.fromJson(
+            response.data, MInOutConfirm.fromJson);
+
+        if (responseApi.records != null && responseApi.records!.isNotEmpty) {
+          final mInOutConfirm = responseApi.records!.first;
+          return mInOutConfirm;
         } else {
           throw Exception('No se encontraron registros del $title');
         }

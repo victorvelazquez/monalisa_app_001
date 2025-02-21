@@ -18,13 +18,20 @@ class MInOutRepositoryImpl implements MInOutRepository {
   }
 
   @override
-  Future<List<MInOutConfirm>> getMInOutConfirmList(int mInOutId, bool isSOTrx, WidgetRef ref) {
+  Future<List<MInOutConfirm>> getMInOutConfirmList(
+      int mInOutId, bool isSOTrx, WidgetRef ref) {
     return dataSource.getMInOutConfirmList(mInOutId, isSOTrx, ref);
   }
 
   @override
   Future<MInOut> getMInOutAndLine(String mInOut, bool isSOTrx, WidgetRef ref) {
     return dataSource.getMInOutAndLine(mInOut, isSOTrx, ref);
+  }
+
+  @override
+  Future<MInOutConfirm> getMInOutConfirmAndLine(
+      int mInOutConfirmId, bool isSOTrx, WidgetRef ref) {
+    return dataSource.getMInOutConfirmAndLine(mInOutConfirmId, isSOTrx, ref);
   }
 
   @override

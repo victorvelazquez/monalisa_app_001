@@ -5,6 +5,7 @@ import 'package:monalisa_app_001/features/m_inout/domain/entities/m_in_out.dart'
 import 'package:monalisa_app_001/features/m_inout/domain/entities/m_in_out_confirm.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/repositories/m_in_out_repositiry.dart';
 import '../../domain/entities/barcode.dart';
+import '../../domain/entities/line_confirm.dart';
 import '../../infrastructure/repositories/m_in_out_repository_impl.dart';
 
 final mInOutProvider =
@@ -91,14 +92,14 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     }
   }
 
-  Future<void> getMInOutAndLine(WidgetRef ref) async {
-    state = state.copyWith(isLoading: true, errorMessage: '');
+  Future<MInOut> getMInOutAndLine(WidgetRef ref) async {
+    state = state.copyWith(isLoadingListMInOutConfirm: true, errorMessage: '');
     if (state.doc.trim().isEmpty) {
       state = state.copyWith(
         errorMessage: 'El documento no puede estar vacío',
-        isLoading: false,
+        isLoadingListMInOutConfirm: false,
       );
-      return;
+      throw Exception('El documento no puede estar vacío');
     }
 
     try {
@@ -109,15 +110,54 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
           .toList();
       state = state.copyWith(
         mInOut: mInOutResponse.copyWith(lines: filteredLines),
-        isLoading: false,
-        viewMInOut: true,
+        isLoadingListMInOutConfirm: false,
       );
+      return mInOutResponse;
     } catch (e) {
       state = state.copyWith(
         errorMessage: e.toString().replaceAll('Exception: ', ''),
-        viewMInOut: false,
-        isLoading: false,
+        isLoadingListMInOutConfirm: false,
       );
+      throw Exception(e.toString());
+    }
+  }
+
+  Future<MInOutConfirm> getMInOutConfirmAndLine(
+      int mInOutConfirmId, WidgetRef ref) async {
+    state = state.copyWith(isLoading: true, errorMessage: '');
+    try {
+      final mInOutConfirmResponse = await mInOutRepository
+          .getMInOutConfirmAndLine(mInOutConfirmId, state.isSOTrx, ref);
+
+      final updatedLines = state.mInOut!.lines.map((line) {
+        final matchingConfirmLine =
+            mInOutConfirmResponse.linesConfirm.firstWhere(
+          (confirmLine) =>
+              confirmLine.mInOutLineId!.id.toString() == line.id.toString(),
+          orElse: () => LineConfirm(id: -1),
+        );
+        return line.copyWith(
+            confirmId:
+                matchingConfirmLine.id! > 0 ? matchingConfirmLine.id : null);
+      }).toList();
+
+      final filteredLines =
+          updatedLines.where((line) => line.confirmId != null).toList();
+
+      state = state.copyWith(
+        mInOutConfirm: mInOutConfirmResponse,
+        mInOut: state.mInOut!.copyWith(lines: filteredLines),
+        isLoading: false,
+        viewMInOut: true,
+      );
+      return mInOutConfirmResponse;
+    } catch (e) {
+      state = state.copyWith(
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        isLoading: false,
+        viewMInOut: false,
+      );
+      throw Exception(e.toString());
     }
   }
 
@@ -126,6 +166,8 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       mInOutList: [],
       doc: '',
       mInOut: state.mInOut?.copyWith(id: null, lines: null),
+      mInOutConfirm:
+          state.mInOutConfirm?.copyWith(id: null, linesConfirm: null),
       isSOTrx: false,
       scanBarcodeListTotal: [],
       scanBarcodeListUnique: [],
@@ -442,6 +484,7 @@ class MInOutStatus {
   final List<MInOut> mInOutList;
   final String doc;
   final MInOut? mInOut;
+  final MInOutConfirm? mInOutConfirm;
   final bool isSOTrx;
   final String title;
   final List<Barcode> scanBarcodeListTotal;
@@ -460,6 +503,7 @@ class MInOutStatus {
     this.mInOutList = const [],
     this.doc = '',
     this.mInOut,
+    this.mInOutConfirm,
     this.isSOTrx = false,
     this.title = 'Shipment',
     required this.scanBarcodeListTotal,
@@ -479,6 +523,7 @@ class MInOutStatus {
     List<MInOut>? mInOutList,
     String? doc,
     MInOut? mInOut,
+    MInOutConfirm? mInOutConfirm,
     bool? isSOTrx,
     String? title,
     List<Barcode>? scanBarcodeListTotal,
@@ -497,6 +542,7 @@ class MInOutStatus {
         mInOutList: mInOutList ?? this.mInOutList,
         doc: doc ?? this.doc,
         mInOut: mInOut ?? this.mInOut,
+        mInOutConfirm: mInOutConfirm ?? this.mInOutConfirm,
         isSOTrx: isSOTrx ?? this.isSOTrx,
         title: title ?? this.title,
         scanBarcodeListTotal: scanBarcodeListTotal ?? this.scanBarcodeListTotal,
