@@ -89,9 +89,9 @@ class MInOutScreenState extends ConsumerState<MInOutScreen> {
                   ? [
                       IconButton(
                         onPressed: RolesApp.appShipmentComplete &&
-                                    mInOutState.title == 'Shipment' ||
+                                    mInOutState.mInOutType == MInOutType.shipment ||
                                 RolesApp.appReceiptComplete &&
-                                    mInOutState.title == 'Receipt'
+                                    mInOutState.mInOutType == MInOutType.receipt
                             ? mInOutNotifier.isConfirmMInOut()
                                 ? () => mInOutNotifier.setDocAction(ref)
                                 : () => _showConfirmMInOut(context)
@@ -653,7 +653,7 @@ class _MInOutView extends ConsumerWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(themeBorderRadius),
           ),
-          title: Text('${mInOutState.title} Confirm'),
+          title: Text(mInOutState.title),
           content: mInOutConfirmList.isNotEmpty
               ? ListView.builder(
                   shrinkWrap: true,
@@ -1037,8 +1037,9 @@ class _MInOutView extends ConsumerWidget {
               icon: const Icon(Icons.close_rounded),
             ),
             if ((RolesApp.appShipmentManual &&
-                    mInOutState.title == 'Shipment') ||
-                (RolesApp.appReceiptManual && mInOutState.title == 'Receipt'))
+                    mInOutState.mInOutType == MInOutType.shipment) ||
+                (RolesApp.appReceiptManual &&
+                    mInOutState.mInOutType == MInOutType.receipt))
               CustomFilledButton(
                 onPressed: () {
                   Navigator.of(context).pop();
