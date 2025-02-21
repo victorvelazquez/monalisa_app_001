@@ -36,25 +36,34 @@ var appHomeOptionCol1Items = <MenuItem>[
       link: '/mInOut/shipment',
       icon: Icons.upload,
     ),
+  if (RolesApp.appShipmentconfirm)
+    const MenuItem(
+      title: 'Shipment Confirm',
+      subTitle: '',
+      link: '/mInOut/shipmentconfirm',
+      icon: Icons.upload,
+    ),
   // MenuItem(
   //   title: 'PickUp /QA',
   //   subTitle: '',
   //   link: '/splash',
   //   icon: Icons.upload,
   // ),
-  // MenuItem(
-  //     title: 'Shipment Confirm',
-  //     subTitle: '',
-  //     link: '/splash',
-  //     icon: Icons.upload),
 ];
 
 var appHomeOptionCol2Items = <MenuItem>[
   if (RolesApp.appReceipt)
     const MenuItem(
-      title: 'Material Receipt',
+      title: 'Receipt',
       subTitle: '',
       link: '/mInOut/receipt',
+      icon: Icons.download,
+    ),
+  if (RolesApp.appReceiptconfirm)
+    const MenuItem(
+      title: 'Receipt Confirm',
+      subTitle: '',
+      link: '/mInOut/receiptconfirm',
       icon: Icons.download,
     ),
   // MenuItem(
@@ -63,11 +72,6 @@ var appHomeOptionCol2Items = <MenuItem>[
   //   link: '/splash',
   //   icon: Icons.download,
   // ),
-  // MenuItem(
-  //     title: 'Receipt Confirm',
-  //     subTitle: '',
-  //     link: '/splash',
-  //     icon: Icons.download),
 ];
 
 const appHomeOptionCol3Items = <MenuItem>[

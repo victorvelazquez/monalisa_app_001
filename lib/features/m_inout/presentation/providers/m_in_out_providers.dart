@@ -30,9 +30,29 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
 
   void setIsSOTrx(String value) {
     if (value == 'shipment') {
-      state = state.copyWith(isSOTrx: true, title: 'Shipment');
-    } else {
-      state = state.copyWith(isSOTrx: false, title: 'Receipt');
+      state = state.copyWith(
+        isSOTrx: true,
+        mInOutType: MInOutType.shipment,
+        title: 'Shipment',
+      );
+    } else if (value == 'shipmentconfirm') {
+      state = state.copyWith(
+        isSOTrx: true,
+        mInOutType: MInOutType.shipmentConfirm,
+        title: 'Shipment Confirm',
+      );
+    } else if (value == 'receipt') {
+      state = state.copyWith(
+        isSOTrx: false,
+        mInOutType: MInOutType.receipt,
+        title: 'Receipt',
+      );
+    } else if (value == 'receiptconfirm') {
+      state = state.copyWith(
+        isSOTrx: false,
+        mInOutType: MInOutType.receiptConfirm,
+        title: 'Receipt Confirm',
+      );
     }
   }
 
@@ -109,6 +129,10 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
           .where((line) => line.mProductId?.id != null)
           .toList();
       state = state.copyWith(
+        viewMInOut: state.mInOutType == MInOutType.receipt ||
+                state.mInOutType == MInOutType.shipment
+            ? true
+            : false,
         mInOut: mInOutResponse.copyWith(lines: filteredLines),
         isLoadingListMInOutConfirm: false,
       );
@@ -137,8 +161,12 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
           orElse: () => LineConfirm(id: -1),
         );
         return line.copyWith(
-            confirmId:
-                matchingConfirmLine.id! > 0 ? matchingConfirmLine.id : null);
+          confirmId: matchingConfirmLine.id! > 0 ? matchingConfirmLine.id : null,
+          confirmTargetQty: matchingConfirmLine.targetQty,
+          confirmConfirmedQty: matchingConfirmLine.confirmedQty,
+          confirmDifferenceQty: matchingConfirmLine.differenceQty,
+          confirmScrappedQty: matchingConfirmLine.scrappedQty,
+        );
       }).toList();
 
       final filteredLines =
@@ -163,9 +191,9 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
 
   void clearMInOutData() {
     state = state.copyWith(
-      mInOutList: [],
       doc: '',
       mInOut: state.mInOut?.copyWith(id: null, lines: null),
+      mInOutList: [],
       mInOutConfirm:
           state.mInOutConfirm?.copyWith(id: null, linesConfirm: null),
       isSOTrx: false,
@@ -480,10 +508,13 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
   }
 }
 
+enum MInOutType { shipment, shipmentConfirm, receipt, receiptConfirm }
+
 class MInOutStatus {
-  final List<MInOut> mInOutList;
   final String doc;
+  final MInOutType mInOutType;
   final MInOut? mInOut;
+  final List<MInOut> mInOutList;
   final MInOutConfirm? mInOutConfirm;
   final bool isSOTrx;
   final String title;
@@ -500,9 +531,10 @@ class MInOutStatus {
   final bool isLoadingListMInOutConfirm;
 
   MInOutStatus({
-    this.mInOutList = const [],
     this.doc = '',
+    this.mInOutType = MInOutType.shipment,
     this.mInOut,
+    this.mInOutList = const [],
     this.mInOutConfirm,
     this.isSOTrx = false,
     this.title = 'Shipment',
@@ -520,8 +552,9 @@ class MInOutStatus {
   });
 
   MInOutStatus copyWith({
-    List<MInOut>? mInOutList,
     String? doc,
+    MInOutType? mInOutType,
+    List<MInOut>? mInOutList,
     MInOut? mInOut,
     MInOutConfirm? mInOutConfirm,
     bool? isSOTrx,
@@ -539,8 +572,9 @@ class MInOutStatus {
     bool? isLoadingListMInOutConfirm,
   }) =>
       MInOutStatus(
-        mInOutList: mInOutList ?? this.mInOutList,
         doc: doc ?? this.doc,
+        mInOutType: mInOutType ?? this.mInOutType,
+        mInOutList: mInOutList ?? this.mInOutList,
         mInOut: mInOut ?? this.mInOut,
         mInOutConfirm: mInOutConfirm ?? this.mInOutConfirm,
         isSOTrx: isSOTrx ?? this.isSOTrx,

@@ -12,6 +12,10 @@ class Line {
   int? scanningQty;
   int? manualQty;
   int? confirmId;
+  int? confirmTargetQty;
+  int? confirmConfirmedQty;
+  double? confirmDifferenceQty;
+  double? confirmScrappedQty;
 
   Line({
     this.id,
@@ -25,6 +29,10 @@ class Line {
     this.scanningQty,
     this.manualQty,
     this.confirmId,
+    this.confirmTargetQty,
+    this.confirmConfirmedQty,
+    this.confirmDifferenceQty,
+    this.confirmScrappedQty,
   });
 
   factory Line.fromJson(Map<String, dynamic> json) => Line(
@@ -49,6 +57,10 @@ class Line {
     int? scanningQty,
     int? manualQty,
     int? confirmId,
+    int? confirmTargetQty,
+    int? confirmConfirmedQty,
+    double? confirmDifferenceQty,
+    double? confirmScrappedQty,
   }) {
     return Line(
       id: id ?? this.id,
@@ -62,6 +74,10 @@ class Line {
       scanningQty: scanningQty ?? this.scanningQty,
       manualQty: manualQty ?? this.manualQty,
       confirmId: confirmId ?? this.confirmId,
+      confirmTargetQty: confirmTargetQty ?? this.confirmTargetQty,
+      confirmConfirmedQty: confirmConfirmedQty ?? this.confirmConfirmedQty,
+      confirmDifferenceQty: confirmDifferenceQty ?? this.confirmDifferenceQty,
+      confirmScrappedQty: confirmScrappedQty ?? this.confirmScrappedQty,
     );
   }
 }

@@ -226,66 +226,14 @@ class _MInOutView extends ConsumerWidget {
                         hint: 'Ingresar documento',
                         onChanged: mInOutNotifier.onDocChange,
                         onFieldSubmitted: (value) async {
-                          showDialog(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (BuildContext context) {
-                              return Center(
-                                child: CircularProgressIndicator(
-                                  color: themeBackgroundColor,
-                                ),
-                              );
-                            },
-                          );
-                          MInOut mInOut =
-                              await mInOutNotifier.getMInOutAndLine(ref);
-                          if (mInOut.id != null) {
-                            List<MInOutConfirm> mInOutConfirmList =
-                                await mInOutNotifier.getMInOutConfirmList(
-                                    mInOut.id!, ref);
-                            if (context.mounted) {
-                              Navigator.of(context).pop();
-                              _showSelectMInOutConfirm(mInOutConfirmList,
-                                  context, mInOutNotifier, mInOutState, ref);
-                            }
-                          } else {
-                            if (context.mounted) {
-                              Navigator.of(context).pop();
-                            }
-                          }
+                          await _loadMInOutAndLine(context, ref);
                         },
                         prefixIcon: Icon(Icons.qr_code_scanner_rounded),
                         suffixIcon: IconButton(
                           icon: Icon(Icons.send_rounded),
                           color: themeColorPrimary,
                           onPressed: () async {
-                            showDialog(
-                              context: context,
-                              barrierDismissible: false,
-                              builder: (BuildContext context) {
-                                return Center(
-                                  child: CircularProgressIndicator(
-                                    color: themeBackgroundColor,
-                                  ),
-                                );
-                              },
-                            );
-                            MInOut mInOut =
-                                await mInOutNotifier.getMInOutAndLine(ref);
-                            if (mInOut.id != null) {
-                              List<MInOutConfirm> mInOutConfirmList =
-                                  await mInOutNotifier.getMInOutConfirmList(
-                                      mInOut.id!, ref);
-                              if (context.mounted) {
-                                Navigator.of(context).pop();
-                                _showSelectMInOutConfirm(mInOutConfirmList,
-                                    context, mInOutNotifier, mInOutState, ref);
-                              }
-                            } else {
-                              if (context.mounted) {
-                                Navigator.of(context).pop();
-                              }
-                            }
+                            await _loadMInOutAndLine(context, ref);
                           },
                         ),
                       ),
@@ -304,25 +252,44 @@ class _MInOutView extends ConsumerWidget {
                     ),
                   ],
                 )
-              : Expanded(
-                  child: ListView(
-                    children: [
-                      _buildMInOutHeader(context, ref),
-                      const SizedBox(height: 5),
-                      _buildActionOrderList(mInOutNotifier),
-                      const SizedBox(height: 5),
-                      _buildMInOutLineList(),
-                      mInOutState.linesOver.isNotEmpty
-                          ? _buildListOver(
-                              context,
-                              mInOutState.linesOver,
-                              mInOutNotifier,
-                            )
-                          : SizedBox(),
-                    ],
-                  ),
+              : ListView(
+                  children: [
+                    _buildMInOutHeader(context, ref),
+                    const SizedBox(height: 5),
+                    _buildActionOrderList(mInOutNotifier),
+                    const SizedBox(height: 5),
+                    _buildMInOutLineList(),
+                    mInOutState.linesOver.isNotEmpty
+                        ? _buildListOver(
+                            context,
+                            mInOutState.linesOver,
+                            mInOutNotifier,
+                          )
+                        : SizedBox(),
+                  ],
                 ),
     );
+  }
+
+  Future<void> _loadMInOutAndLine(BuildContext context, WidgetRef ref) async {
+    _showScreenLoading(context);
+    final mInOut = await mInOutNotifier.getMInOutAndLine(ref);
+    if (mInOut.id != null) {
+      if (mInOutState.mInOutType == MInOutType.shipmentConfirm ||
+          mInOutState.mInOutType == MInOutType.receiptConfirm) {
+        final mInOutConfirmList =
+            await mInOutNotifier.getMInOutConfirmList(mInOut.id!, ref);
+        if (context.mounted) {
+          Navigator.of(context).pop();
+          _showSelectMInOutConfirm(
+              mInOutConfirmList, context, mInOutNotifier, mInOutState, ref);
+        }
+      } else if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+    } else if (context.mounted) {
+      Navigator.of(context).pop();
+    }
   }
 
   Widget _buildMInOutHeader(BuildContext context, WidgetRef ref) {
@@ -346,12 +313,21 @@ class _MInOutView extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Doc. No.: ',
+                      'Document No.: ',
                       style: const TextStyle(
                         fontSize: themeFontSizeSmall,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    if (mInOutState.mInOutType == MInOutType.shipmentConfirm ||
+                        mInOutState.mInOutType == MInOutType.receiptConfirm)
+                      Text(
+                        'Confirm No.: ',
+                        style: const TextStyle(
+                          fontSize: themeFontSizeSmall,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     Text(
                       'Date: ',
                       style: const TextStyle(
@@ -401,6 +377,15 @@ class _MInOutView extends ConsumerWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    if (mInOutState.mInOutType == MInOutType.shipmentConfirm ||
+                        mInOutState.mInOutType == MInOutType.receiptConfirm)
+                      Text(
+                        'Conf. Status: ',
+                        style: const TextStyle(
+                          fontSize: themeFontSizeSmall,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                   ],
                 ),
                 SizedBox(width: 10),
@@ -411,6 +396,12 @@ class _MInOutView extends ConsumerWidget {
                       mInOutState.mInOut!.documentNo ?? '',
                       style: TextStyle(fontSize: themeFontSizeSmall),
                     ),
+                    if (mInOutState.mInOutType == MInOutType.shipmentConfirm ||
+                        mInOutState.mInOutType == MInOutType.receiptConfirm)
+                      Text(
+                        mInOutState.mInOutConfirm!.documentNo ?? '',
+                        style: TextStyle(fontSize: themeFontSizeSmall),
+                      ),
                     Text(
                       mInOutState.mInOut!.movementDate != null
                           ? DateFormat('dd/MM/yyyy')
@@ -445,6 +436,12 @@ class _MInOutView extends ConsumerWidget {
                       mInOutState.mInOut!.docStatus.identifier ?? '',
                       style: TextStyle(fontSize: themeFontSizeSmall),
                     ),
+                    if (mInOutState.mInOutType == MInOutType.shipmentConfirm ||
+                        mInOutState.mInOutType == MInOutType.receiptConfirm)
+                      Text(
+                        mInOutState.mInOutConfirm!.docStatus.identifier ?? '',
+                        style: TextStyle(fontSize: themeFontSizeSmall),
+                      ),
                   ],
                 ),
               ],
@@ -568,34 +565,8 @@ class _MInOutView extends ConsumerWidget {
                   final item = mInOut[index];
                   return GestureDetector(
                     onTap: () async {
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (BuildContext context) {
-                          return Center(
-                            child: CircularProgressIndicator(
-                              color: themeBackgroundColor,
-                            ),
-                          );
-                        },
-                      );
                       mInOutNotifier.onDocChange(item.documentNo.toString());
-                      MInOut mInOut =
-                          await mInOutNotifier.getMInOutAndLine(ref);
-                      if (mInOut.id != null) {
-                        List<MInOutConfirm> mInOutConfirmList =
-                            await mInOutNotifier.getMInOutConfirmList(
-                                mInOut.id!, ref);
-                        if (context.mounted) {
-                          Navigator.of(context).pop();
-                          _showSelectMInOutConfirm(mInOutConfirmList, context,
-                              mInOutNotifier, mInOutState, ref);
-                        }
-                      } else {
-                        if (context.mounted) {
-                          Navigator.of(context).pop();
-                        }
-                      }
+                      await _loadMInOutAndLine(context, ref);
                     },
                     child: Column(
                       children: [
@@ -1238,6 +1209,20 @@ class _MInOutView extends ConsumerWidget {
               buttonColor: themeColorGray,
             ),
           ],
+        );
+      },
+    );
+  }
+
+  void _showScreenLoading(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Center(
+          child: CircularProgressIndicator(
+            color: themeBackgroundColor,
+          ),
         );
       },
     );
