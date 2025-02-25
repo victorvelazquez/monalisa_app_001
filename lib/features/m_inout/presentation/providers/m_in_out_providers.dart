@@ -117,7 +117,8 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
 
   Future<MInOut> getMInOutAndLine(WidgetRef ref) async {
     if (state.doc.trim().isEmpty) {
-      state = state.copyWith(errorMessage: 'Por favor ingrese un número de documento válido');
+      state = state.copyWith(
+          errorMessage: 'Por favor ingrese un número de documento válido');
       throw Exception('Por favor ingrese un número de documento válido');
     }
     if (state.mInOutType == MInOutType.shipment ||
@@ -132,11 +133,17 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       final filteredLines = mInOutResponse.lines
           .where((line) => line.mProductId?.id != null)
           .toList();
+      if (state.mInOutType == MInOutType.shipment ||
+          state.mInOutType == MInOutType.receipt) {
+        for (int i = 0; i < filteredLines.length; i++) {
+          filteredLines[i] = filteredLines[i].copyWith(
+            targetQty: filteredLines[i].movementQty,
+          );
+        }
+      }
       state = state.copyWith(
         viewMInOut: state.mInOutType == MInOutType.receipt ||
-                state.mInOutType == MInOutType.shipment
-            ? true
-            : false,
+            state.mInOutType == MInOutType.shipment,
         mInOut: mInOutResponse.copyWith(lines: filteredLines),
         isLoading: false,
       );
@@ -170,8 +177,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
               matchingConfirmLine.id! > 0 ? matchingConfirmLine.id : null,
           targetQty: matchingConfirmLine.targetQty,
           confirmedQty: matchingConfirmLine.confirmedQty,
-          confirmDifferenceQty: matchingConfirmLine.differenceQty,
-          confirmScrappedQty: matchingConfirmLine.scrappedQty,
+          scrappedQty: matchingConfirmLine.scrappedQty,
         );
       }).toList();
 
@@ -227,11 +233,9 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     final List<Line> updatedLines = state.mInOut!.lines;
     final int index = updatedLines.indexWhere((l) => l.id == line.id);
     if (index != -1) {
-      final status = _getManualStatus(line);
-      updatedLines[index] = line.copyWith(
-          manualQty: state.manualQty,
-          confirmScrappedQty: state.scrappedQty,
-          verifiedStatus: status);
+      final Line verifyLine =
+          _verifyLineStatusQty(line, state.manualQty, state.scrappedQty);
+      updatedLines[index] = verifyLine;
       state =
           state.copyWith(mInOut: state.mInOut!.copyWith(lines: updatedLines));
       updatedMInOutLine('');
@@ -243,7 +247,10 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     final int index = updatedLines.indexWhere((l) => l.id == line.id);
     if (index != -1) {
       updatedLines[index] = line.copyWith(
-          manualQty: 0, confirmScrappedQty: 0, verifiedStatus: 'pending');
+          manualQty: 0,
+          confirmedQty: 0,
+          scrappedQty: 0,
+          verifiedStatus: 'pending');
       state =
           state.copyWith(mInOut: state.mInOut!.copyWith(lines: updatedLines));
       updatedMInOutLine('');
@@ -374,24 +381,29 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     if (state.mInOut != null && state.viewMInOut) {
       List<Line> lines = state.mInOut!.lines;
       List<Barcode> linesOver = [];
+
       for (int i = 0; i < lines.length; i++) {
-        if ((lines[i].verifiedStatus != 'manually-correct' &&
-                lines[i].verifiedStatus != 'manually-minor' &&
-                lines[i].verifiedStatus != 'manually-exceeds') ||
+        if (!lines[i].verifiedStatus!.contains('manually') ||
             lines[i].upc == barcode) {
           lines[i] = lines[i].copyWith(
-              verifiedStatus: 'pending', scanningQty: 0, manualQty: 0);
+              manualQty: 0,
+              scanningQty: 0,
+              confirmedQty: 0,
+              scrappedQty: 0,
+              verifiedStatus: 'pending');
         }
       }
+
       for (final barcode in state.scanBarcodeListUnique) {
         final lineIndex = lines.indexWhere((line) => line.upc == barcode.code);
         if (lineIndex != -1) {
           final line = lines[lineIndex];
-          lines[lineIndex] = _updateLineStatus(line, barcode);
+          lines[lineIndex] = _verifyLineStatusQty(line, barcode.repetitions.toDouble(), 0);
         } else {
           linesOver.add(barcode.copyWith(index: linesOver.length + 1));
         }
       }
+
       state = state.copyWith(
           mInOut: state.mInOut!.copyWith(lines: lines), linesOver: linesOver);
     }
@@ -448,43 +460,36 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     }
   }
 
-  String _getManualStatus(Line line) {
-    double totalQty = 0;
-    if (state.mInOutType == MInOutType.shipment ||
-        state.mInOutType == MInOutType.receipt) {
-      totalQty = line.movementQty!;
-    } else {
-      totalQty = line.targetQty!;
-    }
-    if (state.manualQty == totalQty) {
-      return 'manually-correct';
-    } else if (state.manualQty < totalQty) {
-      return 'manually-minor';
-    } else {
-      return 'manually-exceeds';
-    }
-  }
-
-  Line _updateLineStatus(Line line, Barcode barcode) {
-    if (line.verifiedStatus == 'manually-correct' ||
-        line.verifiedStatus == 'manually-minor' ||
-        line.verifiedStatus == 'manually-exceeds') {
-      return line.copyWith(
-        verifiedStatus: _getManualStatus(line),
-        scanningQty: barcode.repetitions,
-      );
-    } else {
-      if (barcode.repetitions == line.movementQty) {
-        return line.copyWith(
-            verifiedStatus: 'correct', scanningQty: barcode.repetitions);
-      } else if (barcode.repetitions < line.movementQty!) {
-        return line.copyWith(
-            verifiedStatus: 'minor', scanningQty: barcode.repetitions);
+  Line _verifyLineStatusQty(Line line, double verifyQty, double scrappedQty) {
+    String status = '';
+    double manualQty = 0;
+    double scanningQty = 0;
+    if (line.verifiedStatus!.contains('manually')) {
+      if (verifyQty == line.targetQty) {
+        status = 'manually-correct';
+      } else if (verifyQty < (line.targetQty ?? 0)) {
+        status = 'manually-minor';
       } else {
-        return line.copyWith(
-            verifiedStatus: 'exceeds', scanningQty: barcode.repetitions);
+        status = 'manually-exceeds';
       }
+      manualQty = verifyQty;
+    } else {
+      if (verifyQty == line.targetQty) {
+        status = 'correct';
+      } else if (verifyQty < (line.targetQty ?? 0)) {
+        status = 'minor';
+      } else {
+        status = 'exceeds';
+      }
+      scanningQty = verifyQty;
     }
+    return line.copyWith(
+      manualQty: manualQty,
+      scanningQty: scanningQty.toInt(),
+      confirmedQty: verifyQty,
+      scrappedQty: scrappedQty,
+      verifiedStatus: status,
+    );
   }
 
   void _toggleColoring(List<Barcode> list, String code) {

@@ -1,5 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:monalisa_app_001/features/m_inout/domain/entities/line_confirm.dart';
+import 'package:monalisa_app_001/features/shared/domain/entities/model_crud.dart';
+import 'package:monalisa_app_001/features/shared/domain/entities/model_crud_request.dart';
 import 'package:monalisa_app_001/features/shared/domain/entities/response_api.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/datasources/m_inout_datasource.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/m_in_out.dart';
@@ -8,9 +11,11 @@ import 'package:monalisa_app_001/features/shared/domain/entities/standard_respon
 import '../../../../config/config.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../shared/domain/entities/ad_login_request.dart';
+import '../../../shared/domain/entities/field_crud.dart';
 import '../../../shared/domain/entities/model_set_doc_action.dart';
 import '../../../shared/domain/entities/model_set_doc_action_request.dart';
 import '../../../shared/shared.dart';
+import '../../domain/entities/line.dart';
 import '../../domain/entities/m_in_out_confirm.dart';
 import '../../presentation/providers/m_in_out_providers.dart';
 
@@ -66,13 +71,14 @@ class MInOutDataSourceImpl implements MInOutDataSource {
     await _dioInitialized;
     final mInOutState = ref.watch(mInOutProvider);
 
-    final String confirmType = mInOutState.mInOutType == MInOutType.receiptConfirm ||
-            mInOutState.mInOutType == MInOutType.shipmentConfirm
-        ? "%20AND%20ConfirmType%20eq%20'SC'"
-        : mInOutState.mInOutType == MInOutType.pickConfirm ||
-                mInOutState.mInOutType == MInOutType.qaConfirm
-            ? "%20AND%20ConfirmType%20eq%20'PC'"
-            : "";
+    final String confirmType =
+        mInOutState.mInOutType == MInOutType.receiptConfirm ||
+                mInOutState.mInOutType == MInOutType.shipmentConfirm
+            ? "%20AND%20ConfirmType%20eq%20'SC'"
+            : mInOutState.mInOutType == MInOutType.pickConfirm ||
+                    mInOutState.mInOutType == MInOutType.qaConfirm
+                ? "%20AND%20ConfirmType%20eq%20'PC'"
+                : "";
 
     try {
       final String url =
@@ -122,7 +128,8 @@ class MInOutDataSourceImpl implements MInOutDataSource {
           final mInOut = responseApi.records!.first;
           return mInOut;
         } else {
-          throw Exception('No se encontraron registros del ${mInOutState.title}');
+          throw Exception(
+              'No se encontraron registros del ${mInOutState.title}');
         }
       } else {
         throw Exception(
@@ -156,7 +163,8 @@ class MInOutDataSourceImpl implements MInOutDataSource {
           final mInOutConfirm = responseApi.records!.first;
           return mInOutConfirm;
         } else {
-          throw Exception('No se encontraron registros del ${mInOutState.title}');
+          throw Exception(
+              'No se encontraron registros del ${mInOutState.title}');
         }
       } else {
         throw Exception(
@@ -228,6 +236,83 @@ class MInOutDataSourceImpl implements MInOutDataSource {
         throw Exception(
             'Error al cargar los datos del ${mInOutState.title}: ${response.statusCode}');
       }
+    } on DioException catch (e) {
+      final authDataNotifier = ref.read(authProvider.notifier);
+      throw CustomErrorDioException(e, authDataNotifier);
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future<LineConfirm> updateLineConfirm(Line line, WidgetRef ref) async {
+    await _dioInitialized;
+    // final mInOutState = ref.watch(mInOutProvider);
+
+    try {
+      // final String url =
+      //     "/ADInterface/services/rest/model_adservice/create_update_data";
+
+      final authData = ref.read(authProvider);
+      final request = {
+        'ModelCRUDRequest': ModelCrudRequest(
+          modelCrud: ModelCrud(
+            serviceType: 'UpdateInOutLineConfirm',
+            tableName: 'M_InOutLineConfirm',
+            recordId: line.confirmId,
+            dataRow: [
+              FieldCrud(
+                  column: 'ConfirmedQty', val: line.confirmedQty.toString()),
+              FieldCrud(
+                  column: 'DifferenceQty',
+                  val: line.differenceQty.toString()),
+              FieldCrud(
+                  column: 'ScrappedQty',
+                  val: line.scrappedQty.toString()),
+            ],
+          ),
+          adLoginRequest: AdLoginRequest(
+            user: authData.userName,
+            pass: authData.password,
+            lang: "es_PY",
+            clientId: authData.selectedClient!.id,
+            roleId: authData.selectedRole!.id,
+            orgId: authData.selectedOrganization!.id,
+            warehouseId: authData.selectedWarehouse!.id,
+            stage: 9,
+          ),
+        ).toJson()
+      };
+
+      print(request);
+
+      return LineConfirm(
+        id: 1,
+        confirmedQty: 1,
+        differenceQty: 1,
+        scrappedQty: 1,
+      );
+
+      // final response = await dio.post(url, data: request);
+
+      // if (response.statusCode == 200) {
+      //   final standardResponse =
+      //       StandardResponse.fromJson(response.data['StandardResponse']);
+      //   if (standardResponse.isError == false) {
+      //     final mInOutResponse = await getMInOutAndLine(
+      //         mInOutState.mInOut!.documentNo!.toString(), ref);
+      //     if (mInOutResponse.id == mInOutState.mInOut!.id) {
+      //       return mInOutResponse;
+      //     } else {
+      //       throw Exception('Error al confirmar el ${mInOutState.title}');
+      //     }
+      //   } else {
+      //     throw Exception(standardResponse.error ?? 'Unknown error');
+      //   }
+      // } else {
+      //   throw Exception(
+      //       'Error al cargar los datos del ${mInOutState.title}: ${response.statusCode}');
+      // }
     } on DioException catch (e) {
       final authDataNotifier = ref.read(authProvider.notifier);
       throw CustomErrorDioException(e, authDataNotifier);

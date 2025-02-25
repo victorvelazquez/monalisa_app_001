@@ -1046,7 +1046,7 @@ class _MInOutView extends ConsumerWidget {
                     //     item.confirmDifferenceQty?.toString() ?? '0', false),
                     if (item.verifiedStatus?.contains('manually') ?? false)
                       _buildTableRow("Desechado:",
-                          item.confirmScrappedQty?.toString() ?? '0', true),
+                          item.scrappedQty?.toString() ?? '0', true),
                   ],
                 ),
               ],

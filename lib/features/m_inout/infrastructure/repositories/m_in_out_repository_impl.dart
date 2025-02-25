@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:monalisa_app_001/features/m_inout/domain/entities/line_confirm.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/m_in_out.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/repositories/m_in_out_repositiry.dart';
 
 import '../../domain/datasources/m_inout_datasource.dart';
+import '../../domain/entities/line.dart';
 import '../../domain/entities/m_in_out_confirm.dart';
 import '../datasources/m_in_out_datasource_impl.dart';
 
@@ -37,5 +39,10 @@ class MInOutRepositoryImpl implements MInOutRepository {
   @override
   Future<MInOut> setDocAction(WidgetRef ref) {
     return dataSource.setDocAction(ref);
+  }
+
+  @override
+  Future<LineConfirm> updateLineConfirm(Line line, WidgetRef ref) {
+    return dataSource.updateLineConfirm(line, ref);
   }
 }

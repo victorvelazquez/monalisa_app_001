@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../entities/line.dart';
+import '../entities/line_confirm.dart';
 import '../entities/m_in_out.dart';
 import '../entities/m_in_out_confirm.dart';
 
@@ -9,4 +11,5 @@ abstract class MInOutRepository {
   Future<MInOut> getMInOutAndLine(String mInOutDoc, WidgetRef ref);
   Future<MInOutConfirm> getMInOutConfirmAndLine(int mInOutConfirmId, WidgetRef ref);
   Future<MInOut> setDocAction(WidgetRef ref);
+  Future<LineConfirm> updateLineConfirm(Line line, WidgetRef ref);
 }

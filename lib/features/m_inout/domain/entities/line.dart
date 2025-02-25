@@ -4,11 +4,10 @@ class Line {
   int? id;
   int? line;
   double? movementQty;
-  double? targetQty;
   double? confirmedQty;
   double? pickedQty;
   double? scrappedQty;
-  double? qtyEntered;
+  double? targetQty;
   AdEntityId? mProductId;
   String? upc;
   String? sku;
@@ -16,9 +15,8 @@ class Line {
   String? verifiedStatus;
   int? scanningQty;
   double? manualQty;
+  double? get differenceQty => (targetQty ?? 0.0) - (confirmedQty ?? 0.0);
   int? confirmId;
-  double? confirmDifferenceQty;
-  double? confirmScrappedQty;
 
   Line({
     this.id,
@@ -28,7 +26,6 @@ class Line {
     this.confirmedQty,
     this.pickedQty,
     this.scrappedQty,
-    this.qtyEntered,
     this.mProductId,
     this.upc,
     this.sku,
@@ -37,8 +34,6 @@ class Line {
     this.scanningQty,
     this.manualQty,
     this.confirmId,
-    this.confirmDifferenceQty,
-    this.confirmScrappedQty,
   });
 
   factory Line.fromJson(Map<String, dynamic> json) => Line(
@@ -59,7 +54,6 @@ class Line {
     double? confirmedQty,
     double? pickedQty,
     double? scrappedQty,
-    double? qtyEntered,
     AdEntityId? mProductId,
     String? upc,
     String? sku,
@@ -68,8 +62,6 @@ class Line {
     int? scanningQty,
     double? manualQty,
     int? confirmId,
-    double? confirmDifferenceQty,
-    double? confirmScrappedQty,
   }) {
     return Line(
       id: id ?? this.id,
@@ -79,7 +71,6 @@ class Line {
       confirmedQty: confirmedQty ?? this.confirmedQty,
       pickedQty: pickedQty ?? this.pickedQty,
       scrappedQty: scrappedQty ?? this.scrappedQty,
-      qtyEntered: qtyEntered ?? this.qtyEntered,
       mProductId: mProductId ?? this.mProductId,
       upc: upc ?? this.upc,
       sku: sku ?? this.sku,
@@ -88,8 +79,6 @@ class Line {
       scanningQty: scanningQty ?? this.scanningQty,
       manualQty: manualQty ?? this.manualQty,
       confirmId: confirmId ?? this.confirmId,
-      confirmDifferenceQty: confirmDifferenceQty ?? this.confirmDifferenceQty,
-      confirmScrappedQty: confirmScrappedQty ?? this.confirmScrappedQty,
     );
   }
 }
