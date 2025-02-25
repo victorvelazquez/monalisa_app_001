@@ -3,17 +3,20 @@ import 'package:monalisa_app_001/features/shared/domain/entities/ad_entity_id.da
 class Line {
   int? id;
   int? line;
-  int? movementQty;
+  double? movementQty;
+  double? targetQty;
+  double? confirmedQty;
+  double? pickedQty;
+  double? scrappedQty;
+  double? qtyEntered;
   AdEntityId? mProductId;
   String? upc;
   String? sku;
   String? productName;
   String? verifiedStatus;
   int? scanningQty;
-  int? manualQty;
+  double? manualQty;
   int? confirmId;
-  int? confirmTargetQty;
-  int? confirmConfirmedQty;
   double? confirmDifferenceQty;
   double? confirmScrappedQty;
 
@@ -21,6 +24,11 @@ class Line {
     this.id,
     this.line,
     this.movementQty,
+    this.targetQty,
+    this.confirmedQty,
+    this.pickedQty,
+    this.scrappedQty,
+    this.qtyEntered,
     this.mProductId,
     this.upc,
     this.sku,
@@ -29,8 +37,6 @@ class Line {
     this.scanningQty,
     this.manualQty,
     this.confirmId,
-    this.confirmTargetQty,
-    this.confirmConfirmedQty,
     this.confirmDifferenceQty,
     this.confirmScrappedQty,
   });
@@ -38,7 +44,7 @@ class Line {
   factory Line.fromJson(Map<String, dynamic> json) => Line(
         id: json["id"],
         line: json["Line"],
-        movementQty: json["MovementQty"],
+        movementQty: json["MovementQty"] != null ? (json["MovementQty"] is double ? json["MovementQty"] : double.tryParse(json["MovementQty"].toString()) ?? 0.0) : 0.0,
         mProductId: AdEntityId.fromJson(json["M_Product_ID"] ?? {}),
         upc: json["UPC"],
         sku: json["SKU"],
@@ -48,17 +54,20 @@ class Line {
   Line copyWith({
     int? id,
     int? line,
-    int? movementQty,
+    double? movementQty,
+    double? targetQty,
+    double? confirmedQty,
+    double? pickedQty,
+    double? scrappedQty,
+    double? qtyEntered,
     AdEntityId? mProductId,
     String? upc,
     String? sku,
     String? productName,
     String? verifiedStatus,
     int? scanningQty,
-    int? manualQty,
+    double? manualQty,
     int? confirmId,
-    int? confirmTargetQty,
-    int? confirmConfirmedQty,
     double? confirmDifferenceQty,
     double? confirmScrappedQty,
   }) {
@@ -66,6 +75,11 @@ class Line {
       id: id ?? this.id,
       line: line ?? this.line,
       movementQty: movementQty ?? this.movementQty,
+      targetQty: targetQty ?? this.targetQty,
+      confirmedQty: confirmedQty ?? this.confirmedQty,
+      pickedQty: pickedQty ?? this.pickedQty,
+      scrappedQty: scrappedQty ?? this.scrappedQty,
+      qtyEntered: qtyEntered ?? this.qtyEntered,
       mProductId: mProductId ?? this.mProductId,
       upc: upc ?? this.upc,
       sku: sku ?? this.sku,
@@ -74,8 +88,6 @@ class Line {
       scanningQty: scanningQty ?? this.scanningQty,
       manualQty: manualQty ?? this.manualQty,
       confirmId: confirmId ?? this.confirmId,
-      confirmTargetQty: confirmTargetQty ?? this.confirmTargetQty,
-      confirmConfirmedQty: confirmConfirmedQty ?? this.confirmConfirmedQty,
       confirmDifferenceQty: confirmDifferenceQty ?? this.confirmDifferenceQty,
       confirmScrappedQty: confirmScrappedQty ?? this.confirmScrappedQty,
     );

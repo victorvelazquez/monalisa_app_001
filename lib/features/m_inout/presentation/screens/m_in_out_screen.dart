@@ -89,7 +89,8 @@ class MInOutScreenState extends ConsumerState<MInOutScreen> {
                   ? [
                       IconButton(
                         onPressed: RolesApp.appShipmentComplete &&
-                                    mInOutState.mInOutType == MInOutType.shipment ||
+                                    mInOutState.mInOutType ==
+                                        MInOutType.shipment ||
                                 RolesApp.appReceiptComplete &&
                                     mInOutState.mInOutType == MInOutType.receipt
                             ? mInOutNotifier.isConfirmMInOut()
@@ -256,7 +257,7 @@ class _MInOutView extends ConsumerWidget {
                     const SizedBox(height: 5),
                     _buildActionOrderList(mInOutNotifier),
                     const SizedBox(height: 5),
-                    _buildMInOutLineList(),
+                    _buildMInOutLineList(mInOutState),
                     mInOutState.linesOver.isNotEmpty
                         ? _buildListOver(
                             context,
@@ -271,7 +272,9 @@ class _MInOutView extends ConsumerWidget {
 
   Future<void> _loadMInOutAndLine(BuildContext context, WidgetRef ref) async {
     if (mInOutState.mInOutType == MInOutType.shipmentConfirm ||
-        mInOutState.mInOutType == MInOutType.receiptConfirm) {
+        mInOutState.mInOutType == MInOutType.receiptConfirm ||
+        mInOutState.mInOutType == MInOutType.pickConfirm ||
+        mInOutState.mInOutType == MInOutType.qaConfirm) {
       _showScreenLoading(context);
       final mInOut = await mInOutNotifier.getMInOutAndLine(ref);
       if (mInOut.id != null) {
@@ -318,7 +321,9 @@ class _MInOutView extends ConsumerWidget {
                       ),
                     ),
                     if (mInOutState.mInOutType == MInOutType.shipmentConfirm ||
-                        mInOutState.mInOutType == MInOutType.receiptConfirm)
+                        mInOutState.mInOutType == MInOutType.receiptConfirm ||
+                        mInOutState.mInOutType == MInOutType.pickConfirm ||
+                        mInOutState.mInOutType == MInOutType.qaConfirm)
                       Text(
                         'Confirm No.: ',
                         style: const TextStyle(
@@ -369,16 +374,18 @@ class _MInOutView extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      'Status: ',
+                      'Shipment Status: ',
                       style: const TextStyle(
                         fontSize: themeFontSizeSmall,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     if (mInOutState.mInOutType == MInOutType.shipmentConfirm ||
-                        mInOutState.mInOutType == MInOutType.receiptConfirm)
+                        mInOutState.mInOutType == MInOutType.receiptConfirm ||
+                        mInOutState.mInOutType == MInOutType.pickConfirm ||
+                        mInOutState.mInOutType == MInOutType.qaConfirm)
                       Text(
-                        'Conf. Status: ',
+                        'Confirm Status: ',
                         style: const TextStyle(
                           fontSize: themeFontSizeSmall,
                           fontWeight: FontWeight.bold,
@@ -395,7 +402,9 @@ class _MInOutView extends ConsumerWidget {
                       style: TextStyle(fontSize: themeFontSizeSmall),
                     ),
                     if (mInOutState.mInOutType == MInOutType.shipmentConfirm ||
-                        mInOutState.mInOutType == MInOutType.receiptConfirm)
+                        mInOutState.mInOutType == MInOutType.receiptConfirm ||
+                        mInOutState.mInOutType == MInOutType.pickConfirm ||
+                        mInOutState.mInOutType == MInOutType.qaConfirm)
                       Text(
                         mInOutState.mInOutConfirm!.documentNo ?? '',
                         style: TextStyle(fontSize: themeFontSizeSmall),
@@ -435,7 +444,9 @@ class _MInOutView extends ConsumerWidget {
                       style: TextStyle(fontSize: themeFontSizeSmall),
                     ),
                     if (mInOutState.mInOutType == MInOutType.shipmentConfirm ||
-                        mInOutState.mInOutType == MInOutType.receiptConfirm)
+                        mInOutState.mInOutType == MInOutType.receiptConfirm ||
+                        mInOutState.mInOutType == MInOutType.pickConfirm ||
+                        mInOutState.mInOutType == MInOutType.qaConfirm)
                       Text(
                         mInOutState.mInOutConfirm!.docStatus.identifier ?? '',
                         style: TextStyle(fontSize: themeFontSizeSmall),
@@ -844,7 +855,7 @@ class _MInOutView extends ConsumerWidget {
     );
   }
 
-  Widget _buildMInOutLineList() {
+  Widget _buildMInOutLineList(MInOutStatus mInOutState) {
     final mInOutLines = mInOutState.mInOut?.lines ?? [];
     return ListView.builder(
       shrinkWrap: true,
@@ -853,7 +864,7 @@ class _MInOutView extends ConsumerWidget {
       itemBuilder: (context, index) {
         final item = mInOutLines[index];
         return GestureDetector(
-          onTap: () => _selectLine(context, mInOutNotifier, item),
+          onTap: () => _selectLine(context, mInOutNotifier, mInOutState, item),
           child: Column(
             children: [
               Divider(height: 0),
@@ -994,8 +1005,8 @@ class _MInOutView extends ConsumerWidget {
     );
   }
 
-  Future<void> _selectLine(
-      BuildContext context, MInOutNotifier mInOutNotifier, Line item) {
+  Future<void> _selectLine(BuildContext context, MInOutNotifier mInOutNotifier,
+      MInOutStatus mInOutState, Line item) {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -1017,14 +1028,25 @@ class _MInOutView extends ConsumerWidget {
                     _buildTableRow("SKU:", item.sku?.toString() ?? '', false),
                     _buildTableRow(
                         "Producto:", item.productName?.toString() ?? '', false),
-                    if (mInOutState.mInOut!.docStatus.id.toString() != 'DR')
-                      _buildTableRow("Cantidad:",
-                          item.movementQty?.toString() ?? '0', true),
+                    // if (mInOutState.mInOut!.docStatus.id.toString() != 'DR')
+                    // _buildTableRow(
+                    //     "Cantidad:",
+                    //     mInOutState.mInOutType == MInOutType.shipment ||
+                    //             mInOutState.mInOutType == MInOutType.receipt
+                    //         ? item.movementQty?.toString() ?? '0'
+                    //         : item.confirmTargetQty?.toString() ?? '0',
+                    //     false),
                     _buildTableRow("Escaneado:",
                         item.scanningQty?.toString() ?? '0', true),
                     if (item.verifiedStatus?.contains('manually') ?? false)
                       _buildTableRow("Conf. Manual:",
                           item.manualQty?.toString() ?? '0', true),
+                    // if (mInOutState.mInOut!.docStatus.id.toString() != 'DR')
+                    // _buildTableRow("Diferencia:",
+                    //     item.confirmDifferenceQty?.toString() ?? '0', false),
+                    if (item.verifiedStatus?.contains('manually') ?? false)
+                      _buildTableRow("Desechado:",
+                          item.confirmScrappedQty?.toString() ?? '0', true),
                   ],
                 ),
               ],
@@ -1036,36 +1058,35 @@ class _MInOutView extends ConsumerWidget {
               label: 'Cerrar',
               icon: const Icon(Icons.close_rounded),
             ),
-            if ((RolesApp.appShipmentManual &&
-                    mInOutState.mInOutType == MInOutType.shipment) ||
-                (RolesApp.appReceiptManual &&
-                    mInOutState.mInOutType == MInOutType.receipt))
-              CustomFilledButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  if (item.verifiedStatus?.contains('manually') ?? false) {
-                    _showResetManualLine(context, item);
-                  } else {
-                    mInOutNotifier.onManualQuantityChange(
-                        item.manualQty != null && item.manualQty! > 0
-                            ? item.manualQty.toString()
-                            : item.movementQty.toString());
-                    _showInsertManualLine(context, item);
-                  }
-                },
-                label: (item.verifiedStatus?.contains('manually') ?? false)
-                    ? 'Reiniciar'
-                    : 'Manual',
-                icon: const Icon(Icons.touch_app_outlined),
-                buttonColor: themeColorGray,
-              ),
+            // if ((RolesApp.appShipmentManual &&
+            //         mInOutState.mInOutType == MInOutType.shipment) ||
+            //     (RolesApp.appReceiptManual &&
+            //         mInOutState.mInOutType == MInOutType.receipt))
+            CustomFilledButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                if (item.verifiedStatus?.contains('manually') ?? false) {
+                  _showResetManualLine(context, item);
+                } else {
+                  mInOutNotifier.onManualQuantityChange('0');
+                  mInOutNotifier.onManualScrappedChange('0');
+                  _showInsertManualLine(context, mInOutState, item);
+                }
+              },
+              label: (item.verifiedStatus?.contains('manually') ?? false)
+                  ? 'Reiniciar'
+                  : 'Manual',
+              icon: const Icon(Icons.touch_app_outlined),
+              buttonColor: themeColorGray,
+            ),
           ],
         );
       },
     );
   }
 
-  Future<void> _showInsertManualLine(BuildContext context, Line line) {
+  Future<void> _showInsertManualLine(
+      BuildContext context, MInOutStatus mInOutState, Line item) {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -1078,23 +1099,20 @@ class _MInOutView extends ConsumerWidget {
             children: [
               Expanded(
                 child: CustomTextFormField(
-                  label: 'Confirmada',
+                  label: 'Confirmado',
                   textAlign: TextAlign.center,
-                  initialValue: line.manualQty != null && line.manualQty! > 0
-                      ? line.manualQty.toString()
-                      : line.movementQty.toString(),
+                  initialValue: '0',
                   onChanged: mInOutNotifier.onManualQuantityChange,
+                  autofocus: true,
                 ),
               ),
               SizedBox(width: 8),
               Expanded(
                 child: CustomTextFormField(
-                  label: 'Desechada',
+                  label: 'Desechado',
                   textAlign: TextAlign.center,
-                  initialValue: '0', // Add initial value if needed
-                  onChanged: (value) {
-                    // Handle change if needed
-                  },
+                  initialValue: '0',
+                  onChanged: mInOutNotifier.onManualScrappedChange,
                 ),
               ),
             ],
@@ -1102,7 +1120,7 @@ class _MInOutView extends ConsumerWidget {
           actions: <Widget>[
             CustomFilledButton(
               onPressed: () {
-                mInOutNotifier.confirmManualLine(line);
+                mInOutNotifier.confirmManualLine(item);
                 Navigator.of(context).pop();
               },
               label: 'Confirmar',
@@ -1241,7 +1259,8 @@ TableRow _buildTableRow(String label, String value, bool fontSizeTitle) {
         ),
       ),
       Container(
-        padding: const EdgeInsets.fromLTRB(4, 2, 0, 2),
+        padding: EdgeInsets.fromLTRB(4, 2, fontSizeTitle ? 20 : 0, 2),
+        alignment: fontSizeTitle ? AlignmentDirectional(1, -0.3) : null,
         child: Text(
           value,
           style: TextStyle(

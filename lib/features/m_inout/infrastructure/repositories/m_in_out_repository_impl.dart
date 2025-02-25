@@ -13,29 +13,29 @@ class MInOutRepositoryImpl implements MInOutRepository {
       : dataSource = dataSource ?? MInOutDataSourceImpl();
 
   @override
-  Future<List<MInOut>> getMInOutList(bool isSOTrx, WidgetRef ref) {
-    return dataSource.getMInOutList(isSOTrx, ref);
+  Future<List<MInOut>> getMInOutList(WidgetRef ref) {
+    return dataSource.getMInOutList(ref);
   }
 
   @override
   Future<List<MInOutConfirm>> getMInOutConfirmList(
-      int mInOutId, bool isSOTrx, WidgetRef ref) {
-    return dataSource.getMInOutConfirmList(mInOutId, isSOTrx, ref);
+      int mInOutId, WidgetRef ref) {
+    return dataSource.getMInOutConfirmList(mInOutId, ref);
   }
 
   @override
-  Future<MInOut> getMInOutAndLine(String mInOut, bool isSOTrx, WidgetRef ref) {
-    return dataSource.getMInOutAndLine(mInOut, isSOTrx, ref);
+  Future<MInOut> getMInOutAndLine(String mInOutDoc, WidgetRef ref) {
+    return dataSource.getMInOutAndLine(mInOutDoc, ref);
   }
 
   @override
   Future<MInOutConfirm> getMInOutConfirmAndLine(
-      int mInOutConfirmId, bool isSOTrx, WidgetRef ref) {
-    return dataSource.getMInOutConfirmAndLine(mInOutConfirmId, isSOTrx, ref);
+      int mInOutConfirmId, WidgetRef ref) {
+    return dataSource.getMInOutConfirmAndLine(mInOutConfirmId, ref);
   }
 
   @override
-  Future<MInOut> setDocAction(MInOut mInOut, bool isSOTrx, WidgetRef ref) {
-    return dataSource.setDocAction(mInOut, isSOTrx, ref);
+  Future<MInOut> setDocAction(WidgetRef ref) {
+    return dataSource.setDocAction(ref);
   }
 }

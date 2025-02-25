@@ -12,6 +12,7 @@ import '../../../shared/domain/entities/model_set_doc_action.dart';
 import '../../../shared/domain/entities/model_set_doc_action_request.dart';
 import '../../../shared/shared.dart';
 import '../../domain/entities/m_in_out_confirm.dart';
+import '../../presentation/providers/m_in_out_providers.dart';
 
 class MInOutDataSourceImpl implements MInOutDataSource {
   late final Dio dio;
@@ -26,14 +27,14 @@ class MInOutDataSourceImpl implements MInOutDataSource {
   }
 
   @override
-  Future<List<MInOut>> getMInOutList(bool isSOTrx, WidgetRef ref) async {
+  Future<List<MInOut>> getMInOutList(WidgetRef ref) async {
     await _dioInitialized;
-    final String title = isSOTrx ? 'Shipment' : 'Material Receipt';
+    final mInOutState = ref.watch(mInOutProvider);
     final int warehouseID = ref.read(authProvider).selectedWarehouse!.id;
 
     try {
       final String url =
-          "/api/v1/models/m_inout?\$filter=IsSOTrx%20eq%20$isSOTrx%20AND%20M_Warehouse_ID%20eq%20$warehouseID%20AND%20(DocStatus%20eq%20'DR'%20OR%20DocStatus%20eq%20'IP')";
+          "/api/v1/models/m_inout?\$filter=IsSOTrx%20eq%20${mInOutState.isSOTrx}%20AND%20M_Warehouse_ID%20eq%20$warehouseID%20AND%20(DocStatus%20eq%20'DR'%20OR%20DocStatus%20eq%20'IP')";
 
       final response = await dio.get(url);
 
@@ -49,7 +50,7 @@ class MInOutDataSourceImpl implements MInOutDataSource {
         }
       } else {
         throw Exception(
-            'Error al obtener la lista de $title: ${response.statusCode}');
+            'Error al obtener la lista de ${mInOutState.title}: ${response.statusCode}');
       }
     } on DioException catch (e) {
       final authDataNotifier = ref.read(authProvider.notifier);
@@ -61,13 +62,21 @@ class MInOutDataSourceImpl implements MInOutDataSource {
 
   @override
   Future<List<MInOutConfirm>> getMInOutConfirmList(
-      int mInOutId, bool isSOTrx, WidgetRef ref) async {
+      int mInOutId, WidgetRef ref) async {
     await _dioInitialized;
-    final String title = isSOTrx ? 'Shipment' : 'Material Receipt';
+    final mInOutState = ref.watch(mInOutProvider);
+
+    final String confirmType = mInOutState.mInOutType == MInOutType.receiptConfirm ||
+            mInOutState.mInOutType == MInOutType.shipmentConfirm
+        ? "%20AND%20ConfirmType%20eq%20'SC'"
+        : mInOutState.mInOutType == MInOutType.pickConfirm ||
+                mInOutState.mInOutType == MInOutType.qaConfirm
+            ? "%20AND%20ConfirmType%20eq%20'PC'"
+            : "";
 
     try {
       final String url =
-          "/api/v1/models/m_inoutConfirm?\$filter=M_InOut_ID%20eq%20$mInOutId";
+          "/api/v1/models/m_inoutConfirm?\$filter=M_InOut_ID%20eq%20$mInOutId$confirmType";
 
       final response = await dio.get(url);
 
@@ -83,7 +92,7 @@ class MInOutDataSourceImpl implements MInOutDataSource {
         }
       } else {
         throw Exception(
-            'Error al obtener la lista de $title: ${response.statusCode}');
+            'Error al obtener la lista de ${mInOutState.title}: ${response.statusCode}');
       }
     } on DioException catch (e) {
       final authDataNotifier = ref.read(authProvider.notifier);
@@ -95,15 +104,14 @@ class MInOutDataSourceImpl implements MInOutDataSource {
 
   @override
   Future<MInOut> getMInOutAndLine(
-    String mInOut,
-    bool isSOTrx,
+    String mInOutDoc,
     WidgetRef ref,
   ) async {
     await _dioInitialized;
-    final String title = isSOTrx ? 'Shipment' : 'Material Receipt';
+    final mInOutState = ref.watch(mInOutProvider);
     try {
       final String url =
-          "/api/v1/models/m_inout?\$expand=m_inoutline&\$filter=DocumentNo%20eq%20'${mInOut.toString()}'%20AND%20IsSOTrx%20eq%20$isSOTrx";
+          "/api/v1/models/m_inout?\$expand=m_inoutline&\$filter=DocumentNo%20eq%20'${mInOutDoc.toString()}'%20AND%20IsSOTrx%20eq%20${mInOutState.isSOTrx}";
       final response = await dio.get(url);
 
       if (response.statusCode == 200) {
@@ -114,11 +122,11 @@ class MInOutDataSourceImpl implements MInOutDataSource {
           final mInOut = responseApi.records!.first;
           return mInOut;
         } else {
-          throw Exception('No se encontraron registros del $title');
+          throw Exception('No se encontraron registros del ${mInOutState.title}');
         }
       } else {
         throw Exception(
-            'Error al cargar los datos del $title: ${response.statusCode}');
+            'Error al cargar los datos del ${mInOutState.title}: ${response.statusCode}');
       }
     } on DioException catch (e) {
       final authDataNotifier = ref.read(authProvider.notifier);
@@ -131,11 +139,10 @@ class MInOutDataSourceImpl implements MInOutDataSource {
   @override
   Future<MInOutConfirm> getMInOutConfirmAndLine(
     int mInOutConfirmId,
-    bool isSOTrx,
     WidgetRef ref,
   ) async {
     await _dioInitialized;
-    final String title = isSOTrx ? 'Shipment' : 'Material Receipt';
+    final mInOutState = ref.watch(mInOutProvider);
     try {
       final String url =
           "/api/v1/models/m_inoutconfirm?\$expand=m_inoutlineconfirm&\$filter=M_InOutConfirm_ID%20eq%20$mInOutConfirmId";
@@ -149,11 +156,11 @@ class MInOutDataSourceImpl implements MInOutDataSource {
           final mInOutConfirm = responseApi.records!.first;
           return mInOutConfirm;
         } else {
-          throw Exception('No se encontraron registros del $title');
+          throw Exception('No se encontraron registros del ${mInOutState.title}');
         }
       } else {
         throw Exception(
-            'Error al cargar los datos del $title: ${response.statusCode}');
+            'Error al cargar los datos del ${mInOutState.title}: ${response.statusCode}');
       }
     } on DioException catch (e) {
       final authDataNotifier = ref.read(authProvider.notifier);
@@ -165,16 +172,14 @@ class MInOutDataSourceImpl implements MInOutDataSource {
 
   @override
   Future<MInOut> setDocAction(
-    MInOut mInOut,
-    bool isSOTrx,
     WidgetRef ref,
   ) async {
     await _dioInitialized;
-    final String title = isSOTrx ? 'Shipment' : 'Material Receipt';
+    final mInOutState = ref.watch(mInOutProvider);
     String status = 'DR';
-    if (mInOut.docStatus.id.toString() == 'DR') {
+    if (mInOutState.mInOut!.docStatus.id.toString() == 'DR') {
       status = 'IP';
-    } else if (mInOut.docStatus.id.toString() == 'IP') {
+    } else if (mInOutState.mInOut!.docStatus.id.toString() == 'IP') {
       status = 'CO';
     }
     try {
@@ -187,7 +192,7 @@ class MInOutDataSourceImpl implements MInOutDataSource {
           modelSetDocAction: ModelSetDocAction(
             serviceType: 'SetDocumentActionShipment',
             tableName: 'M_InOut',
-            recordId: mInOut.id,
+            recordId: mInOutState.mInOut!.id,
             docAction: status,
           ),
           adLoginRequest: AdLoginRequest(
@@ -210,18 +215,18 @@ class MInOutDataSourceImpl implements MInOutDataSource {
             StandardResponse.fromJson(response.data['StandardResponse']);
         if (standardResponse.isError == false) {
           final mInOutResponse = await getMInOutAndLine(
-              mInOut.documentNo!.toString(), isSOTrx, ref);
-          if (mInOutResponse.id == mInOut.id) {
-            return mInOut;
+              mInOutState.mInOut!.documentNo!.toString(), ref);
+          if (mInOutResponse.id == mInOutState.mInOut!.id) {
+            return mInOutResponse;
           } else {
-            throw Exception('Error al confirmar el $title');
+            throw Exception('Error al confirmar el ${mInOutState.title}');
           }
         } else {
           throw Exception(standardResponse.error ?? 'Unknown error');
         }
       } else {
         throw Exception(
-            'Error al cargar los datos del $title: ${response.statusCode}');
+            'Error al cargar los datos del ${mInOutState.title}: ${response.statusCode}');
       }
     } on DioException catch (e) {
       final authDataNotifier = ref.read(authProvider.notifier);

@@ -47,7 +47,7 @@ var appHomeOptionCol1Items = <MenuItem>[
     const MenuItem(
       title: 'Pick Confirm',
       subTitle: '',
-      link: '/mInOut/shipmentpickconfirm',
+      link: '/mInOut/pickconfirm',
       icon: Icons.upload,
     ),
 ];
@@ -71,7 +71,7 @@ var appHomeOptionCol2Items = <MenuItem>[
     const MenuItem(
       title: 'QA Confirm',
       subTitle: '',
-      link: '/mInOut/receiptqaconfirm',
+      link: '/mInOut/qaconfirm',
       icon: Icons.upload,
     ),
 ];
