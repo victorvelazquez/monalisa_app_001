@@ -94,7 +94,13 @@ class MInOutScreenState extends ConsumerState<MInOutScreen> {
                                 RolesApp.appReceiptComplete &&
                                     mInOutState.mInOutType == MInOutType.receipt
                             ? mInOutNotifier.isConfirmMInOut()
-                                ? () => mInOutNotifier.setDocAction(ref)
+                                ? mInOutState.mInOutType ==
+                                            MInOutType.shipment ||
+                                        mInOutState.mInOutType ==
+                                            MInOutType.receipt
+                                    ? () => mInOutNotifier.setDocAction(ref)
+                                    : () =>
+                                        mInOutNotifier.setDocActionConfirm(ref)
                                 : () => _showConfirmMInOut(context)
                             : () => _showWithoutRole(context),
                         icon: Icon(
@@ -916,6 +922,12 @@ class _MInOutView extends ConsumerWidget {
                                   color: themeColorGray,
                                 ),
                               ),
+                            ),
+                          ),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Text(
+                              'Tar:${item.targetQty}/Man:${item.manualQty}/Sca:${item.scanningQty}/Con:${item.confirmedQty}/Scr:${item.scrappedQty}',
                             ),
                           ),
                         ],

@@ -216,6 +216,8 @@ class MInOutDataSourceImpl implements MInOutDataSource {
         ).toJson()
       };
 
+      print(request);
+
       final response = await dio.post(url, data: request);
 
       if (response.statusCode == 200) {
@@ -251,7 +253,7 @@ class MInOutDataSourceImpl implements MInOutDataSource {
 
     try {
       // final String url =
-      //     "/ADInterface/services/rest/model_adservice/create_update_data";
+      //     "ADInterface/services/rest/model_adservice/update_data";
 
       final authData = ref.read(authProvider);
       final request = {
@@ -264,11 +266,9 @@ class MInOutDataSourceImpl implements MInOutDataSource {
               FieldCrud(
                   column: 'ConfirmedQty', val: line.confirmedQty.toString()),
               FieldCrud(
-                  column: 'DifferenceQty',
-                  val: line.differenceQty.toString()),
+                  column: 'DifferenceQty', val: line.differenceQty.toString()),
               FieldCrud(
-                  column: 'ScrappedQty',
-                  val: line.scrappedQty.toString()),
+                  column: 'ScrappedQty', val: line.scrappedQty.toString()),
             ],
           ),
           adLoginRequest: AdLoginRequest(

@@ -138,6 +138,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
         for (int i = 0; i < filteredLines.length; i++) {
           filteredLines[i] = filteredLines[i].copyWith(
             targetQty: filteredLines[i].movementQty,
+            verifiedStatus: 'pending',
           );
         }
       }
@@ -230,6 +231,9 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
   }
 
   void confirmManualLine(Line line) {
+    line = line.copyWith(
+      verifiedStatus: 'manually',
+    );
     final List<Line> updatedLines = state.mInOut!.lines;
     final int index = updatedLines.indexWhere((l) => l.id == line.id);
     if (index != -1) {
@@ -258,10 +262,22 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
   }
 
   bool isConfirmMInOut() {
-    return state.mInOut?.lines.every((line) =>
-            line.verifiedStatus == 'correct' ||
-            line.verifiedStatus == 'manually-correct') ??
-        false;
+    bool resul = false;
+    if (state.mInOutType == MInOutType.shipment ||
+        state.mInOutType == MInOutType.receipt) {
+      resul = state.mInOut?.lines.every((line) =>
+              line.verifiedStatus == 'correct' ||
+              line.verifiedStatus == 'manually-correct') ??
+          false;
+    } else {
+      resul = state.mInOut?.lines.every((line) =>
+              line.verifiedStatus == 'correct' ||
+              line.verifiedStatus == 'manually-correct' ||
+              line.verifiedStatus == 'minor' ||
+              line.verifiedStatus == 'manually-minor') ??
+          false;
+    }
+    return resul;
   }
 
   Future<void> setDocAction(WidgetRef ref) async {
@@ -282,6 +298,46 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
         isLoading: false,
         viewMInOut: true,
       );
+    } catch (e) {
+      state = state.copyWith(
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        viewMInOut: true,
+        isLoading: false,
+      );
+    }
+  }
+
+  Future<void> setDocActionConfirm(WidgetRef ref) async {
+    bool result = false;
+    state =
+        state.copyWith(isLoading: true, viewMInOut: false, errorMessage: '');
+
+    try {
+      for (final line in state.mInOut!.lines) {
+        final lineConfirmResponse =
+            await mInOutRepository.updateLineConfirm(line, ref);
+        if (lineConfirmResponse.id != null) {
+          result = true;
+        } else {
+          result = false;
+          state = state.copyWith(
+            errorMessage: 'Error al confirmar la línea ${line.line}',
+            viewMInOut: true,
+            isLoading: false,
+          );
+          return;
+        }
+      }
+
+      state = state.copyWith(
+        // mInOut: mInOutResponse.copyWith(lines: state.mInOut!.lines),
+        isLoading: false,
+        viewMInOut: true,
+      );
+      if (result) {
+        print('All lines confirmed');
+      }
+      
     } catch (e) {
       state = state.copyWith(
         errorMessage: e.toString().replaceAll('Exception: ', ''),
@@ -398,7 +454,8 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
         final lineIndex = lines.indexWhere((line) => line.upc == barcode.code);
         if (lineIndex != -1) {
           final line = lines[lineIndex];
-          lines[lineIndex] = _verifyLineStatusQty(line, barcode.repetitions.toDouble(), 0);
+          lines[lineIndex] =
+              _verifyLineStatusQty(line, barcode.repetitions.toDouble(), 0);
         } else {
           linesOver.add(barcode.copyWith(index: linesOver.length + 1));
         }
@@ -464,7 +521,8 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     String status = '';
     double manualQty = 0;
     double scanningQty = 0;
-    if (line.verifiedStatus!.contains('manually')) {
+    if (line.verifiedStatus != null &&
+        line.verifiedStatus!.contains('manually')) {
       if (verifyQty == line.targetQty) {
         status = 'manually-correct';
       } else if (verifyQty < (line.targetQty ?? 0)) {
