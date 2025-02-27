@@ -88,12 +88,12 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
         mInOutType: MInOutType.receiptConfirm,
         title: 'Receipt Confirm',
         rolShowQty: RolesApp.appReceiptconfirmQty,
-        rolShowScrap: RolesApp.appReceiptconfirmQty,
-        rolManualQty: RolesApp.appReceiptconfirmManual,
-        rolManualScrap: RolesApp.appReceiptconfirmManual,
-        rolCompleteLow: RolesApp.appShipmentLowqty,
+        rolShowScrap: true,
+        rolManualQty: true,
+        rolManualScrap: true,
+        rolCompleteLow: true,
         rolCompleteOver: false,
-        rolComplete: RolesApp.appReceiptconfirmComplete,
+        rolComplete: true,
       );
     } else if (type == 'qaconfirm') {
       state = state.copyWith(

@@ -1,11 +1,9 @@
-import 'package:monalisa_app_001/features/shared/domain/entities/field_crud.dart';
-
 class ModelCrud {
   String? serviceType;
   String? tableName;
   int? recordId;
   String? action;
-  List<FieldCrud>? dataRow;
+  Map<String, dynamic>? dataRow;
 
   ModelCrud({
     this.serviceType,
@@ -19,8 +17,8 @@ class ModelCrud {
         "serviceType": serviceType,
         "TableName": tableName,
         "RecordID": recordId,
-        "Action": action, // "Create" or ”Update”
-        "DataRow": dataRow?.map((x) => x.toJson()).toList(),
+        "Action": action,
+        "DataRow": dataRow,
       };
 
   ModelCrud copyWith({
@@ -28,7 +26,7 @@ class ModelCrud {
     String? tableName,
     int? recordId,
     String? action,
-    List<FieldCrud>? dataRow,
+    Map<String, dynamic>? dataRow,
   }) =>
       ModelCrud(
         serviceType: serviceType ?? this.serviceType,

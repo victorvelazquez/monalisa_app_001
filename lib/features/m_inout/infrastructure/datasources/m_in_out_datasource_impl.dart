@@ -262,14 +262,18 @@ class MInOutDataSourceImpl implements MInOutDataSource {
             serviceType: 'UpdateInOutLineConfirm',
             tableName: 'M_InOutLineConfirm',
             recordId: line.confirmId,
-            dataRow: [
-              FieldCrud(
-                  column: 'ConfirmedQty', val: line.confirmedQty.toString()),
-              FieldCrud(
-                  column: 'DifferenceQty', val: line.differenceQty.toString()),
-              FieldCrud(
-                  column: 'ScrappedQty', val: line.scrappedQty.toString()),
-            ],
+            action: "Update",
+            dataRow: {
+              'field': [
+                FieldCrud(
+                    column: 'ConfirmedQty', val: line.confirmedQty.toString()),
+                FieldCrud(
+                    column: 'DifferenceQty',
+                    val: line.differenceQty.toString()),
+                FieldCrud(
+                    column: 'ScrappedQty', val: line.scrappedQty.toString()),
+              ].map((field) => field.toJson()).toList(),
+            },
           ),
           adLoginRequest: AdLoginRequest(
             user: authData.userName,
