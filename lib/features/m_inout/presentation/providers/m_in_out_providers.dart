@@ -4,6 +4,7 @@ import 'package:monalisa_app_001/features/m_inout/domain/entities/line.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/m_in_out.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/m_in_out_confirm.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/repositories/m_in_out_repositiry.dart';
+import '../../../../config/constants/roles_app.dart';
 import '../../domain/entities/barcode.dart';
 import '../../domain/entities/line_confirm.dart';
 import '../../infrastructure/repositories/m_in_out_repository_impl.dart';
@@ -28,42 +29,84 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
           viewMInOut: false,
         ));
 
-  void setIsSOTrx(String value) {
-    if (value == 'shipment') {
+  void setParameters(String type) {
+    if (type == 'shipment') {
       state = state.copyWith(
         isSOTrx: true,
         mInOutType: MInOutType.shipment,
         title: 'Shipment',
+        rolShowQty: RolesApp.appShipmentQty,
+        rolShowScrap: false,
+        rolManualQty: RolesApp.appShipmentManual,
+        rolManualScrap: false,
+        rolCompleteLow: RolesApp.appShipmentLowqty,
+        rolCompleteOver: false,
+        rolComplete: RolesApp.appShipmentComplete,
       );
-    } else if (value == 'shipmentconfirm') {
+    } else if (type == 'shipmentconfirm') {
       state = state.copyWith(
         isSOTrx: true,
         mInOutType: MInOutType.shipmentConfirm,
         title: 'Shipment Confirm',
+        rolShowQty: RolesApp.appShipmentconfirmQty,
+        rolShowScrap: false,
+        rolManualQty: RolesApp.appShipmentconfirmManual,
+        rolManualScrap: false,
+        rolCompleteLow: RolesApp.appShipmentLowqty,
+        rolCompleteOver: false,
+        rolComplete: RolesApp.appShipmentconfirmComplete,
       );
-    } else if (value == 'pickconfirm') {
+    } else if (type == 'pickconfirm') {
       state = state.copyWith(
         isSOTrx: true,
         mInOutType: MInOutType.pickConfirm,
         title: 'Pick Confirm',
+        rolShowQty: RolesApp.appPickconfirmQty,
+        rolShowScrap: RolesApp.appPickconfirmQty,
+        rolManualQty: RolesApp.appPickconfirmManual,
+        rolManualScrap: RolesApp.appPickconfirmManual,
+        rolCompleteLow: RolesApp.appShipmentLowqty,
+        rolCompleteOver: false,
+        rolComplete: RolesApp.appPickconfirmComplete,
       );
-    } else if (value == 'receipt') {
+    } else if (type == 'receipt') {
       state = state.copyWith(
         isSOTrx: false,
         mInOutType: MInOutType.receipt,
         title: 'Receipt',
+        rolShowQty: RolesApp.appReceiptQty,
+        rolShowScrap: false,
+        rolManualQty: RolesApp.appReceiptManual,
+        rolManualScrap: false,
+        rolCompleteLow: RolesApp.appShipmentLowqty,
+        rolCompleteOver: false,
+        rolComplete: RolesApp.appReceiptComplete,
       );
-    } else if (value == 'receiptconfirm') {
+    } else if (type == 'receiptconfirm') {
       state = state.copyWith(
         isSOTrx: false,
         mInOutType: MInOutType.receiptConfirm,
         title: 'Receipt Confirm',
+        rolShowQty: RolesApp.appReceiptconfirmQty,
+        rolShowScrap: RolesApp.appReceiptconfirmQty,
+        rolManualQty: RolesApp.appReceiptconfirmManual,
+        rolManualScrap: RolesApp.appReceiptconfirmManual,
+        rolCompleteLow: RolesApp.appShipmentLowqty,
+        rolCompleteOver: false,
+        rolComplete: RolesApp.appReceiptconfirmComplete,
       );
-    } else if (value == 'qaconfirm') {
+    } else if (type == 'qaconfirm') {
       state = state.copyWith(
         isSOTrx: false,
         mInOutType: MInOutType.qaConfirm,
         title: 'QA Confirm',
+        rolShowQty: RolesApp.appQaconfirmQty,
+        rolShowScrap: RolesApp.appQaconfirmQty,
+        rolManualQty: RolesApp.appQaconfirmManual,
+        rolManualScrap: RolesApp.appQaconfirmManual,
+        rolCompleteLow: RolesApp.appShipmentLowqty,
+        rolCompleteOver: false,
+        rolComplete: RolesApp.appQaconfirmComplete,
       );
     }
   }
@@ -262,22 +305,18 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
   }
 
   bool isConfirmMInOut() {
-    bool resul = false;
-    if (state.mInOutType == MInOutType.shipment ||
-        state.mInOutType == MInOutType.receipt) {
-      resul = state.mInOut?.lines.every((line) =>
-              line.verifiedStatus == 'correct' ||
-              line.verifiedStatus == 'manually-correct') ??
-          false;
-    } else {
-      resul = state.mInOut?.lines.every((line) =>
-              line.verifiedStatus == 'correct' ||
-              line.verifiedStatus == 'manually-correct' ||
-              line.verifiedStatus == 'minor' ||
-              line.verifiedStatus == 'manually-minor') ??
-          false;
-    }
-    return resul;
+    final validStatuses = {
+      'correct',
+      'manually-correct',
+      if (state.rolCompleteLow) 'minor',
+      if (state.rolCompleteLow) 'manually-minor',
+      if (state.rolCompleteOver) 'over',
+      if (state.rolCompleteOver) 'manually-over',
+    };
+
+    return state.mInOut?.lines.every((line) =>
+        line.verifiedStatus != 'pending' &&
+        validStatuses.contains(line.verifiedStatus)) ?? false;
   }
 
   Future<void> setDocAction(WidgetRef ref) async {
@@ -337,7 +376,6 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       if (result) {
         print('All lines confirmed');
       }
-      
     } catch (e) {
       state = state.copyWith(
         errorMessage: e.toString().replaceAll('Exception: ', ''),
@@ -528,7 +566,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       } else if (verifyQty < (line.targetQty ?? 0)) {
         status = 'manually-minor';
       } else {
-        status = 'manually-exceeds';
+        status = 'manually-over';
       }
       manualQty = verifyQty;
     } else {
@@ -537,7 +575,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       } else if (verifyQty < (line.targetQty ?? 0)) {
         status = 'minor';
       } else {
-        status = 'exceeds';
+        status = 'over';
       }
       scanningQty = verifyQty;
     }
@@ -561,7 +599,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
   }
 
   void _sortLinesByStatus(List<Line> lines, String orderBy) {
-    final statuses = ['manually-minor', 'manually-exceeds', 'manually-correct'];
+    final statuses = ['manually-minor', 'manually-over', 'manually-correct'];
     if (orderBy == 'manually') {
       for (final status in statuses) {
         lines.sort((a, b) {
@@ -617,6 +655,15 @@ class MInOutStatus {
   final bool isLoading;
   final bool isLoadingMInOutList;
 
+  // ROLES
+  final bool rolShowQty;
+  final bool rolShowScrap;
+  final bool rolManualQty;
+  final bool rolManualScrap;
+  final bool rolCompleteLow;
+  final bool rolCompleteOver;
+  final bool rolComplete;
+
   MInOutStatus({
     this.doc = '',
     this.mInOutType = MInOutType.shipment,
@@ -636,6 +683,13 @@ class MInOutStatus {
     this.errorMessage = '',
     this.isLoading = false,
     this.isLoadingMInOutList = false,
+    this.rolShowQty = false,
+    this.rolShowScrap = false,
+    this.rolManualQty = false,
+    this.rolManualScrap = false,
+    this.rolCompleteLow = false,
+    this.rolCompleteOver = false,
+    this.rolComplete = false,
   });
 
   MInOutStatus copyWith({
@@ -657,6 +711,13 @@ class MInOutStatus {
     String? errorMessage,
     bool? isLoading,
     bool? isLoadingMInOutList,
+    bool? rolShowQty,
+    bool? rolShowScrap,
+    bool? rolManualQty,
+    bool? rolManualScrap,
+    bool? rolCompleteLow,
+    bool? rolCompleteOver,
+    bool? rolComplete,
   }) =>
       MInOutStatus(
         doc: doc ?? this.doc,
@@ -678,5 +739,12 @@ class MInOutStatus {
         errorMessage: errorMessage ?? this.errorMessage,
         isLoading: isLoading ?? this.isLoading,
         isLoadingMInOutList: isLoadingMInOutList ?? this.isLoadingMInOutList,
+        rolShowQty: rolShowQty ?? this.rolShowQty,
+        rolShowScrap: rolShowScrap ?? this.rolShowScrap,
+        rolManualQty: rolManualQty ?? this.rolManualQty,
+        rolManualScrap: rolManualScrap ?? this.rolManualScrap,
+        rolCompleteLow: rolCompleteLow ?? this.rolCompleteLow,
+        rolCompleteOver: rolCompleteOver ?? this.rolCompleteOver,
+        rolComplete: rolComplete ?? this.rolComplete,
       );
 }

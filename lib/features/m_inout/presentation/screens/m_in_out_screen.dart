@@ -7,7 +7,6 @@ import 'package:monalisa_app_001/features/shared/shared.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/line.dart';
 import 'package:monalisa_app_001/features/m_inout/presentation/widgets/barcode_list.dart';
 import 'package:intl/intl.dart';
-import '../../../../config/constants/roles_app.dart';
 import '../../domain/entities/barcode.dart';
 import '../providers/m_in_out_providers.dart';
 import '../widgets/enter_barcode_button.dart';
@@ -29,7 +28,7 @@ class MInOutScreenState extends ConsumerState<MInOutScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       mInOutNotifier = ref.read(mInOutProvider.notifier);
-      mInOutNotifier.setIsSOTrx(widget.type);
+      mInOutNotifier.setParameters(widget.type);
       mInOutNotifier.getMInOutList(ref);
     });
   }
@@ -88,11 +87,7 @@ class MInOutScreenState extends ConsumerState<MInOutScreen> {
                       mInOutState.mInOut?.docStatus.id.toString() != 'CO'
                   ? [
                       IconButton(
-                        onPressed: RolesApp.appShipmentComplete &&
-                                    mInOutState.mInOutType ==
-                                        MInOutType.shipment ||
-                                RolesApp.appReceiptComplete &&
-                                    mInOutState.mInOutType == MInOutType.receipt
+                        onPressed: mInOutState.rolComplete
                             ? mInOutNotifier.isConfirmMInOut()
                                 ? mInOutState.mInOutType ==
                                             MInOutType.shipment ||
@@ -380,7 +375,9 @@ class _MInOutView extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      'Shipment Status: ',
+                      mInOutState.title.contains(' Confirm')
+                          ? '${mInOutState.title.replaceAll(' Confirm', '')} Status: '
+                          : 'Status: ',
                       style: const TextStyle(
                         fontSize: themeFontSizeSmall,
                         fontWeight: FontWeight.bold,
@@ -508,8 +505,8 @@ class _MInOutView extends ConsumerWidget {
           icon: Icons.warning_amber_rounded,
           color: themeColorWarning,
           background: themeColorWarningLight,
-          onPressed: () => mInOutNotifier.setOrderBy('exceeds'),
-          name: 'exceeds',
+          onPressed: () => mInOutNotifier.setOrderBy('over'),
+          name: 'over',
         ),
         SizedBox(width: 4),
         // manual
@@ -670,7 +667,7 @@ class _MInOutView extends ConsumerWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(themeBorderRadius),
           ),
-          title: Text(mInOutState.title),
+          title: Text('Seleccione el ${mInOutState.title}'),
           content: mInOutConfirmList.isNotEmpty
               ? ListView.builder(
                   shrinkWrap: true,
@@ -684,32 +681,26 @@ class _MInOutView extends ConsumerWidget {
                         Navigator.of(context).pop();
                       },
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Divider(height: 0),
-                          Row(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
-                                child: Text(
-                                  item.mInOutId.identifier ?? '',
-                                  style: TextStyle(
-                                      fontSize: themeFontSizeSmall,
-                                      color: themeColorGray),
-                                ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              item.documentNo.toString(),
+                              style: const TextStyle(
+                                fontSize: themeFontSizeLarge,
                               ),
-                              Expanded(
-                                child: Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 8),
-                                  child: Text(
-                                    item.documentNo.toString(),
-                                    style: const TextStyle(
-                                      fontSize: themeFontSizeLarge,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Text(
+                              item.mInOutId.identifier ?? '',
+                              style: TextStyle(
+                                  fontSize: themeFontSizeSmall,
+                                  color: themeColorGray),
+                            ),
                           ),
                           Divider(height: 0),
                         ],
@@ -875,8 +866,8 @@ class _MInOutView extends ConsumerWidget {
             children: [
               Divider(height: 0),
               Container(
-                color: item.verifiedStatus == 'exceeds' ||
-                        item.verifiedStatus == 'manually-exceeds'
+                color: item.verifiedStatus == 'over' ||
+                        item.verifiedStatus == 'manually-over'
                     ? themeColorWarningLight
                     : null,
                 child: Row(
@@ -933,11 +924,11 @@ class _MInOutView extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    mInOutState.mInOut!.docStatus.id.toString() != 'DR'
+                    mInOutState.rolShowQty
                         ? Padding(
                             padding: const EdgeInsets.all(8),
                             child: Text(
-                              item.movementQty.toString(),
+                              item.targetQty.toString(),
                               style: const TextStyle(
                                   fontSize: themeFontSizeLarge,
                                   fontWeight: FontWeight.bold),
@@ -949,13 +940,12 @@ class _MInOutView extends ConsumerWidget {
                       child: Icon(
                         item.verifiedStatus == 'correct'
                             ? Icons.check_circle_outline_rounded
-                            : item.verifiedStatus == 'exceeds'
+                            : item.verifiedStatus == 'over'
                                 ? Icons.warning_amber_rounded
                                 : item.verifiedStatus == 'manually-correct' ||
                                         item.verifiedStatus ==
                                             'manually-minor' ||
-                                        item.verifiedStatus ==
-                                            'manually-exceeds'
+                                        item.verifiedStatus == 'manually-over'
                                     ? Icons.touch_app_outlined
                                     : item.verifiedStatus == 'minor'
                                         ? Icons.radio_button_checked_rounded
@@ -964,9 +954,9 @@ class _MInOutView extends ConsumerWidget {
                                 item.verifiedStatus == 'manually-correct'
                             ? themeColorSuccessful
                             : item.verifiedStatus == 'minor' ||
-                                    item.verifiedStatus == 'exceeds' ||
+                                    item.verifiedStatus == 'over' ||
                                     item.verifiedStatus == 'manually-minor' ||
-                                    item.verifiedStatus == 'manually-exceeds'
+                                    item.verifiedStatus == 'manually-over'
                                 ? themeColorWarning
                                 : themeColorError,
                       ),
@@ -1040,23 +1030,18 @@ class _MInOutView extends ConsumerWidget {
                     _buildTableRow("SKU:", item.sku?.toString() ?? '', false),
                     _buildTableRow(
                         "Producto:", item.productName?.toString() ?? '', false),
-                    // if (mInOutState.mInOut!.docStatus.id.toString() != 'DR')
-                    // _buildTableRow(
-                    //     "Cantidad:",
-                    //     mInOutState.mInOutType == MInOutType.shipment ||
-                    //             mInOutState.mInOutType == MInOutType.receipt
-                    //         ? item.movementQty?.toString() ?? '0'
-                    //         : item.confirmTargetQty?.toString() ?? '0',
-                    //     false),
+                    if (mInOutState.rolShowQty)
+                      _buildTableRow(
+                          "Cantidad:", item.targetQty?.toString() ?? '0', true),
                     _buildTableRow("Escaneado:",
                         item.scanningQty?.toString() ?? '0', true),
                     if (item.verifiedStatus?.contains('manually') ?? false)
                       _buildTableRow("Conf. Manual:",
                           item.manualQty?.toString() ?? '0', true),
-                    // if (mInOutState.mInOut!.docStatus.id.toString() != 'DR')
-                    // _buildTableRow("Diferencia:",
-                    //     item.confirmDifferenceQty?.toString() ?? '0', false),
-                    if (item.verifiedStatus?.contains('manually') ?? false)
+                    if (mInOutState.rolShowQty)
+                      _buildTableRow("Diferencia:",
+                          item.differenceQty?.toString() ?? '0', false),
+                    if (mInOutState.rolShowScrap)
                       _buildTableRow("Desechado:",
                           item.scrappedQty?.toString() ?? '0', true),
                   ],
@@ -1070,27 +1055,24 @@ class _MInOutView extends ConsumerWidget {
               label: 'Cerrar',
               icon: const Icon(Icons.close_rounded),
             ),
-            // if ((RolesApp.appShipmentManual &&
-            //         mInOutState.mInOutType == MInOutType.shipment) ||
-            //     (RolesApp.appReceiptManual &&
-            //         mInOutState.mInOutType == MInOutType.receipt))
-            CustomFilledButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                if (item.verifiedStatus?.contains('manually') ?? false) {
-                  _showResetManualLine(context, item);
-                } else {
-                  mInOutNotifier.onManualQuantityChange('0');
-                  mInOutNotifier.onManualScrappedChange('0');
-                  _showInsertManualLine(context, mInOutState, item);
-                }
-              },
-              label: (item.verifiedStatus?.contains('manually') ?? false)
-                  ? 'Reiniciar'
-                  : 'Manual',
-              icon: const Icon(Icons.touch_app_outlined),
-              buttonColor: themeColorGray,
-            ),
+            if (mInOutState.rolManualQty)
+              CustomFilledButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  if (item.verifiedStatus?.contains('manually') ?? false) {
+                    _showResetManualLine(context, item);
+                  } else {
+                    mInOutNotifier.onManualQuantityChange('0');
+                    mInOutNotifier.onManualScrappedChange('0');
+                    _showInsertManualLine(context, mInOutState, item);
+                  }
+                },
+                label: (item.verifiedStatus?.contains('manually') ?? false)
+                    ? 'Reiniciar'
+                    : 'Manual',
+                icon: const Icon(Icons.touch_app_outlined),
+                buttonColor: themeColorGray,
+              ),
           ],
         );
       },
@@ -1111,22 +1093,23 @@ class _MInOutView extends ConsumerWidget {
             children: [
               Expanded(
                 child: CustomTextFormField(
-                  label: 'Confirmado',
+                  label: 'Confirmar',
                   textAlign: TextAlign.center,
                   initialValue: '0',
                   onChanged: mInOutNotifier.onManualQuantityChange,
                   autofocus: true,
                 ),
               ),
-              SizedBox(width: 8),
-              Expanded(
-                child: CustomTextFormField(
-                  label: 'Desechado',
-                  textAlign: TextAlign.center,
-                  initialValue: '0',
-                  onChanged: mInOutNotifier.onManualScrappedChange,
+              if (mInOutState.rolManualScrap) SizedBox(width: 8),
+              if (mInOutState.rolManualScrap)
+                Expanded(
+                  child: CustomTextFormField(
+                    label: 'Desechar',
+                    textAlign: TextAlign.center,
+                    initialValue: '0',
+                    onChanged: mInOutNotifier.onManualScrappedChange,
+                  ),
                 ),
-              ),
             ],
           ),
           actions: <Widget>[
