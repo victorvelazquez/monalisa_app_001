@@ -8,6 +8,7 @@ class Line {
   double? pickedQty;
   double? scrappedQty;
   double? targetQty;
+  AdEntityId? mLocatorId;
   AdEntityId? mProductId;
   String? upc;
   String? sku;
@@ -26,6 +27,7 @@ class Line {
     this.confirmedQty,
     this.pickedQty,
     this.scrappedQty,
+    this.mLocatorId,
     this.mProductId,
     this.upc,
     this.sku,
@@ -40,6 +42,7 @@ class Line {
         id: json["id"],
         line: json["Line"],
         movementQty: json["MovementQty"] != null ? (json["MovementQty"] is double ? json["MovementQty"] : double.tryParse(json["MovementQty"].toString()) ?? 0.0) : 0.0,
+        mLocatorId: AdEntityId.fromJson(json["M_Locator_ID"] ?? {}), 
         mProductId: AdEntityId.fromJson(json["M_Product_ID"] ?? {}),
         upc: json["UPC"],
         sku: json["SKU"],
@@ -54,6 +57,7 @@ class Line {
     double? confirmedQty,
     double? pickedQty,
     double? scrappedQty,
+    AdEntityId? mLocatorId,
     AdEntityId? mProductId,
     String? upc,
     String? sku,
@@ -71,6 +75,7 @@ class Line {
       confirmedQty: confirmedQty ?? this.confirmedQty,
       pickedQty: pickedQty ?? this.pickedQty,
       scrappedQty: scrappedQty ?? this.scrappedQty,
+      mLocatorId: mLocatorId ?? this.mLocatorId,
       mProductId: mProductId ?? this.mProductId,
       upc: upc ?? this.upc,
       sku: sku ?? this.sku,

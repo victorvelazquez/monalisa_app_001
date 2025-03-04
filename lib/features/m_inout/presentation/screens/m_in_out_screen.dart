@@ -917,10 +917,24 @@ class _MInOutView extends ConsumerWidget {
                           ),
                           SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
-                            child: Text(
-                              'Tar:${item.targetQty}/Man:${item.manualQty}/Sca:${item.scanningQty}/Con:${item.confirmedQty}/Scr:${item.scrappedQty}',
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8),
+                              child: Text(
+                                '${item.mLocatorId!.identifier}',
+                                style: TextStyle(
+                                  fontSize: themeFontSizeSmall,
+                                  color: themeColorGray,
+                                ),
+                              ),
                             ),
                           ),
+                          // SingleChildScrollView(
+                          //   scrollDirection: Axis.horizontal,
+                          //   child: Text(
+                          //     'Tar:${item.targetQty}/Man:${item.manualQty}/Sca:${item.scanningQty}/Con:${item.confirmedQty}/Scr:${item.scrappedQty}',
+                          //   ),
+                          // ),
                         ],
                       ),
                     ),
