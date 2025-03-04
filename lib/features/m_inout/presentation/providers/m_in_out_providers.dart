@@ -315,8 +315,9 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     };
 
     return state.mInOut?.lines.every((line) =>
-        line.verifiedStatus != 'pending' &&
-        validStatuses.contains(line.verifiedStatus)) ?? false;
+            line.verifiedStatus != 'pending' &&
+            validStatuses.contains(line.verifiedStatus)) ??
+        false;
   }
 
   Future<void> setDocAction(WidgetRef ref) async {
@@ -348,8 +349,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
 
   Future<void> setDocActionConfirm(WidgetRef ref) async {
     bool result = false;
-    state =
-        state.copyWith(isLoading: true, viewMInOut: false, errorMessage: '');
+    state = state.copyWith(isLoading: true, errorMessage: '');
 
     try {
       for (final line in state.mInOut!.lines) {
@@ -361,25 +361,22 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
           result = false;
           state = state.copyWith(
             errorMessage: 'Error al confirmar la línea ${line.line}',
-            viewMInOut: true,
             isLoading: false,
           );
           return;
         }
       }
 
-      state = state.copyWith(
-        // mInOut: mInOutResponse.copyWith(lines: state.mInOut!.lines),
-        isLoading: false,
-        viewMInOut: true,
-      );
       if (result) {
-        print('All lines confirmed');
+        getMInOutConfirmAndLine(state.mInOutConfirm!.id!, ref);
       }
+      state = state.copyWith(
+        errorMessage: 'Todas las líneas fueron confirmadas exitosamente',
+        isLoading: false,
+      );
     } catch (e) {
       state = state.copyWith(
         errorMessage: e.toString().replaceAll('Exception: ', ''),
-        viewMInOut: true,
         isLoading: false,
       );
     }
@@ -477,7 +474,8 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       List<Barcode> linesOver = [];
 
       for (int i = 0; i < lines.length; i++) {
-        if (!lines[i].verifiedStatus!.contains('manually') ||
+        if (lines[i].verifiedStatus == null ||
+            !lines[i].verifiedStatus!.contains('manually') ||
             lines[i].upc == barcode) {
           lines[i] = lines[i].copyWith(
               manualQty: 0,

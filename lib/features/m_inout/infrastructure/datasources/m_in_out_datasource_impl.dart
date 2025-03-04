@@ -249,11 +249,9 @@ class MInOutDataSourceImpl implements MInOutDataSource {
   @override
   Future<LineConfirm> updateLineConfirm(Line line, WidgetRef ref) async {
     await _dioInitialized;
-    // final mInOutState = ref.watch(mInOutProvider);
-
     try {
-      // final String url =
-      //     "ADInterface/services/rest/model_adservice/update_data";
+      final String url =
+          "/ADInterface/services/rest/model_adservice/update_data";
 
       final authData = ref.read(authProvider);
       final request = {
@@ -288,35 +286,24 @@ class MInOutDataSourceImpl implements MInOutDataSource {
         ).toJson()
       };
 
-      print(request);
+      final response = await dio.post(url, data: request);
 
-      return LineConfirm(
-        id: 1,
-        confirmedQty: 1,
-        differenceQty: 1,
-        scrappedQty: 1,
-      );
-
-      // final response = await dio.post(url, data: request);
-
-      // if (response.statusCode == 200) {
-      //   final standardResponse =
-      //       StandardResponse.fromJson(response.data['StandardResponse']);
-      //   if (standardResponse.isError == false) {
-      //     final mInOutResponse = await getMInOutAndLine(
-      //         mInOutState.mInOut!.documentNo!.toString(), ref);
-      //     if (mInOutResponse.id == mInOutState.mInOut!.id) {
-      //       return mInOutResponse;
-      //     } else {
-      //       throw Exception('Error al confirmar el ${mInOutState.title}');
-      //     }
-      //   } else {
-      //     throw Exception(standardResponse.error ?? 'Unknown error');
-      //   }
-      // } else {
-      //   throw Exception(
-      //       'Error al cargar los datos del ${mInOutState.title}: ${response.statusCode}');
-      // }
+      if (response.statusCode == 200) {
+        final standardResponse =
+            StandardResponse.fromJson(response.data['StandardResponse']);
+        if (standardResponse.isError == null ||
+            standardResponse.isError == false) {
+          LineConfirm lineResponse = LineConfirm(
+            id: line.confirmId,
+          );
+          return lineResponse;
+        } else {
+          throw Exception(standardResponse.error ?? 'Unknown error');
+        }
+      } else {
+        throw Exception(
+            'Error al cargar los datos de la línea ${line.line}: ${response.statusCode}');
+      }
     } on DioException catch (e) {
       final authDataNotifier = ref.read(authProvider.notifier);
       throw CustomErrorDioException(e, authDataNotifier);
