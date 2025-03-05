@@ -83,7 +83,7 @@ class MInOutScreenState extends ConsumerState<MInOutScreen> {
                     color: themeColorPrimary),
                 unselectedLabelStyle: TextStyle(fontSize: themeFontSizeLarge),
               ),
-              actions: mInOutState.viewMInOut &&
+              actions: mInOutState.viewMInOut && !mInOutState.isComplete &&
                       mInOutState.mInOut?.docStatus.id.toString() != 'CO'
                   ? [
                       IconButton(
@@ -1054,7 +1054,7 @@ class _MInOutView extends ConsumerWidget {
                           item.manualQty?.toString() ?? '0', true),
                     if (mInOutState.rolShowQty)
                       _buildTableRow("Diferencia:",
-                          item.differenceQty?.toString() ?? '0', false),
+                          item.differenceQty?.toString() ?? '0', true),
                     if (mInOutState.rolShowScrap)
                       _buildTableRow("Desechado:",
                           item.scrappedQty?.toString() ?? '0', true),

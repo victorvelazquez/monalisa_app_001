@@ -72,7 +72,7 @@ var appHomeOptionCol2Items = <MenuItem>[
       title: 'QA Confirm',
       subTitle: '',
       link: '/mInOut/qaconfirm',
-      icon: Icons.upload,
+      icon: Icons.download,
     ),
 ];
 

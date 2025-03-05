@@ -27,6 +27,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
           linesOver: [],
           uniqueView: false,
           viewMInOut: false,
+          isComplete: false,
         ));
 
   void setParameters(String type) {
@@ -36,8 +37,8 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
         mInOutType: MInOutType.shipment,
         title: 'Shipment',
         rolShowQty: RolesApp.appShipmentQty,
-        rolShowScrap: false,
         rolManualQty: RolesApp.appShipmentManual,
+        rolShowScrap: false,
         rolManualScrap: false,
         rolCompleteLow: RolesApp.appShipmentLowqty,
         rolCompleteOver: false,
@@ -49,8 +50,8 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
         mInOutType: MInOutType.shipmentConfirm,
         title: 'Shipment Confirm',
         rolShowQty: RolesApp.appShipmentconfirmQty,
-        rolShowScrap: false,
         rolManualQty: RolesApp.appShipmentconfirmManual,
+        rolShowScrap: false,
         rolManualScrap: false,
         rolCompleteLow: RolesApp.appShipmentLowqty,
         rolCompleteOver: false,
@@ -62,8 +63,8 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
         mInOutType: MInOutType.pickConfirm,
         title: 'Pick Confirm',
         rolShowQty: RolesApp.appPickconfirmQty,
-        rolShowScrap: RolesApp.appPickconfirmQty,
         rolManualQty: RolesApp.appPickconfirmManual,
+        rolShowScrap: RolesApp.appPickconfirmQty,
         rolManualScrap: RolesApp.appPickconfirmManual,
         rolCompleteLow: RolesApp.appShipmentLowqty,
         rolCompleteOver: false,
@@ -75,8 +76,8 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
         mInOutType: MInOutType.receipt,
         title: 'Receipt',
         rolShowQty: RolesApp.appReceiptQty,
-        rolShowScrap: false,
         rolManualQty: RolesApp.appReceiptManual,
+        rolShowScrap: false,
         rolManualScrap: false,
         rolCompleteLow: RolesApp.appShipmentLowqty,
         rolCompleteOver: false,
@@ -88,12 +89,12 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
         mInOutType: MInOutType.receiptConfirm,
         title: 'Receipt Confirm',
         rolShowQty: RolesApp.appReceiptconfirmQty,
-        rolShowScrap: true,
-        rolManualQty: true,
-        rolManualScrap: true,
-        rolCompleteLow: true,
+        rolManualQty: RolesApp.appReceiptconfirmManual,
+        rolShowScrap: RolesApp.appReceiptconfirmQty,
+        rolManualScrap: RolesApp.appReceiptconfirmManual,
+        rolCompleteLow: RolesApp.appShipmentLowqty,
         rolCompleteOver: false,
-        rolComplete: true,
+        rolComplete: RolesApp.appReceiptconfirmComplete,
       );
     } else if (type == 'qaconfirm') {
       state = state.copyWith(
@@ -101,8 +102,8 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
         mInOutType: MInOutType.qaConfirm,
         title: 'QA Confirm',
         rolShowQty: RolesApp.appQaconfirmQty,
-        rolShowScrap: RolesApp.appQaconfirmQty,
         rolManualQty: RolesApp.appQaconfirmManual,
+        rolShowScrap: RolesApp.appQaconfirmQty,
         rolManualScrap: RolesApp.appQaconfirmManual,
         rolCompleteLow: RolesApp.appShipmentLowqty,
         rolCompleteOver: false,
@@ -260,6 +261,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       orderBy: 'line',
       errorMessage: '',
       isLoading: false,
+      isComplete: false,
     );
   }
 
@@ -321,13 +323,11 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
   }
 
   Future<void> setDocAction(WidgetRef ref) async {
-    state =
-        state.copyWith(isLoading: true, viewMInOut: false, errorMessage: '');
+    state = state.copyWith(isLoading: true, errorMessage: '');
     if (state.mInOut?.id == null) {
       state = state.copyWith(
         errorMessage: 'MInOut ID is null',
         isLoading: false,
-        viewMInOut: true,
       );
       return;
     }
@@ -336,12 +336,11 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       state = state.copyWith(
         mInOut: mInOutResponse.copyWith(lines: state.mInOut!.lines),
         isLoading: false,
-        viewMInOut: true,
+        isComplete: true,
       );
     } catch (e) {
       state = state.copyWith(
         errorMessage: e.toString().replaceAll('Exception: ', ''),
-        viewMInOut: true,
         isLoading: false,
       );
     }
@@ -652,6 +651,7 @@ class MInOutStatus {
   final String errorMessage;
   final bool isLoading;
   final bool isLoadingMInOutList;
+  final bool isComplete;
 
   // ROLES
   final bool rolShowQty;
@@ -681,6 +681,7 @@ class MInOutStatus {
     this.errorMessage = '',
     this.isLoading = false,
     this.isLoadingMInOutList = false,
+    this.isComplete = false,
     this.rolShowQty = false,
     this.rolShowScrap = false,
     this.rolManualQty = false,
@@ -709,6 +710,7 @@ class MInOutStatus {
     String? errorMessage,
     bool? isLoading,
     bool? isLoadingMInOutList,
+    bool? isComplete,
     bool? rolShowQty,
     bool? rolShowScrap,
     bool? rolManualQty,
@@ -737,6 +739,7 @@ class MInOutStatus {
         errorMessage: errorMessage ?? this.errorMessage,
         isLoading: isLoading ?? this.isLoading,
         isLoadingMInOutList: isLoadingMInOutList ?? this.isLoadingMInOutList,
+        isComplete: isComplete ?? this.isComplete,
         rolShowQty: rolShowQty ?? this.rolShowQty,
         rolShowScrap: rolShowScrap ?? this.rolShowScrap,
         rolManualQty: rolManualQty ?? this.rolManualQty,
