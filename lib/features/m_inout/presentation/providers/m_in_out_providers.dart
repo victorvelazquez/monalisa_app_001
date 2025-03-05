@@ -36,7 +36,9 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
         isSOTrx: true,
         mInOutType: MInOutType.shipment,
         title: 'Shipment',
-        rolShowQty: RolesApp.appShipmentQty,
+        rolShowQty: state.mInOut?.docStatus.id.toString() == 'IP'
+            ? true
+            : RolesApp.appShipmentQty,
         rolManualQty: RolesApp.appShipmentManual,
         rolShowScrap: false,
         rolManualScrap: false,
@@ -75,7 +77,9 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
         isSOTrx: false,
         mInOutType: MInOutType.receipt,
         title: 'Receipt',
-        rolShowQty: RolesApp.appReceiptQty,
+        rolShowQty: state.mInOut?.docStatus.id.toString() == 'IP'
+            ? true
+            : RolesApp.appReceiptQty,
         rolManualQty: RolesApp.appReceiptManual,
         rolShowScrap: false,
         rolManualScrap: false,
@@ -307,6 +311,11 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
   }
 
   bool isConfirmMInOut() {
+    if ((state.mInOutType == MInOutType.shipment ||
+            state.mInOutType == MInOutType.receipt) &&
+        state.mInOut?.docStatus.id.toString() == 'IP') {
+      return true;
+    }
     final validStatuses = {
       'correct',
       'manually-correct',
@@ -351,7 +360,8 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
 
     try {
       for (final line in state.mInOut!.lines) {
-        final lineConfirmResponse = await mInOutRepository.updateLineConfirm(line, ref);
+        final lineConfirmResponse =
+            await mInOutRepository.updateLineConfirm(line, ref);
         if (lineConfirmResponse.id == null) {
           state = state.copyWith(
             errorMessage: 'Error al confirmar la línea ${line.line}',

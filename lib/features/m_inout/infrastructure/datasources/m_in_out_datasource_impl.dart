@@ -202,7 +202,7 @@ class MInOutDataSourceImpl implements MInOutDataSource {
       final request = {
         'ModelSetDocActionRequest': ModelSetDocActionRequest(
           modelSetDocAction: ModelSetDocAction(
-            serviceType: 'SetDocumentActionShipment',
+            serviceType: isConfirm ? 'SetDocumentActionInOutConfirm' : 'SetDocumentActionShipment',
             tableName: isConfirm ? 'M_InOutConfirm' : 'M_InOut',
             recordId: isConfirm
                 ? mInOutState.mInOutConfirm!.id
