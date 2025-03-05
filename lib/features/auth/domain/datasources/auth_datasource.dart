@@ -15,4 +15,5 @@ abstract class AuthDataSource {
       int clientId, int roleId, int organizationId);
   Future<AuthDataDto> getAuthData(
       int clientId, int roleId, int organizationId, int warehouseId);
+  Future<RoleDto> getRolesIncluded(int roleId);
 }

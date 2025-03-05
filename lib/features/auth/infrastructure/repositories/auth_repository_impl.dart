@@ -45,4 +45,9 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<bool> validateUrl(String url) {
     return dataSource.validateUrl(url);
   }
+  
+  @override
+  Future<RoleDto> getRolesIncluded(int roleId) {
+    return dataSource.getRolesIncluded(roleId);
+  }
 }

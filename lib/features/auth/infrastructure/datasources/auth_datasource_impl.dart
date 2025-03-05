@@ -12,6 +12,9 @@ import 'package:monalisa_app_001/features/auth/infrastructure/mappers/organizati
 import 'package:monalisa_app_001/features/auth/infrastructure/mappers/role_mapper.dart';
 import 'package:monalisa_app_001/features/shared/shared.dart';
 
+import '../../../shared/domain/entities/response_api.dart';
+import '../../domain/entities/ad_role_included.dart';
+import '../../domain/entities/role.dart';
 import '../mappers/warehouse_mapper.dart';
 
 class AuthDataSourceImpl implements AuthDataSource {
@@ -128,6 +131,36 @@ class AuthDataSourceImpl implements AuthDataSource {
     } catch (e) {
       print('Error validating URL: $e');
       return false;
+    }
+  }
+
+  @override
+  Future<RoleDto> getRolesIncluded(int roleId) async {
+    try {
+      final response = await dio.get(
+          '/api/v1/models/ad_role_included?\$filter=AD_Role_ID%20eq%20$roleId');
+
+      if (response.statusCode == 200) {
+        final responseApi = ResponseApi<AdRoleIncluded>.fromJson(
+            response.data, AdRoleIncluded.fromJson);
+
+        final roles = responseApi.records?.map((role) {
+          return Role(
+            id: int.parse(role.includedRoleId.id?.toString() ?? '0'),
+            name: role.includedRoleId.identifier ?? '',
+          );
+        }).toList() ?? [];
+
+        return RoleDto(roles: roles);
+      } else {
+        throw Exception(
+            'Error al obtener la lista de roles: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      print(e);
+      throw CustomErrorDioException(e, null);
+    } catch (e) {
+      throw Exception('ERROR: ${e.toString()}');
     }
   }
 }

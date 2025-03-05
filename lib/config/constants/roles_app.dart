@@ -1,7 +1,6 @@
 import 'package:monalisa_app_001/features/auth/domain/entities/role.dart';
 
 class RolesApp {
-
   // SHIPMENT
   static bool appShipment = false;
   static bool appShipmentQty = false;
@@ -41,7 +40,6 @@ class RolesApp {
 
   static set(List<Role> roles) {
     for (var role in roles) {
-
       //SHIPMENT
       if (role.name.toUpperCase() == 'APP_SHIPMENT') {
         appShipment = true;
@@ -128,7 +126,10 @@ class RolesApp {
       if (role.name.toUpperCase() == 'APP_QACONFIRM_COMPLETE') {
         appQaconfirmComplete = true;
       }
-
     }
+  }
+
+  static String getString() {
+    return 'RolesApp{appShipment: $appShipment, appShipmentQty: $appShipmentQty, appShipmentManual: $appShipmentManual, appShipmentLowqty: $appShipmentLowqty, appShipmentComplete: $appShipmentComplete, appReceipt: $appReceipt, appReceiptQty: $appReceiptQty, appReceiptManual: $appReceiptManual, appReceiptComplete: $appReceiptComplete, appShipmentconfirm: $appShipmentconfirm, appShipmentconfirmQty: $appShipmentconfirmQty, appShipmentconfirmManual: $appShipmentconfirmManual, appShipmentconfirmComplete: $appShipmentconfirmComplete, appReceiptconfirm: $appReceiptconfirm, appReceiptconfirmQty: $appReceiptconfirmQty, appReceiptconfirmManual: $appReceiptconfirmManual, appReceiptconfirmComplete: $appReceiptconfirmComplete, appPickconfirm: $appPickconfirm, appPickconfirmQty: $appPickconfirmQty, appPickconfirmManual: $appPickconfirmManual, appPickconfirmComplete: $appPickconfirmComplete, appQaconfirm: $appQaconfirm, appQaconfirmQty: $appQaconfirmQty, appQaconfirmManual: $appQaconfirmManual, appQaconfirmComplete: $appQaconfirmComplete}';
   }
 }

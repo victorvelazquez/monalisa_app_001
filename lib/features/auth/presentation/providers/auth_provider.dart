@@ -4,11 +4,11 @@ import 'dart:developer';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:monalisa_app_001/config/config.dart';
-import 'package:monalisa_app_001/config/constants/roles_app.dart';
 import 'package:monalisa_app_001/features/auth/infrastructure/infrastructure.dart';
 import 'package:monalisa_app_001/features/shared/infrastructure/errors/custom_error.dart';
 import 'package:monalisa_app_001/features/shared/infrastructure/services/services.dart';
 
+import '../../../../config/constants/roles_app.dart';
 import '../../domain/domain.dart';
 import '../../domain/dtos/auth_data_dto.dart';
 import '../../domain/entities/client.dart';
@@ -34,7 +34,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }) : super(AuthState(
           clients: [],
           roles: [],
-          rolesApp: [],
           organizations: [],
           warehouses: [],
         )) {
@@ -186,6 +185,21 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final authInfo = '$user@$client/$organization/$warehouse/$role';
 
       Environment.token = authDataResponse.token!;
+
+      final rolesResponse =
+          await authRepository.getRolesIncluded(state.selectedRole!.id);
+      if (rolesResponse.roles.isNotEmpty) {
+        final rolesApp = <Role>[];
+        for (var role in rolesResponse.roles) {
+          if (role.name.startsWith('APP_')) {
+            rolesApp.add(role);
+          }
+        }
+        RolesApp.set(rolesApp);
+        RolesApp.getString();
+      }
+      // print('RolesApp: ${RolesApp.getString()}');
+
       state = state.copyWith(
         token: authDataResponse.token,
         authStatus: AuthStatus.authenticated,
@@ -311,24 +325,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     final rolesResponse =
         await authRepository.getRoles(state.selectedClient!.id);
-
     if (rolesResponse.roles.isEmpty) {
       throw Exception("No se encontraron roles disponibles para este cliente.");
     }
-
-    final rolesApp = <Role>[];
-    final roles = <Role>[];
-
-    for (var role in rolesResponse.roles) {
-      if (role.name.startsWith('APP_')) {
-        rolesApp.add(role);
-      } else {
-        roles.add(role);
-      }
-    }
-    RolesApp.set(rolesApp);
-    state = state.copyWith(rolesApp: rolesApp, roles: roles, isLoading: false);
-    await updateRole(roles.first, preferLocalData: preferLocalData);
+    state = state.copyWith(roles: rolesResponse.roles, isLoading: false);
+    await updateRole(rolesResponse.roles.first,
+        preferLocalData: preferLocalData);
   }
 
   Future<void> updateRole(Role role, {bool? preferLocalData}) async {
@@ -412,7 +414,6 @@ class AuthState {
   final String? authInfo;
   final List<Client> clients;
   final List<Role> roles;
-  final List<Role> rolesApp;
   final List<Organization> organizations;
   final List<Warehouse> warehouses;
   final AuthStatus authStatus;
@@ -434,7 +435,6 @@ class AuthState {
     this.authInfo,
     required this.clients,
     required this.roles,
-    required this.rolesApp,
     required this.organizations,
     required this.warehouses,
     this.authStatus = AuthStatus.checking,
@@ -457,7 +457,6 @@ class AuthState {
     String? authInfo,
     List<Client>? clients,
     List<Role>? roles,
-    List<Role>? rolesApp,
     List<Organization>? organizations,
     List<Warehouse>? warehouses,
     AuthStatus? authStatus,
@@ -479,7 +478,6 @@ class AuthState {
         authInfo: authInfo ?? this.authInfo,
         clients: clients ?? this.clients,
         roles: roles ?? this.roles,
-        rolesApp: rolesApp ?? this.rolesApp,
         organizations: organizations ?? this.organizations,
         warehouses: warehouses ?? this.warehouses,
         authStatus: authStatus ?? this.authStatus,
