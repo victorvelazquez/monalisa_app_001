@@ -186,7 +186,7 @@ class MInOutDataSourceImpl implements MInOutDataSource {
     final mInOutState = ref.watch(mInOutProvider);
     String status = 'DR';
     if (mInOutState.mInOut!.docStatus.id.toString() == 'DR') {
-      status = 'IP';
+      status = 'PR';
     } else if (mInOutState.mInOut!.docStatus.id.toString() == 'IP') {
       status = 'CO';
     }
@@ -216,7 +216,7 @@ class MInOutDataSourceImpl implements MInOutDataSource {
         ).toJson()
       };
 
-      print(request);
+      // print(request);
 
       final response = await dio.post(url, data: request);
 
