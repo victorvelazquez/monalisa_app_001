@@ -294,6 +294,20 @@ class _MInOutView extends ConsumerWidget {
     }
   }
 
+  Color _getHeaderBackgroundColor(MInOutStatus mInOutState) {
+    if (mInOutState.mInOutConfirm?.docStatus.id.toString() == 'IP') {
+      return themeColorWarningLight;
+    } else if (mInOutState.mInOutConfirm?.docStatus.id.toString() == 'CO') {
+      return themeColorSuccessfulLight;
+    } else if (mInOutState.mInOut?.docStatus.id.toString() == 'IP') {
+      return themeColorWarningLight;
+    } else if (mInOutState.mInOut?.docStatus.id.toString() == 'CO') {
+      return themeColorSuccessfulLight;
+    } else {
+      return themeBackgroundColorLight;
+    }
+  }
+
   Widget _buildMInOutHeader(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -303,11 +317,7 @@ class _MInOutView extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(themeBorderRadius),
-              color: mInOutState.mInOut!.docStatus.id.toString() == 'IP'
-                  ? themeColorWarningLight
-                  : mInOutState.mInOut!.docStatus.id.toString() == 'CO'
-                      ? themeColorSuccessfulLight
-                      : themeBackgroundColorLight,
+              color: _getHeaderBackgroundColor(mInOutState),
             ),
             child: Row(
               children: [

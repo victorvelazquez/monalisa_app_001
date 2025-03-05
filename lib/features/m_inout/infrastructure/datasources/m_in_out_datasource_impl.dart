@@ -115,9 +115,10 @@ class MInOutDataSourceImpl implements MInOutDataSource {
   ) async {
     await _dioInitialized;
     final mInOutState = ref.watch(mInOutProvider);
+    final int warehouseID = ref.read(authProvider).selectedWarehouse!.id;
     try {
       final String url =
-          "/api/v1/models/m_inout?\$expand=m_inoutline&\$filter=DocumentNo%20eq%20'${mInOutDoc.toString()}'%20AND%20IsSOTrx%20eq%20${mInOutState.isSOTrx}";
+          "/api/v1/models/m_inout?\$expand=m_inoutline&\$filter=DocumentNo%20eq%20'${mInOutDoc.toString()}'%20AND%20IsSOTrx%20eq%20${mInOutState.isSOTrx}%20AND%20M_Warehouse_ID%20eq%20$warehouseID";
       final response = await dio.get(url);
 
       if (response.statusCode == 200) {
@@ -179,28 +180,33 @@ class MInOutDataSourceImpl implements MInOutDataSource {
   }
 
   @override
-  Future<MInOut> setDocAction(
-    WidgetRef ref,
-  ) async {
+  Future<MInOut> setDocAction(WidgetRef ref) async {
     await _dioInitialized;
     final mInOutState = ref.watch(mInOutProvider);
-    String status = 'DR';
-    if (mInOutState.mInOut!.docStatus.id.toString() == 'DR') {
-      status = 'PR';
-    } else if (mInOutState.mInOut!.docStatus.id.toString() == 'IP') {
-      status = 'CO';
-    }
+    final isConfirm = mInOutState.mInOutConfirm?.docStatus.id != null;
+    final currentStatus = mInOutState.mInOutConfirm?.docStatus.id?.toString() ??
+        mInOutState.mInOut?.docStatus.id?.toString() ??
+        'DR';
+    final status = isConfirm
+        ? 'CO'
+        : currentStatus == 'DR'
+            ? 'PR'
+            : currentStatus == 'IP'
+                ? 'CO'
+                : 'DR';
+
     try {
       final String url =
           "/ADInterface/services/rest/model_adservice/set_docaction";
-
       final authData = ref.read(authProvider);
       final request = {
         'ModelSetDocActionRequest': ModelSetDocActionRequest(
           modelSetDocAction: ModelSetDocAction(
             serviceType: 'SetDocumentActionShipment',
-            tableName: 'M_InOut',
-            recordId: mInOutState.mInOut!.id,
+            tableName: isConfirm ? 'M_InOutConfirm' : 'M_InOut',
+            recordId: isConfirm
+                ? mInOutState.mInOutConfirm!.id
+                : mInOutState.mInOut!.id,
             docAction: status,
           ),
           adLoginRequest: AdLoginRequest(
@@ -216,20 +222,22 @@ class MInOutDataSourceImpl implements MInOutDataSource {
         ).toJson()
       };
 
-      // print(request);
-
       final response = await dio.post(url, data: request);
 
       if (response.statusCode == 200) {
         final standardResponse =
             StandardResponse.fromJson(response.data['StandardResponse']);
         if (standardResponse.isError == false) {
-          final mInOutResponse = await getMInOutAndLine(
-              mInOutState.mInOut!.documentNo!.toString(), ref);
-          if (mInOutResponse.id == mInOutState.mInOut!.id) {
-            return mInOutResponse;
+          if (isConfirm) {
+            return mInOutState.mInOut!;
           } else {
-            throw Exception('Error al confirmar el ${mInOutState.title}');
+            final mInOutResponse = await getMInOutAndLine(
+                mInOutState.mInOut!.documentNo!.toString(), ref);
+            if (mInOutResponse.id == mInOutState.mInOut!.id) {
+              return mInOutResponse;
+            } else {
+              throw Exception('Error al confirmar el ${mInOutState.title}');
+            }
           }
         } else {
           throw Exception(standardResponse.error ?? 'Unknown error');

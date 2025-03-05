@@ -347,17 +347,12 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
   }
 
   Future<void> setDocActionConfirm(WidgetRef ref) async {
-    bool result = false;
     state = state.copyWith(isLoading: true, errorMessage: '');
 
     try {
       for (final line in state.mInOut!.lines) {
-        final lineConfirmResponse =
-            await mInOutRepository.updateLineConfirm(line, ref);
-        if (lineConfirmResponse.id != null) {
-          result = true;
-        } else {
-          result = false;
+        final lineConfirmResponse = await mInOutRepository.updateLineConfirm(line, ref);
+        if (lineConfirmResponse.id == null) {
           state = state.copyWith(
             errorMessage: 'Error al confirmar la línea ${line.line}',
             isLoading: false,
@@ -366,12 +361,13 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
         }
       }
 
-      if (result) {
-        getMInOutConfirmAndLine(state.mInOutConfirm!.id!, ref);
-      }
+      await mInOutRepository.setDocAction(ref);
+      await getMInOutConfirmAndLine(state.mInOutConfirm!.id!, ref);
+
       state = state.copyWith(
         errorMessage: 'Todas las líneas fueron confirmadas exitosamente',
         isLoading: false,
+        isComplete: true,
       );
     } catch (e) {
       state = state.copyWith(
