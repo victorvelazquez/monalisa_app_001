@@ -219,6 +219,7 @@ class _MInOutView extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: CustomTextFormField(
+                    keyboardType: TextInputType.number,
                     hint: 'Ingresar documento',
                     onChanged: mInOutNotifier.onDocChange,
                     onFieldSubmitted: (value) async {
@@ -1122,6 +1123,7 @@ class _MInOutView extends ConsumerWidget {
                   initialValue: '0',
                   onChanged: mInOutNotifier.onManualQuantityChange,
                   autofocus: true,
+                  keyboardType: TextInputType.number,
                 ),
               ),
               if (mInOutState.rolManualScrap) SizedBox(width: 8),
@@ -1132,6 +1134,7 @@ class _MInOutView extends ConsumerWidget {
                     textAlign: TextAlign.center,
                     initialValue: '0',
                     onChanged: mInOutNotifier.onManualScrappedChange,
+                    keyboardType: TextInputType.number,
                   ),
                 ),
             ],
