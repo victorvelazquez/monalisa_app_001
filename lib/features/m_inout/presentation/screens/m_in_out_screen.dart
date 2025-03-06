@@ -50,7 +50,8 @@ class MInOutScreenState extends ConsumerState<MInOutScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        if (mInOutState.scanBarcodeListTotal.isNotEmpty && !mInOutState.isComplete) {
+        if (mInOutState.scanBarcodeListTotal.isNotEmpty &&
+            !mInOutState.isComplete) {
           final shouldPop = await _showExitConfirmationDialog(context);
           if (shouldPop && context.mounted) {
             Navigator.of(context).pop();
@@ -279,17 +280,23 @@ class _MInOutView extends ConsumerWidget {
         mInOutState.mInOutType == MInOutType.pickConfirm ||
         mInOutState.mInOutType == MInOutType.qaConfirm) {
       _showScreenLoading(context);
-      final mInOut = await mInOutNotifier.getMInOutAndLine(ref);
-      if (mInOut.id != null) {
-        final mInOutConfirmList =
-            await mInOutNotifier.getMInOutConfirmList(mInOut.id!, ref);
+      try {
+        final mInOut = await mInOutNotifier.getMInOutAndLine(ref);
+        if (mInOut.id != null) {
+          final mInOutConfirmList =
+              await mInOutNotifier.getMInOutConfirmList(mInOut.id!, ref);
+          if (context.mounted) {
+            Navigator.of(context).pop();
+            _showSelectMInOutConfirm(
+                mInOutConfirmList, context, mInOutNotifier, mInOutState, ref);
+          }
+        } else if (context.mounted) {
+          Navigator.of(context).pop();
+        }
+      } catch (e) {
         if (context.mounted) {
           Navigator.of(context).pop();
-          _showSelectMInOutConfirm(
-              mInOutConfirmList, context, mInOutNotifier, mInOutState, ref);
         }
-      } else if (context.mounted) {
-        Navigator.of(context).pop();
       }
     } else {
       mInOutNotifier.getMInOutAndLine(ref);
