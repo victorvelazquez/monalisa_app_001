@@ -50,7 +50,7 @@ class MInOutScreenState extends ConsumerState<MInOutScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        if (mInOutState.scanBarcodeListTotal.isNotEmpty) {
+        if (mInOutState.scanBarcodeListTotal.isNotEmpty && !mInOutState.isComplete) {
           final shouldPop = await _showExitConfirmationDialog(context);
           if (shouldPop && context.mounted) {
             Navigator.of(context).pop();
@@ -83,11 +83,12 @@ class MInOutScreenState extends ConsumerState<MInOutScreen> {
                     color: themeColorPrimary),
                 unselectedLabelStyle: TextStyle(fontSize: themeFontSizeLarge),
               ),
-              actions: mInOutState.viewMInOut && !mInOutState.isComplete &&
+              actions: mInOutState.viewMInOut &&
+                      !mInOutState.isComplete &&
                       mInOutState.mInOut?.docStatus.id.toString() != 'CO'
                   ? [
                       IconButton(
-                        onPressed: mInOutState.rolComplete
+                        onPressed: mInOutNotifier.isRolComplete()
                             ? mInOutNotifier.isConfirmMInOut()
                                 ? mInOutState.mInOutType ==
                                             MInOutType.shipment ||
@@ -219,7 +220,7 @@ class _MInOutView extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: CustomTextFormField(
-                    keyboardType: TextInputType.number,
+                    keyboardType: TextInputType.text,
                     hint: 'Ingresar documento',
                     onChanged: mInOutNotifier.onDocChange,
                     onFieldSubmitted: (value) async {
@@ -296,17 +297,24 @@ class _MInOutView extends ConsumerWidget {
   }
 
   Color _getHeaderBackgroundColor(MInOutStatus mInOutState) {
-    if (mInOutState.mInOutConfirm?.docStatus.id.toString() == 'IP') {
-      return themeColorWarningLight;
-    } else if (mInOutState.mInOutConfirm?.docStatus.id.toString() == 'CO') {
-      return themeColorSuccessfulLight;
-    } else if (mInOutState.mInOut?.docStatus.id.toString() == 'IP') {
-      return themeColorWarningLight;
-    } else if (mInOutState.mInOut?.docStatus.id.toString() == 'CO') {
-      return themeColorSuccessfulLight;
+    final docStatusId = mInOutState.mInOut?.docStatus.id.toString();
+    final confirmStatusId = mInOutState.mInOutConfirm?.docStatus.id.toString();
+
+    if (mInOutState.mInOutType != MInOutType.shipment &&
+        mInOutState.mInOutType != MInOutType.receipt) {
+      if (confirmStatusId == 'IP') {
+        return themeColorWarningLight;
+      } else if (confirmStatusId == 'CO') {
+        return themeColorSuccessfulLight;
+      }
     } else {
-      return themeBackgroundColorLight;
+      if (docStatusId == 'IP') {
+        return themeColorWarningLight;
+      } else if (docStatusId == 'CO') {
+        return themeColorSuccessfulLight;
+      }
     }
+    return themeBackgroundColorLight;
   }
 
   Widget _buildMInOutHeader(BuildContext context, WidgetRef ref) {

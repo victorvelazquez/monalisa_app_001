@@ -74,7 +74,7 @@ class MInOutDataSourceImpl implements MInOutDataSource {
     final String confirmType =
         mInOutState.mInOutType == MInOutType.receiptConfirm ||
                 mInOutState.mInOutType == MInOutType.shipmentConfirm
-            ? "%20AND%20ConfirmType%20eq%20'SC'"
+            ? "%20AND%20ConfirmType%20neq%20'PC'"
             : mInOutState.mInOutType == MInOutType.pickConfirm ||
                     mInOutState.mInOutType == MInOutType.qaConfirm
                 ? "%20AND%20ConfirmType%20eq%20'PC'"
@@ -183,17 +183,15 @@ class MInOutDataSourceImpl implements MInOutDataSource {
   Future<MInOut> setDocAction(WidgetRef ref) async {
     await _dioInitialized;
     final mInOutState = ref.watch(mInOutProvider);
-    final isConfirm = mInOutState.mInOutConfirm?.docStatus.id != null;
-    final currentStatus = mInOutState.mInOutConfirm?.docStatus.id?.toString() ??
-        mInOutState.mInOut?.docStatus.id?.toString() ??
-        'DR';
+    final isConfirm = mInOutState.mInOutType != MInOutType.shipment &&
+      mInOutState.mInOutType != MInOutType.receipt;
+    final currentStatus = isConfirm
+      ? mInOutState.mInOutConfirm?.docStatus.id?.toString() ?? 'DR'
+      : mInOutState.mInOut?.docStatus.id?.toString() ?? 'DR';
+
     final status = isConfirm
-        ? 'CO'
-        : currentStatus == 'DR'
-            ? 'PR'
-            : currentStatus == 'IP'
-                ? 'CO'
-                : 'DR';
+      ? 'CO'
+      : (currentStatus == 'DR' ? 'PR' : (currentStatus == 'IP' ? 'CO' : 'DR'));
 
     try {
       final String url =
@@ -202,7 +200,9 @@ class MInOutDataSourceImpl implements MInOutDataSource {
       final request = {
         'ModelSetDocActionRequest': ModelSetDocActionRequest(
           modelSetDocAction: ModelSetDocAction(
-            serviceType: isConfirm ? 'SetDocumentActionInOutConfirm' : 'SetDocumentActionShipment',
+            serviceType: isConfirm
+                ? 'SetDocumentActionInOutConfirm'
+                : 'SetDocumentActionShipment',
             tableName: isConfirm ? 'M_InOutConfirm' : 'M_InOut',
             recordId: isConfirm
                 ? mInOutState.mInOutConfirm!.id

@@ -6,12 +6,14 @@ class RolesApp {
   static bool appShipmentQty = false;
   static bool appShipmentManual = false;
   static bool appShipmentLowqty = false;
+  static bool appShipmentPrepare = false;
   static bool appShipmentComplete = false;
 
   // RECEIPT
   static bool appReceipt = false;
   static bool appReceiptQty = false;
   static bool appReceiptManual = false;
+  static bool appReceiptPrepare = false;
   static bool appReceiptComplete = false;
 
   // SHIPMENT CONFIRM
@@ -53,6 +55,9 @@ class RolesApp {
       if (role.name.toUpperCase() == 'APP_SHIPMENT_LOWQTY') {
         appShipmentLowqty = true;
       }
+      if (role.name.toUpperCase() == 'APP_SHIPMENT_PREPARE') {
+        appShipmentPrepare = true;
+      }
       if (role.name.toUpperCase() == 'APP_SHIPMENT_COMPLETE') {
         appShipmentComplete = true;
       }
@@ -66,6 +71,9 @@ class RolesApp {
       }
       if (role.name.toUpperCase() == 'APP_RECEIPT_MANUAL') {
         appReceiptManual = true;
+      }
+      if (role.name.toUpperCase() == 'APP_RECEIPT_PREPARE') {
+        appReceiptPrepare = true;
       }
       if (role.name.toUpperCase() == 'APP_RECEIPT_COMPLETE') {
         appReceiptComplete = true;
@@ -130,6 +138,6 @@ class RolesApp {
   }
 
   static String getString() {
-    return 'RolesApp{appShipment: $appShipment, appShipmentQty: $appShipmentQty, appShipmentManual: $appShipmentManual, appShipmentLowqty: $appShipmentLowqty, appShipmentComplete: $appShipmentComplete, appReceipt: $appReceipt, appReceiptQty: $appReceiptQty, appReceiptManual: $appReceiptManual, appReceiptComplete: $appReceiptComplete, appShipmentconfirm: $appShipmentconfirm, appShipmentconfirmQty: $appShipmentconfirmQty, appShipmentconfirmManual: $appShipmentconfirmManual, appShipmentconfirmComplete: $appShipmentconfirmComplete, appReceiptconfirm: $appReceiptconfirm, appReceiptconfirmQty: $appReceiptconfirmQty, appReceiptconfirmManual: $appReceiptconfirmManual, appReceiptconfirmComplete: $appReceiptconfirmComplete, appPickconfirm: $appPickconfirm, appPickconfirmQty: $appPickconfirmQty, appPickconfirmManual: $appPickconfirmManual, appPickconfirmComplete: $appPickconfirmComplete, appQaconfirm: $appQaconfirm, appQaconfirmQty: $appQaconfirmQty, appQaconfirmManual: $appQaconfirmManual, appQaconfirmComplete: $appQaconfirmComplete}';
+    return 'RolesApp{appShipment: $appShipment, appShipmentQty: $appShipmentQty, appShipmentManual: $appShipmentManual, appShipmentLowqty: $appShipmentLowqty, appShipmentComplete: $appShipmentPrepare, appShipmentComplete: $appShipmentComplete, appReceipt: $appReceipt, appReceiptQty: $appReceiptQty, appReceiptManual: $appReceiptManual, appReceiptComplete: $appReceiptPrepare, appReceiptComplete: $appReceiptComplete, appShipmentconfirm: $appShipmentconfirm, appShipmentconfirmQty: $appShipmentconfirmQty, appShipmentconfirmManual: $appShipmentconfirmManual, appShipmentconfirmComplete: $appShipmentconfirmComplete, appReceiptconfirm: $appReceiptconfirm, appReceiptconfirmQty: $appReceiptconfirmQty, appReceiptconfirmManual: $appReceiptconfirmManual, appReceiptconfirmComplete: $appReceiptconfirmComplete, appPickconfirm: $appPickconfirm, appPickconfirmQty: $appPickconfirmQty, appPickconfirmManual: $appPickconfirmManual, appPickconfirmComplete: $appPickconfirmComplete, appQaconfirm: $appQaconfirm, appQaconfirmQty: $appQaconfirmQty, appQaconfirmManual: $appQaconfirmManual, appQaconfirmComplete: $appQaconfirmComplete}';
   }
 }

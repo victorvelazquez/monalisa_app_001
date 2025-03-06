@@ -44,6 +44,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
         rolManualScrap: false,
         rolCompleteLow: RolesApp.appShipmentLowqty,
         rolCompleteOver: false,
+        rolPrepare: RolesApp.appShipmentPrepare,
         rolComplete: RolesApp.appShipmentComplete,
       );
     } else if (type == 'shipmentconfirm') {
@@ -85,6 +86,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
         rolManualScrap: false,
         rolCompleteLow: RolesApp.appShipmentLowqty,
         rolCompleteOver: false,
+        rolPrepare: RolesApp.appReceiptPrepare,
         rolComplete: RolesApp.appReceiptComplete,
       );
     } else if (type == 'receiptconfirm') {
@@ -310,6 +312,27 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     }
   }
 
+  bool isRolComplete() {
+    if (state.mInOutType == MInOutType.shipment ||
+        state.mInOutType == MInOutType.receipt) {
+      if (state.mInOut?.docStatus.id.toString() == 'DR' &&
+          (state.rolPrepare || state.rolComplete)) {
+        return true;
+      } else if (state.mInOut?.docStatus.id.toString() == 'IP' &&
+          state.rolComplete) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      if (state.rolComplete) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+
   bool isConfirmMInOut() {
     if ((state.mInOutType == MInOutType.shipment ||
             state.mInOutType == MInOutType.receipt) &&
@@ -375,7 +398,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       await getMInOutConfirmAndLine(state.mInOutConfirm!.id!, ref);
 
       state = state.copyWith(
-        errorMessage: 'Todas las líneas fueron confirmadas exitosamente',
+        errorMessage: '',
         isLoading: false,
         isComplete: true,
       );
@@ -666,6 +689,7 @@ class MInOutStatus {
   final bool rolManualScrap;
   final bool rolCompleteLow;
   final bool rolCompleteOver;
+  final bool rolPrepare;
   final bool rolComplete;
 
   MInOutStatus({
@@ -694,6 +718,7 @@ class MInOutStatus {
     this.rolManualScrap = false,
     this.rolCompleteLow = false,
     this.rolCompleteOver = false,
+    this.rolPrepare = false,
     this.rolComplete = false,
   });
 
@@ -723,6 +748,7 @@ class MInOutStatus {
     bool? rolManualScrap,
     bool? rolCompleteLow,
     bool? rolCompleteOver,
+    bool? rolPrepare,
     bool? rolComplete,
   }) =>
       MInOutStatus(
@@ -752,6 +778,7 @@ class MInOutStatus {
         rolManualScrap: rolManualScrap ?? this.rolManualScrap,
         rolCompleteLow: rolCompleteLow ?? this.rolCompleteLow,
         rolCompleteOver: rolCompleteOver ?? this.rolCompleteOver,
+        rolPrepare: rolPrepare ?? this.rolPrepare,
         rolComplete: rolComplete ?? this.rolComplete,
       );
 }
