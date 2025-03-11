@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/line_confirm.dart';
+import 'package:monalisa_app_001/features/m_inout/domain/entities/locate.dart';
 import 'package:monalisa_app_001/features/shared/domain/entities/model_crud.dart';
 import 'package:monalisa_app_001/features/shared/domain/entities/model_crud_request.dart';
 import 'package:monalisa_app_001/features/shared/domain/entities/response_api.dart';
@@ -184,14 +185,16 @@ class MInOutDataSourceImpl implements MInOutDataSource {
     await _dioInitialized;
     final mInOutState = ref.watch(mInOutProvider);
     final isConfirm = mInOutState.mInOutType != MInOutType.shipment &&
-      mInOutState.mInOutType != MInOutType.receipt;
+        mInOutState.mInOutType != MInOutType.receipt;
     final currentStatus = isConfirm
-      ? mInOutState.mInOutConfirm?.docStatus.id?.toString() ?? 'DR'
-      : mInOutState.mInOut?.docStatus.id?.toString() ?? 'DR';
+        ? mInOutState.mInOutConfirm?.docStatus.id?.toString() ?? 'DR'
+        : mInOutState.mInOut?.docStatus.id?.toString() ?? 'DR';
 
     final status = isConfirm
-      ? 'CO'
-      : (currentStatus == 'DR' ? 'PR' : (currentStatus == 'IP' ? 'CO' : 'DR'));
+        ? 'CO'
+        : (currentStatus == 'DR'
+            ? 'PR'
+            : (currentStatus == 'IP' ? 'CO' : 'DR'));
 
     try {
       final String url =
@@ -305,6 +308,97 @@ class MInOutDataSourceImpl implements MInOutDataSource {
             id: line.confirmId,
           );
           return lineResponse;
+        } else {
+          throw Exception(standardResponse.error ?? 'Unknown error');
+        }
+      } else {
+        throw Exception(
+            'Error al cargar los datos de la línea ${line.line}: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      final authDataNotifier = ref.read(authProvider.notifier);
+      throw CustomErrorDioException(e, authDataNotifier);
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future<int> getLocator(String value, WidgetRef ref) async {
+    await _dioInitialized;
+    try {
+      final String url =
+          "/api/v1/models/m_locator?\$filter=Value%20eq%20'$value'";
+      final response = await dio.get(url);
+
+      if (response.statusCode == 200) {
+        final responseApi =
+            ResponseApi<Locate>.fromJson(response.data, Locate.fromJson);
+
+        if (responseApi.records != null && responseApi.records!.isNotEmpty) {
+          final locate = responseApi.records!.first;
+          return locate.id!;
+        } else {
+          throw Exception('No se encontró el estante $value');
+        }
+      } else {
+        throw Exception(
+            'Error al cargar los datos del estante: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      final authDataNotifier = ref.read(authProvider.notifier);
+      throw CustomErrorDioException(e, authDataNotifier);
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future<bool> updateLocator(Line line, WidgetRef ref) async {
+    await _dioInitialized;
+    try {
+      final String url =
+          "/ADInterface/services/rest/model_adservice/update_data";
+
+      final authData = ref.read(authProvider);
+      final request = {
+        'ModelCRUDRequest': ModelCrudRequest(
+          modelCrud: ModelCrud(
+            serviceType: 'UpdateInOutLine',
+            tableName: 'M_InOutLine',
+            recordId: line.id,
+            action: "Update",
+            dataRow: {
+              'field': [
+                FieldCrud(
+                    column: 'Description', val: line.mLocatorId!.identifier),
+                FieldCrud(
+                    column: 'M_Locator_ID',
+                    val: line.editLocator.toString()),
+              ].map((field) => field.toJson()).toList(),
+            },
+          ),
+          adLoginRequest: AdLoginRequest(
+            user: authData.userName,
+            pass: authData.password,
+            lang: "es_PY",
+            clientId: authData.selectedClient!.id,
+            roleId: authData.selectedRole!.id,
+            orgId: authData.selectedOrganization!.id,
+            warehouseId: authData.selectedWarehouse!.id,
+            stage: 9,
+          ),
+        ).toJson()
+      };
+
+      final response = await dio.post(url, data: request);
+
+      if (response.statusCode == 200) {
+        final standardResponse =
+            StandardResponse.fromJson(response.data['StandardResponse']);
+        if (standardResponse.isError == null ||
+            standardResponse.isError == false) {
+          return true;
         } else {
           throw Exception(standardResponse.error ?? 'Unknown error');
         }

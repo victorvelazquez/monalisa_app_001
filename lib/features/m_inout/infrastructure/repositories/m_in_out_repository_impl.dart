@@ -45,4 +45,14 @@ class MInOutRepositoryImpl implements MInOutRepository {
   Future<LineConfirm> updateLineConfirm(Line line, WidgetRef ref) {
     return dataSource.updateLineConfirm(line, ref);
   }
+  
+  @override
+  Future<int> getLocator(String value, WidgetRef ref) {
+    return dataSource.getLocator(value, ref);
+  }
+  
+  @override
+  Future<bool> updateLocator(Line line, WidgetRef ref) {
+    return dataSource.updateLocator(line, ref);
+  }
 }

@@ -312,6 +312,34 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     }
   }
 
+  void onEditLocatorChange(String value) {
+    state = state.copyWith(editLocator: value, errorMessage: '');
+  }
+
+  Future<void> confirmEditLocator(Line line, WidgetRef ref) async {
+    String locator = line.mLocatorId!.identifier!.split(' => ').first.trim();
+    try {
+      final idLocator =
+          await mInOutRepository.getLocator(state.editLocator, ref);
+      final updatedLocator = line.mLocatorId?.copyWith(
+        identifier: '$locator => ${state.editLocator}',
+      );
+      final updatedLine = line.copyWith(
+        editLocator: idLocator,
+        mLocatorId: updatedLocator,
+      );
+      final updatedLines = state.mInOut!.lines
+          .map((l) => l.id == line.id ? updatedLine : l)
+          .toList();
+      state =
+          state.copyWith(mInOut: state.mInOut!.copyWith(lines: updatedLines));
+      updatedMInOutLine('');
+    } catch (e) {
+      state = state.copyWith(
+          errorMessage: 'Error al actualizar la ubicación: ${e.toString()}');
+    }
+  }
+
   bool isRolComplete() {
     if (state.mInOutType == MInOutType.shipment ||
         state.mInOutType == MInOutType.receipt) {
@@ -364,6 +392,19 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       return;
     }
     try {
+      for (final line in state.mInOut!.lines) {
+        if (line.editLocator != null) {
+          final update = await mInOutRepository.updateLocator(line, ref);
+          if (!update) {
+            state = state.copyWith(
+              errorMessage:
+                  'Error al actualizar la ubicación: ${line.mLocatorId!.identifier}',
+              isLoading: false,
+            );
+            return;
+          }
+        }
+      }
       final mInOutResponse = await mInOutRepository.setDocAction(ref);
       state = state.copyWith(
         mInOut: mInOutResponse.copyWith(lines: state.mInOut!.lines),
@@ -383,6 +424,17 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
 
     try {
       for (final line in state.mInOut!.lines) {
+        if (line.editLocator != null) {
+          final update = await mInOutRepository.updateLocator(line, ref);
+          if (!update) {
+            state = state.copyWith(
+              errorMessage:
+                  'Error al actualizar la ubicación: ${line.mLocatorId!.identifier}',
+              isLoading: false,
+            );
+            return;
+          }
+        }
         final lineConfirmResponse =
             await mInOutRepository.updateLineConfirm(line, ref);
         if (lineConfirmResponse.id == null) {
@@ -677,6 +729,7 @@ class MInOutStatus {
   final String orderBy;
   final double manualQty;
   final double scrappedQty;
+  final String editLocator;
   final String errorMessage;
   final bool isLoading;
   final bool isLoadingMInOutList;
@@ -708,6 +761,7 @@ class MInOutStatus {
     this.orderBy = '',
     this.manualQty = 0,
     this.scrappedQty = 0,
+    this.editLocator = '',
     this.errorMessage = '',
     this.isLoading = false,
     this.isLoadingMInOutList = false,
@@ -738,6 +792,7 @@ class MInOutStatus {
     String? orderBy,
     double? manualQty,
     double? scrappedQty,
+    String? editLocator,
     String? errorMessage,
     bool? isLoading,
     bool? isLoadingMInOutList,
@@ -767,6 +822,7 @@ class MInOutStatus {
         orderBy: orderBy ?? this.orderBy,
         manualQty: manualQty ?? this.manualQty,
         scrappedQty: scrappedQty ?? this.scrappedQty,
+        editLocator: editLocator ?? this.editLocator,
         uniqueView: uniqueView ?? this.uniqueView,
         errorMessage: errorMessage ?? this.errorMessage,
         isLoading: isLoading ?? this.isLoading,

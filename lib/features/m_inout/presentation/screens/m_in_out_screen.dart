@@ -261,7 +261,7 @@ class _MInOutView extends ConsumerWidget {
                     const SizedBox(height: 5),
                     _buildActionOrderList(mInOutNotifier),
                     const SizedBox(height: 5),
-                    _buildMInOutLineList(mInOutState),
+                    _buildMInOutLineList(mInOutState, ref),
                     mInOutState.linesOver.isNotEmpty
                         ? _buildListOver(
                             context,
@@ -878,7 +878,7 @@ class _MInOutView extends ConsumerWidget {
     );
   }
 
-  Widget _buildMInOutLineList(MInOutStatus mInOutState) {
+  Widget _buildMInOutLineList(MInOutStatus mInOutState, WidgetRef ref) {
     final mInOutLines = mInOutState.mInOut?.lines ?? [];
     return ListView.builder(
       shrinkWrap: true,
@@ -887,7 +887,7 @@ class _MInOutView extends ConsumerWidget {
       itemBuilder: (context, index) {
         final item = mInOutLines[index];
         return GestureDetector(
-          onTap: () => _selectLine(context, mInOutNotifier, mInOutState, item),
+          onTap: () => _selectLine(context, mInOutNotifier, mInOutState, item, ref),
           child: Column(
             children: [
               Divider(height: 0),
@@ -1048,7 +1048,7 @@ class _MInOutView extends ConsumerWidget {
   }
 
   Future<void> _selectLine(BuildContext context, MInOutNotifier mInOutNotifier,
-      MInOutStatus mInOutState, Line item) {
+      MInOutStatus mInOutState, Line item, WidgetRef ref) {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -1070,6 +1070,8 @@ class _MInOutView extends ConsumerWidget {
                     _buildTableRow("SKU:", item.sku?.toString() ?? '', false),
                     _buildTableRow(
                         "Producto:", item.productName?.toString() ?? '', false),
+                    _buildTableRow(
+                        "Estante:", item.mLocatorId?.identifier.toString() ?? '', false),
                     if (mInOutState.rolShowQty)
                       _buildTableRow(
                           "Cantidad:", item.targetQty?.toString() ?? '0', true),
@@ -1090,11 +1092,6 @@ class _MInOutView extends ConsumerWidget {
             ),
           ),
           actions: <Widget>[
-            CustomFilledButton(
-              onPressed: () => Navigator.of(context).pop(),
-              label: 'Cerrar',
-              icon: const Icon(Icons.close_rounded),
-            ),
             if (mInOutState.rolManualQty)
               CustomFilledButton(
                 onPressed: () {
@@ -1112,7 +1109,28 @@ class _MInOutView extends ConsumerWidget {
                     : 'Manual',
                 icon: const Icon(Icons.touch_app_outlined),
                 buttonColor: themeColorGray,
+                expand: true,
+                small: true,
               ),
+            CustomFilledButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _showEditLocator(context, mInOutState, item, ref);
+              },
+              label: 'Estante',
+              icon: const Icon(Icons.view_in_ar),
+              labelColor: Colors.black87,
+              buttonColor: themeColorWarning,
+              expand: true,
+              small: true,
+            ),
+            CustomFilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              label: 'Cerrar',
+              icon: const Icon(Icons.close_rounded),
+              expand: true,
+              small: true,
+            ),
           ],
         );
       },
@@ -1208,6 +1226,43 @@ class _MInOutView extends ConsumerWidget {
     );
   }
 
+  Future<void> _showEditLocator(
+      BuildContext context, MInOutStatus mInOutState, Line item, WidgetRef ref) {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(themeBorderRadius),
+          ),
+          title: const Text('Cambiar Estante'),
+          content: CustomTextFormField(
+              label: 'Estante Nueva',
+              initialValue: '',
+              onChanged: mInOutNotifier.onEditLocatorChange,
+              autofocus: true,
+          ),
+          actions: <Widget>[
+            CustomFilledButton(
+              onPressed: () {
+                mInOutNotifier.confirmEditLocator(item, ref);
+                Navigator.of(context).pop();
+              },
+              label: 'Confirmar',
+              icon: const Icon(Icons.check),
+            ),
+            CustomFilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              label: 'Cancelar',
+              icon: const Icon(Icons.close_rounded),
+              buttonColor: themeColorGray,
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   _buildListOver(BuildContext context, List<Barcode> barcodeList,
       MInOutNotifier mInOutNotifier) {
     return Column(
@@ -1283,27 +1338,25 @@ class _MInOutView extends ConsumerWidget {
   }
 }
 
-TableRow _buildTableRow(String label, String value, bool fontSizeTitle) {
+TableRow _buildTableRow(String label, String value, bool alignRight) {
   return TableRow(
     children: [
       Container(
-        height: fontSizeTitle ? 40 : null,
         padding: const EdgeInsets.fromLTRB(0, 2, 0, 2),
-        alignment: fontSizeTitle ? AlignmentDirectional(-1, -0.3) : null,
+        alignment: alignRight ? AlignmentDirectional(-1, -0.3) : null,
         child: Text(
           label,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       Container(
-        padding: EdgeInsets.fromLTRB(4, 2, fontSizeTitle ? 20 : 0, 2),
-        alignment: fontSizeTitle ? AlignmentDirectional(1, -0.3) : null,
+        padding: EdgeInsets.fromLTRB(4, 2, alignRight ? 22 : 0, 2),
+        alignment: alignRight ? AlignmentDirectional(1, -0.3) : null,
         child: Text(
           value,
           style: TextStyle(
             fontWeight: FontWeight.normal,
             color: themeColorGray,
-            fontSize: fontSizeTitle ? themeFontSizeTitle : null,
           ),
         ),
       ),

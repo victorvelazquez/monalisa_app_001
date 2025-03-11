@@ -12,4 +12,6 @@ abstract class MInOutDataSource {
   Future<MInOutConfirm> getMInOutConfirmAndLine(int mInOutConfirmId, WidgetRef ref);
   Future<MInOut> setDocAction(WidgetRef ref);
   Future<LineConfirm> updateLineConfirm(Line line, WidgetRef ref);
+  Future<int> getLocator(String value, WidgetRef ref);
+  Future<bool> updateLocator(Line line, WidgetRef ref);
 }

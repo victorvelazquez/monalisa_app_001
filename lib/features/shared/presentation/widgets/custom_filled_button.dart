@@ -9,6 +9,7 @@ class CustomFilledButton extends StatelessWidget {
   final Color? labelColor;
   final bool isPosting;
   final bool expand;
+  final bool small;
 
   const CustomFilledButton({
     super.key,
@@ -19,6 +20,7 @@ class CustomFilledButton extends StatelessWidget {
     this.labelColor,
     this.isPosting = false,
     this.expand = false,
+    this.small = false,
   });
 
   @override
@@ -26,7 +28,7 @@ class CustomFilledButton extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: SizedBox(
-        height: 40,
+        height: small ? 30 : 40,
         width: expand ? double.infinity : null,
         child: FilledButton.icon(
           style: FilledButton.styleFrom(
@@ -40,7 +42,8 @@ class CustomFilledButton extends StatelessWidget {
                   ? _buildLoadingIndicator()
                   : _buildIcon()
               : null,
-          label: Text(label, style: TextStyle(color: labelColor ?? Colors.white)),
+          label:
+              Text(label, style: TextStyle(color: labelColor ?? Colors.white)),
         ),
       ),
     );

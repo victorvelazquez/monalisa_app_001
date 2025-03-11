@@ -18,6 +18,7 @@ class Line {
   double? manualQty;
   double? get differenceQty => (targetQty ?? 0.0) - (confirmedQty ?? 0.0);
   int? confirmId;
+  int? editLocator;
 
   Line({
     this.id,
@@ -36,13 +37,18 @@ class Line {
     this.scanningQty,
     this.manualQty,
     this.confirmId,
+    this.editLocator,
   });
 
   factory Line.fromJson(Map<String, dynamic> json) => Line(
         id: json["id"],
         line: json["Line"],
-        movementQty: json["MovementQty"] != null ? (json["MovementQty"] is double ? json["MovementQty"] : double.tryParse(json["MovementQty"].toString()) ?? 0.0) : 0.0,
-        mLocatorId: AdEntityId.fromJson(json["M_Locator_ID"] ?? {}), 
+        movementQty: json["MovementQty"] != null
+            ? (json["MovementQty"] is double
+                ? json["MovementQty"]
+                : double.tryParse(json["MovementQty"].toString()) ?? 0.0)
+            : 0.0,
+        mLocatorId: AdEntityId.fromJson(json["M_Locator_ID"] ?? {}),
         mProductId: AdEntityId.fromJson(json["M_Product_ID"] ?? {}),
         upc: json["UPC"],
         sku: json["SKU"],
@@ -66,6 +72,7 @@ class Line {
     int? scanningQty,
     double? manualQty,
     int? confirmId,
+    int? editLocator,
   }) {
     return Line(
       id: id ?? this.id,
@@ -84,6 +91,7 @@ class Line {
       scanningQty: scanningQty ?? this.scanningQty,
       manualQty: manualQty ?? this.manualQty,
       confirmId: confirmId ?? this.confirmId,
+      editLocator: editLocator ?? this.editLocator,
     );
   }
 }
