@@ -1153,7 +1153,7 @@ class _MInOutView extends ConsumerWidget {
                 child: CustomTextFormField(
                   label: 'Confirmar',
                   textAlign: TextAlign.center,
-                  initialValue: '0',
+                  initialValue: '',
                   onChanged: mInOutNotifier.onManualQuantityChange,
                   autofocus: true,
                   keyboardType: TextInputType.number,
@@ -1165,7 +1165,7 @@ class _MInOutView extends ConsumerWidget {
                   child: CustomTextFormField(
                     label: 'Desechar',
                     textAlign: TextAlign.center,
-                    initialValue: '0',
+                    initialValue: '',
                     onChanged: mInOutNotifier.onManualScrappedChange,
                     keyboardType: TextInputType.number,
                   ),

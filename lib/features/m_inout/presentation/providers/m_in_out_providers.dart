@@ -289,7 +289,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     final int index = updatedLines.indexWhere((l) => l.id == line.id);
     if (index != -1) {
       final Line verifyLine =
-          _verifyLineStatusQty(line, state.manualQty, state.scrappedQty);
+          _verifyLineStatusQty(line, line.scanningQty?.toDouble() ?? 0.0, state.manualQty, state.scrappedQty);
       updatedLines[index] = verifyLine;
       state =
           state.copyWith(mInOut: state.mInOut!.copyWith(lines: updatedLines));
@@ -571,7 +571,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
         if (lineIndex != -1) {
           final line = lines[lineIndex];
           lines[lineIndex] =
-              _verifyLineStatusQty(line, barcode.repetitions.toDouble(), 0);
+              _verifyLineStatusQty(line, barcode.repetitions.toDouble(), line.manualQty ?? 0, line.scrappedQty ?? 0);
         } else {
           linesOver.add(barcode.copyWith(index: linesOver.length + 1));
         }
@@ -633,34 +633,33 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     }
   }
 
-  Line _verifyLineStatusQty(Line line, double verifyQty, double scrappedQty) {
-    String status = '';
-    double manualQty = 0;
-    double scanningQty = 0;
-    if (line.verifiedStatus != null &&
-        line.verifiedStatus!.contains('manually')) {
-      if (verifyQty == line.targetQty) {
+  Line _verifyLineStatusQty(Line line, double scanningQty,
+      double manualQty, double scrappedQty) {
+    String status = 'pending';
+    double confirmedQty = 0;
+    if (manualQty > 0) {
+      if (manualQty == line.targetQty) {
         status = 'manually-correct';
-      } else if (verifyQty < (line.targetQty ?? 0)) {
+      } else if (manualQty < (line.targetQty ?? 0)) {
         status = 'manually-minor';
       } else {
         status = 'manually-over';
       }
-      manualQty = verifyQty;
-    } else {
-      if (verifyQty == line.targetQty) {
+      confirmedQty = manualQty;
+    } else if (scanningQty > 0) {
+      if (scanningQty == line.targetQty) {
         status = 'correct';
-      } else if (verifyQty < (line.targetQty ?? 0)) {
+      } else if (scanningQty < (line.targetQty ?? 0)) {
         status = 'minor';
       } else {
         status = 'over';
       }
-      scanningQty = verifyQty;
+      confirmedQty = scanningQty;
     }
     return line.copyWith(
       manualQty: manualQty,
       scanningQty: scanningQty.toInt(),
-      confirmedQty: verifyQty,
+      confirmedQty: confirmedQty,
       scrappedQty: scrappedQty,
       verifiedStatus: status,
     );
