@@ -12,7 +12,7 @@ final loginFormProvider =
 
 // 2 - Como implementamos un notifier
 class LoginFormNotifier extends StateNotifier<LoginFormState> {
-  final Function(String, String) loginUserCallback;
+  final Function(String, String, bool) loginUserCallback;
   LoginFormNotifier({
     required this.loginUserCallback,
   }) : super(LoginFormState());
@@ -35,7 +35,7 @@ class LoginFormNotifier extends StateNotifier<LoginFormState> {
     _touchEveryField();
     if (!state.isValid) return;
     state = state.copyWith(isPosting: true);
-    await loginUserCallback(state.userName.value, state.password.value);
+    await loginUserCallback(state.userName.value, state.password.value, false);
     state = state.copyWith(isPosting: false);
   }
 

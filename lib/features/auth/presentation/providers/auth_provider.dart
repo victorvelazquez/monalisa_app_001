@@ -107,7 +107,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  Future<void> login(String userName, String password) async {
+  Future<void> login(
+      String userName, String password, bool preferLocalData) async {
     state = state.copyWith(
       isLoading: true,
       errorMessage: '',
@@ -136,7 +137,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
       Environment.token = loginResponse.token;
 
-      await updateClient(loginResponse.clients.first, preferLocalData: true);
+      await updateClient(loginResponse.clients.first,
+          preferLocalData: preferLocalData);
 
       if (state.authStatus != AuthStatus.checking) {
         state = state.copyWith(authStatus: AuthStatus.login, errorMessage: '');
@@ -150,7 +152,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> submitAuthData() async {
-    state = state.copyWith(isLoading: true);
+    state = state.copyWith(isLoading: true, errorMessage: '');
     try {
       final authDataResponse = await authRepository.getAuthData(
         state.selectedClient!.id,
@@ -188,29 +190,35 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
       final rolesResponse =
           await authRepository.getRolesIncluded(state.selectedRole!.id);
-      if (rolesResponse.roles.isNotEmpty) {
-        final rolesApp = <Role>[];
-        for (var role in rolesResponse.roles) {
-          if (role.name.startsWith('APP_')) {
-            rolesApp.add(role);
-          }
-        }
+      final rolesApp = rolesResponse.roles
+          .where((role) => role.name.startsWith('APP_'))
+          .toList();
+      if (rolesApp.isNotEmpty) {
         RolesApp.set(rolesApp);
-        RolesApp.getString();
+        // print('RolesApp: ${RolesApp.getString()}');
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: '',
+          token: authDataResponse.token,
+          authStatus: AuthStatus.authenticated,
+          authInfo: authInfo,
+        );
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: 'No se encontraron roles APP asociados a este usuario.',
+          authStatus: AuthStatus.notAuthenticated,
+        );
+        throw Exception(
+            "No se encontraron roles APP asociados a este usuario.");
       }
-      // print('RolesApp: ${RolesApp.getString()}');
-
+    } catch (e) {
       state = state.copyWith(
-        token: authDataResponse.token,
-        authStatus: AuthStatus.authenticated,
-        authInfo: authInfo,
-        errorMessage: '',
+        isLoading: false,
+        errorMessage: CustomErrorClean(e).clean,
+        authStatus: AuthStatus.notAuthenticated,
       );
-    } catch (e, stackTrace) {
-      log("Error en loginUser: $e\n$stackTrace");
-      logout(CustomErrorClean(e).clean);
-    } finally {
-      state = state.copyWith(isLoading: false);
+      throw Exception(CustomErrorClean(e).clean);
     }
   }
 
@@ -230,7 +238,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
           authDataDto.password?.isNotEmpty == true;
 
       if (hasValidCredentials) {
-        await login(authDataDto.userName!, authDataDto.password!);
+        await login(authDataDto.userName!, authDataDto.password!, true);
       } else {
         logout();
       }
@@ -277,7 +285,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       if (authDataResponse != null) {
         authDataDto = authDataResponse;
         if (authDataDto.userName != null && authDataDto.password != null) {
-          await login(authDataDto.userName!, authDataDto.password!);
+          await login(authDataDto.userName!, authDataDto.password!, true);
           await submitAuthData();
         } else {
           logout();
@@ -328,9 +336,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
     if (rolesResponse.roles.isEmpty) {
       throw Exception("No se encontraron roles disponibles para este cliente.");
     }
-    state = state.copyWith(roles: rolesResponse.roles, isLoading: false);
-    await updateRole(rolesResponse.roles.first,
-        preferLocalData: preferLocalData);
+    final filteredRoles = rolesResponse.roles
+        .where((role) => !role.name.startsWith('APP_'))
+        .toList();
+    state = state.copyWith(roles: filteredRoles, isLoading: false);
+    await updateRole(filteredRoles.first, preferLocalData: preferLocalData);
   }
 
   Future<void> updateRole(Role role, {bool? preferLocalData}) async {
