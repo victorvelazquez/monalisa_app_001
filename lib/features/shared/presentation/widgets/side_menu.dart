@@ -101,7 +101,7 @@ class SideMenuState extends ConsumerState<SideMenu> {
           height: size.height - 400,
           alignment: Alignment.bottomCenter,
           child: Text(
-            'Versión: 1.0.0',
+            'Versión: 1.0.1',
             style: TextStyle(
               color: Colors.grey,
             ),
