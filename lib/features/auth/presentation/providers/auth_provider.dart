@@ -336,11 +336,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
     if (rolesResponse.roles.isEmpty) {
       throw Exception("No se encontraron roles disponibles para este cliente.");
     }
-    final filteredRoles = rolesResponse.roles
-        .where((role) => !role.name.startsWith('APP_'))
-        .toList();
-    state = state.copyWith(roles: filteredRoles, isLoading: false);
-    await updateRole(filteredRoles.first, preferLocalData: preferLocalData);
+    // final filteredRoles = rolesResponse.roles
+    //     .where((role) => !role.name.startsWith('APP_'))
+    //     .toList();
+    state = state.copyWith(roles: rolesResponse.roles, isLoading: false);
+    await updateRole(rolesResponse.roles.first, preferLocalData: preferLocalData);
   }
 
   Future<void> updateRole(Role role, {bool? preferLocalData}) async {
