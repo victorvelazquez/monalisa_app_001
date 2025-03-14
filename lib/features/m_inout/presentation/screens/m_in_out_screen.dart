@@ -887,7 +887,8 @@ class _MInOutView extends ConsumerWidget {
       itemBuilder: (context, index) {
         final item = mInOutLines[index];
         return GestureDetector(
-          onTap: () => _selectLine(context, mInOutNotifier, mInOutState, item, ref),
+          onTap: () =>
+              _selectLine(context, mInOutNotifier, mInOutState, item, ref),
           child: Column(
             children: [
               Divider(height: 0),
@@ -1070,8 +1071,8 @@ class _MInOutView extends ConsumerWidget {
                     _buildTableRow("SKU:", item.sku?.toString() ?? '', false),
                     _buildTableRow(
                         "Producto:", item.productName?.toString() ?? '', false),
-                    _buildTableRow(
-                        "Estante:", item.mLocatorId?.identifier.toString() ?? '', false),
+                    _buildTableRow("Estante:",
+                        item.mLocatorId?.identifier.toString() ?? '', false),
                     if (mInOutState.rolShowQty)
                       _buildTableRow(
                           "Cantidad:", item.targetQty?.toString() ?? '0', true),
@@ -1226,8 +1227,8 @@ class _MInOutView extends ConsumerWidget {
     );
   }
 
-  Future<void> _showEditLocator(
-      BuildContext context, MInOutStatus mInOutState, Line item, WidgetRef ref) {
+  Future<void> _showEditLocator(BuildContext context, MInOutStatus mInOutState,
+      Line item, WidgetRef ref) {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -1237,10 +1238,10 @@ class _MInOutView extends ConsumerWidget {
           ),
           title: const Text('Cambiar Estante'),
           content: CustomTextFormField(
-              label: 'Estante Nueva',
-              initialValue: '',
-              onChanged: mInOutNotifier.onEditLocatorChange,
-              autofocus: true,
+            label: 'Estante Nueva',
+            initialValue: '',
+            onChanged: mInOutNotifier.onEditLocatorChange,
+            autofocus: true,
           ),
           actions: <Widget>[
             CustomFilledButton(

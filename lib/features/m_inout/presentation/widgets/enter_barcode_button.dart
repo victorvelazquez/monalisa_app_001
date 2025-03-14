@@ -41,6 +41,13 @@ class EnterBarcodeButtonState extends State<EnterBarcodeButton> {
         scannedData += event.character!;
       });
     }
+
+    // print(event.toString());
+    // setState(() {
+    //   scannedData =
+    //       'deviceType:${event.deviceType.toString()}|logicalKey:${event.logicalKey.toString()}|physicalKey:${event.physicalKey.toString()}|character:${event.character}';
+    // });
+    // addBarcode();
   }
 
   void addBarcode() {
