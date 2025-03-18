@@ -8,8 +8,12 @@ import '../entities/line.dart';
 abstract class MInOutDataSource {
   Future<List<MInOut>> getMInOutList(WidgetRef ref);
   Future<List<MInOutConfirm>> getMInOutConfirmList(int mInOutId, WidgetRef ref);
+  Future<List<MInOut>> getMovementList(WidgetRef ref);
+  Future<List<MInOutConfirm>> getMovementConfirmList(int movementId, WidgetRef ref);
   Future<MInOut> getMInOutAndLine(String mInOutDoc, WidgetRef ref);
   Future<MInOutConfirm> getMInOutConfirmAndLine(int mInOutConfirmId, WidgetRef ref);
+  Future<MInOut> getMovementAndLine(String movementDoc, WidgetRef ref);
+  Future<MInOutConfirm> getMovementConfirmAndLine(int movementConfirmId, WidgetRef ref);
   Future<MInOut> setDocAction(WidgetRef ref);
   Future<LineConfirm> updateLineConfirm(Line line, WidgetRef ref);
   Future<int> getLocator(String value, WidgetRef ref);

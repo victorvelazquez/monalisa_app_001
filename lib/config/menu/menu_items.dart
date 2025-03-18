@@ -78,22 +78,17 @@ var appHomeOptionCol2Items = <MenuItem>[
 
 const appHomeOptionCol3Items = <MenuItem>[
   MenuItem(
-    title: 'Opción 1',
+    title: 'Inventory Move',
     subTitle: '',
-    link: '/splash',
-    icon: Icons.multiple_stop_outlined,
+    link: '/mInOut/move',
+    icon: Icons.swap_horiz,
   ),
   MenuItem(
-    title: 'Opción 2',
+    title: 'Move Confirm',
     subTitle: '',
-    link: '/splash',
-    icon: Icons.pie_chart,
+    link: '/mInOut/moveconfirm',
+    icon: Icons.swap_horiz,
   ),
-  MenuItem(
-      title: 'Opción 3',
-      subTitle: '',
-      link: '/splash',
-      icon: Icons.people_alt_outlined),
 ];
 
 const appTemplateMenuItems = <MenuItem>[

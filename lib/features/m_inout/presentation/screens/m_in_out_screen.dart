@@ -29,7 +29,7 @@ class MInOutScreenState extends ConsumerState<MInOutScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       mInOutNotifier = ref.read(mInOutProvider.notifier);
       mInOutNotifier.setParameters(widget.type);
-      mInOutNotifier.getMInOutList(ref);
+      mInOutNotifier.cargarLista(ref);
     });
   }
 
@@ -298,6 +298,28 @@ class _MInOutView extends ConsumerWidget {
           Navigator.of(context).pop();
         }
       }
+    } else if (mInOutState.mInOutType == MInOutType.moveConfirm) {
+      _showScreenLoading(context);
+      try {
+        final mInOut = await mInOutNotifier.getMovementAndLine(ref);
+        if (mInOut.id != null) {
+          final mInOutConfirmList =
+              await mInOutNotifier.getMovementConfirmList(mInOut.id!, ref);
+          if (context.mounted) {
+            Navigator.of(context).pop();
+            _showSelectMInOutConfirm(
+                mInOutConfirmList, context, mInOutNotifier, mInOutState, ref);
+          }
+        } else if (context.mounted) {
+          Navigator.of(context).pop();
+        }
+      } catch (e) {
+        if (context.mounted) {
+          Navigator.of(context).pop();
+        }
+      }
+    } else if(mInOutState.mInOutType == MInOutType.move) {
+      mInOutNotifier.getMovementAndLine(ref);
     } else {
       mInOutNotifier.getMInOutAndLine(ref);
     }
@@ -495,7 +517,7 @@ class _MInOutView extends ConsumerWidget {
                       context, mInOutNotifier, mInOutState, ref)
                   : () {
                       mInOutNotifier.clearMInOutData();
-                      mInOutNotifier.getMInOutList(ref);
+                      mInOutNotifier.cargarLista(ref);
                     },
             ),
           ),
@@ -673,7 +695,7 @@ class _MInOutView extends ConsumerWidget {
                   child: CustomFilledButton(
                     label: 'Cargar lista',
                     onPressed: () {
-                      mInOutNotifier.getMInOutList(ref);
+                      mInOutNotifier.cargarLista(ref);
                     },
                   ),
                 ),
@@ -703,7 +725,9 @@ class _MInOutView extends ConsumerWidget {
                     final item = mInOutConfirmList[index];
                     return GestureDetector(
                       onTap: () {
-                        mInOutNotifier.getMInOutConfirmAndLine(item.id!, ref);
+                        MInOutType.moveConfirm == mInOutState.mInOutType
+                            ? mInOutNotifier.getMovementConfirmAndLine(item.id!, ref)
+                            : mInOutNotifier.getMInOutConfirmAndLine(item.id!, ref);
                         Navigator.of(context).pop();
                       },
                       child: Column(
@@ -1030,7 +1054,7 @@ class _MInOutView extends ConsumerWidget {
               onPressed: () {
                 mInOutNotifier.clearMInOutData();
                 Navigator.of(context).pop();
-                mInOutNotifier.getMInOutList(ref);
+                mInOutNotifier.cargarLista(ref);
               },
               label: 'Si',
               icon: const Icon(Icons.check),
@@ -1081,12 +1105,12 @@ class _MInOutView extends ConsumerWidget {
                     if (item.verifiedStatus?.contains('manually') ?? false)
                       _buildTableRow("Conf. Manual:",
                           item.manualQty?.toString() ?? '0', true),
-                    if (mInOutState.rolShowQty)
-                      _buildTableRow("Diferencia:",
-                          item.differenceQty?.toString() ?? '0', true),
                     if (mInOutState.rolShowScrap)
                       _buildTableRow("Desechado:",
                           item.scrappedQty?.toString() ?? '0', true),
+                    if (mInOutState.rolShowQty)
+                      _buildTableRow("Diferencia:",
+                          item.differenceQty?.toString() ?? '0', true),
                   ],
                 ),
               ],

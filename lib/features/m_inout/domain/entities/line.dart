@@ -9,6 +9,7 @@ class Line {
   double? scrappedQty;
   double? targetQty;
   AdEntityId? mLocatorId;
+  AdEntityId? mLocatorToId;
   AdEntityId? mProductId;
   String? upc;
   String? sku;
@@ -16,7 +17,7 @@ class Line {
   String? verifiedStatus;
   int? scanningQty;
   double? manualQty;
-  double? get differenceQty => (targetQty ?? 0.0) - (confirmedQty ?? 0.0);
+  double? get differenceQty => (targetQty ?? 0.0) - (confirmedQty ?? 0.0) - (scrappedQty ?? 0.0);
   int? confirmId;
   int? editLocator;
 
@@ -29,6 +30,7 @@ class Line {
     this.pickedQty,
     this.scrappedQty,
     this.mLocatorId,
+    this.mLocatorToId,
     this.mProductId,
     this.upc,
     this.sku,
@@ -48,7 +50,23 @@ class Line {
                 ? json["MovementQty"]
                 : double.tryParse(json["MovementQty"].toString()) ?? 0.0)
             : 0.0,
+        targetQty: json["TargetQty"] != null
+            ? (json["TargetQty"] is double
+                ? json["TargetQty"]
+                : double.tryParse(json["TargetQty"].toString()) ?? 0.0)
+            : 0.0,
+        confirmedQty: json["ConfirmedQty"] != null
+            ? (json["ConfirmedQty"] is double
+                ? json["ConfirmedQty"]
+                : double.tryParse(json["ConfirmedQty"].toString()) ?? 0.0)
+            : 0.0,
+        scrappedQty: json["ScrappedQty"] != null
+            ? (json["ScrappedQty"] is double
+                ? json["ScrappedQty"]
+                : double.tryParse(json["ScrappedQty"].toString()) ?? 0.0)
+            : 0.0,
         mLocatorId: AdEntityId.fromJson(json["M_Locator_ID"] ?? {}),
+        mLocatorToId: AdEntityId.fromJson(json["M_LocatorTo_ID"] ?? {}),
         mProductId: AdEntityId.fromJson(json["M_Product_ID"] ?? {}),
         upc: json["UPC"],
         sku: json["SKU"],
@@ -64,6 +82,7 @@ class Line {
     double? pickedQty,
     double? scrappedQty,
     AdEntityId? mLocatorId,
+    AdEntityId? mLocatorToId,
     AdEntityId? mProductId,
     String? upc,
     String? sku,
@@ -83,6 +102,7 @@ class Line {
       pickedQty: pickedQty ?? this.pickedQty,
       scrappedQty: scrappedQty ?? this.scrappedQty,
       mLocatorId: mLocatorId ?? this.mLocatorId,
+      mLocatorToId: mLocatorToId ?? this.mLocatorToId,
       mProductId: mProductId ?? this.mProductId,
       upc: upc ?? this.upc,
       sku: sku ?? this.sku,

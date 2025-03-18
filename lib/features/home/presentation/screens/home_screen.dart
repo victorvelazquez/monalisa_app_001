@@ -38,13 +38,30 @@ class HomeScreen extends StatelessWidget {
                 },
               ),
             ),
-            SizedBox(width: 40),
+            SizedBox(width: 10),
             SizedBox(
               width: 100,
               child: ListView.builder(
                 itemCount: appHomeOptionCol2Items.length,
                 itemBuilder: (context, index) {
                   final menuHomeOption = appHomeOptionCol2Items[index];
+                  return HomeOption(
+                    title: menuHomeOption.title,
+                    icon: menuHomeOption.icon,
+                    onTap: () {
+                      context.push(menuHomeOption.link);
+                    },
+                  );
+                },
+              ),
+            ),
+            SizedBox(width: 10),
+            SizedBox(
+              width: 100,
+              child: ListView.builder(
+                itemCount: appHomeOptionCol3Items.length,
+                itemBuilder: (context, index) {
+                  final menuHomeOption = appHomeOptionCol3Items[index];
                   return HomeOption(
                     title: menuHomeOption.title,
                     icon: menuHomeOption.icon,

@@ -37,6 +37,28 @@ class MInOutRepositoryImpl implements MInOutRepository {
   }
 
   @override
+  Future<List<MInOut>> getMovementList(WidgetRef ref) {
+    return dataSource.getMovementList(ref);
+  }
+
+  @override
+  Future<MInOut> getMovementAndLine(String movementDoc, WidgetRef ref) {
+    return dataSource.getMovementAndLine(movementDoc, ref);
+  }
+
+  @override
+  Future<List<MInOutConfirm>> getMovementConfirmList(
+      int movementId, WidgetRef ref) {
+    return dataSource.getMovementConfirmList(movementId, ref);
+  }
+
+  @override
+  Future<MInOutConfirm> getMovementConfirmAndLine(
+      int movementConfirmId, WidgetRef ref) {
+    return dataSource.getMovementConfirmAndLine(movementConfirmId, ref);
+  }
+
+  @override
   Future<MInOut> setDocAction(WidgetRef ref) {
     return dataSource.setDocAction(ref);
   }
@@ -45,12 +67,12 @@ class MInOutRepositoryImpl implements MInOutRepository {
   Future<LineConfirm> updateLineConfirm(Line line, WidgetRef ref) {
     return dataSource.updateLineConfirm(line, ref);
   }
-  
+
   @override
   Future<int> getLocator(String value, WidgetRef ref) {
     return dataSource.getLocator(value, ref);
   }
-  
+
   @override
   Future<bool> updateLocator(Line line, WidgetRef ref) {
     return dataSource.updateLocator(line, ref);

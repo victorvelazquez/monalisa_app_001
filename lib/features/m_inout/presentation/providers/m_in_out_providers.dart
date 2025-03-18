@@ -115,6 +115,41 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
         rolCompleteOver: false,
         rolComplete: RolesApp.appQaconfirmComplete,
       );
+    } else if (type == 'move') {
+      state = state.copyWith(
+        isSOTrx: null,
+        mInOutType: MInOutType.move,
+        title: 'Move',
+        rolShowQty: true,
+        rolManualQty: true,
+        rolShowScrap: true,
+        rolManualScrap: true,
+        rolCompleteLow: true,
+        rolCompleteOver: true,
+        rolComplete: true,
+      );
+    } else if (type == 'moveconfirm') {
+      state = state.copyWith(
+        isSOTrx: null,
+        mInOutType: MInOutType.moveConfirm,
+        title: 'Move Confirm',
+        rolShowQty: true,
+        rolManualQty: true,
+        rolShowScrap: true,
+        rolManualScrap: true,
+        rolCompleteLow: true,
+        rolCompleteOver: true,
+        rolComplete: true,
+      );
+    }
+  }
+
+  cargarLista(WidgetRef ref) async {
+    if (state.mInOutType == MInOutType.move ||
+        state.mInOutType == MInOutType.moveConfirm) {
+      await getMovementList(ref);
+    } else {
+      await getMInOutList(ref);
     }
   }
 
@@ -147,6 +182,47 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     try {
       final mInOutConfirmResponse =
           await mInOutRepository.getMInOutConfirmList(mInOutId, ref);
+      if (mInOutConfirmResponse.isEmpty) {
+        return [];
+      }
+      return mInOutConfirmResponse;
+    } catch (e) {
+      state = state.copyWith(
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+      );
+      return [];
+    }
+  }
+
+  Future<void> getMovementList(WidgetRef ref) async {
+    state = state.copyWith(isLoadingMInOutList: true, errorMessage: '');
+    try {
+      final mInOutResponse = await mInOutRepository.getMovementList(ref);
+      if (mInOutResponse.isEmpty) {
+        state = state.copyWith(
+          mInOutList: [],
+          isLoadingMInOutList: false,
+        );
+        return;
+      }
+      state = state.copyWith(
+        mInOutList: mInOutResponse,
+        isLoadingMInOutList: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        mInOutList: [],
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        isLoadingMInOutList: false,
+      );
+    }
+  }
+
+  Future<List<MInOutConfirm>> getMovementConfirmList(
+      int movementId, WidgetRef ref) async {
+    try {
+      final mInOutConfirmResponse =
+          await mInOutRepository.getMovementConfirmList(movementId, ref);
       if (mInOutConfirmResponse.isEmpty) {
         return [];
       }
@@ -251,6 +327,89 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     }
   }
 
+  Future<MInOut> getMovementAndLine(WidgetRef ref) async {
+    if (state.doc.trim().isEmpty) {
+      state = state.copyWith(
+          errorMessage: 'Por favor ingrese un número de documento válido');
+      throw Exception('Por favor ingrese un número de documento válido');
+    }
+    if (state.mInOutType == MInOutType.move) {
+      state =
+          state.copyWith(isLoading: true, viewMInOut: true, errorMessage: '');
+    }
+
+    try {
+      final mInOutResponse =
+          await mInOutRepository.getMovementAndLine(state.doc, ref);
+      final filteredLines = mInOutResponse.lines
+          .where((line) => line.mProductId?.id != null)
+          .toList();
+      if (state.mInOutType == MInOutType.move) {
+        for (int i = 0; i < filteredLines.length; i++) {
+          filteredLines[i] = filteredLines[i].copyWith(
+            targetQty: filteredLines[i].movementQty,
+            verifiedStatus: 'pending',
+          );
+        }
+      }
+      state = state.copyWith(
+        viewMInOut: state.mInOutType == MInOutType.move,
+        mInOut: mInOutResponse.copyWith(lines: filteredLines),
+        isLoading: false,
+      );
+      return mInOutResponse;
+    } catch (e) {
+      state = state.copyWith(
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        isLoading: false,
+        viewMInOut: false,
+      );
+      throw Exception(e.toString().replaceAll('Exception: ', ''));
+    }
+  }
+
+  Future<MInOutConfirm> getMovementConfirmAndLine(
+      int movementConfirmId, WidgetRef ref) async {
+    state = state.copyWith(isLoading: true, viewMInOut: true, errorMessage: '');
+    try {
+      final mInOutConfirmResponse =
+          await mInOutRepository.getMovementConfirmAndLine(movementConfirmId, ref);
+
+      final updatedLines = state.mInOut!.lines.map((line) {
+        final matchingConfirmLine =
+            mInOutConfirmResponse.linesConfirm.firstWhere(
+          (confirmLine) =>
+              confirmLine.mMovementLineId!.id.toString() == line.id.toString(),
+          orElse: () => LineConfirm(id: -1),
+        );
+        return line.copyWith(
+          confirmId:
+              matchingConfirmLine.id! > 0 ? matchingConfirmLine.id : null,
+          targetQty: matchingConfirmLine.targetQty,
+          confirmedQty: matchingConfirmLine.confirmedQty,
+          scrappedQty: matchingConfirmLine.scrappedQty,
+        );
+      }).toList();
+
+      final filteredLines =
+          updatedLines.where((line) => line.confirmId != null).toList();
+
+      state = state.copyWith(
+        mInOutConfirm: mInOutConfirmResponse,
+        mInOut: state.mInOut!.copyWith(lines: filteredLines),
+        isLoading: false,
+      );
+      return mInOutConfirmResponse;
+    } catch (e) {
+      state = state.copyWith(
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        isLoading: false,
+        viewMInOut: false,
+      );
+      throw Exception(e.toString());
+    }
+  }
+
   void clearMInOutData() {
     state = state.copyWith(
       doc: '',
@@ -288,8 +447,11 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     final List<Line> updatedLines = state.mInOut!.lines;
     final int index = updatedLines.indexWhere((l) => l.id == line.id);
     if (index != -1) {
-      final Line verifyLine =
-          _verifyLineStatusQty(line, line.scanningQty?.toDouble() ?? 0.0, state.manualQty, state.scrappedQty);
+      final Line verifyLine = _verifyLineStatusQty(
+          line,
+          line.scanningQty?.toDouble() ?? 0.0,
+          state.manualQty,
+          state.scrappedQty);
       updatedLines[index] = verifyLine;
       state =
           state.copyWith(mInOut: state.mInOut!.copyWith(lines: updatedLines));
@@ -570,8 +732,11 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
         final lineIndex = lines.indexWhere((line) => line.upc == barcode.code);
         if (lineIndex != -1) {
           final line = lines[lineIndex];
-          lines[lineIndex] =
-              _verifyLineStatusQty(line, barcode.repetitions.toDouble(), line.manualQty ?? 0, line.scrappedQty ?? 0);
+          lines[lineIndex] = _verifyLineStatusQty(
+              line,
+              barcode.repetitions.toDouble(),
+              line.manualQty ?? 0,
+              line.scrappedQty ?? 0);
         } else {
           linesOver.add(barcode.copyWith(index: linesOver.length + 1));
         }
@@ -633,8 +798,8 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     }
   }
 
-  Line _verifyLineStatusQty(Line line, double scanningQty,
-      double manualQty, double scrappedQty) {
+  Line _verifyLineStatusQty(
+      Line line, double scanningQty, double manualQty, double scrappedQty) {
     String status = 'pending';
     double confirmedQty = 0;
     if (manualQty > 0) {
@@ -709,7 +874,9 @@ enum MInOutType {
   receipt,
   receiptConfirm,
   pickConfirm,
-  qaConfirm
+  qaConfirm,
+  move,
+  moveConfirm,
 }
 
 class MInOutStatus {
