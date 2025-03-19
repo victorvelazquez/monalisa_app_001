@@ -121,12 +121,12 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
         mInOutType: MInOutType.move,
         title: 'Move',
         rolShowQty: true,
-        rolManualQty: true,
-        rolShowScrap: true,
-        rolManualScrap: true,
+        rolManualQty: false,
+        rolShowScrap: false,
+        rolManualScrap: false,
         rolCompleteLow: true,
-        rolCompleteOver: true,
-        rolComplete: true,
+        rolCompleteOver: false,
+        rolComplete: RolesApp.appMovementComplete,
       );
     } else if (type == 'moveconfirm') {
       state = state.copyWith(
@@ -135,11 +135,11 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
         title: 'Move Confirm',
         rolShowQty: true,
         rolManualQty: true,
-        rolShowScrap: true,
-        rolManualScrap: true,
+        rolShowScrap: false,
+        rolManualScrap: false,
         rolCompleteLow: true,
-        rolCompleteOver: true,
-        rolComplete: true,
+        rolCompleteOver: false,
+        rolComplete: RolesApp.appMovementconfirmComplete,
       );
     }
   }
@@ -372,8 +372,8 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       int movementConfirmId, WidgetRef ref) async {
     state = state.copyWith(isLoading: true, viewMInOut: true, errorMessage: '');
     try {
-      final mInOutConfirmResponse =
-          await mInOutRepository.getMovementConfirmAndLine(movementConfirmId, ref);
+      final mInOutConfirmResponse = await mInOutRepository
+          .getMovementConfirmAndLine(movementConfirmId, ref);
 
       final updatedLines = state.mInOut!.lines.map((line) {
         final matchingConfirmLine =
@@ -524,9 +524,10 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
   }
 
   bool isConfirmMInOut() {
-    if ((state.mInOutType == MInOutType.shipment ||
-            state.mInOutType == MInOutType.receipt) &&
-        state.mInOut?.docStatus.id.toString() == 'IP') {
+    if (((state.mInOutType == MInOutType.shipment ||
+                state.mInOutType == MInOutType.receipt) &&
+            state.mInOut?.docStatus.id.toString() == 'IP') ||
+        state.mInOutType == MInOutType.move) {
       return true;
     }
     final validStatuses = {
@@ -548,7 +549,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     state = state.copyWith(isLoading: true, errorMessage: '');
     if (state.mInOut?.id == null) {
       state = state.copyWith(
-        errorMessage: 'MInOut ID is null',
+        errorMessage: '${state.title} ID is null',
         isLoading: false,
       );
       return;
@@ -609,7 +610,11 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       }
 
       await mInOutRepository.setDocAction(ref);
-      await getMInOutConfirmAndLine(state.mInOutConfirm!.id!, ref);
+      if (state.mInOutType == MInOutType.moveConfirm) {
+        await getMovementConfirmAndLine(state.mInOutConfirm!.id!, ref);
+      } else {
+        await getMInOutConfirmAndLine(state.mInOutConfirm!.id!, ref);
+      }
 
       state = state.copyWith(
         errorMessage: '',

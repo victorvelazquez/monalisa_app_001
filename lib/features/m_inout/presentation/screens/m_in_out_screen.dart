@@ -94,7 +94,9 @@ class MInOutScreenState extends ConsumerState<MInOutScreen> {
                                 ? mInOutState.mInOutType ==
                                             MInOutType.shipment ||
                                         mInOutState.mInOutType ==
-                                            MInOutType.receipt
+                                            MInOutType.receipt ||
+                                        mInOutState.mInOutType ==
+                                            MInOutType.move
                                     ? () => mInOutNotifier.setDocAction(ref)
                                     : () =>
                                         mInOutNotifier.setDocActionConfirm(ref)
@@ -318,7 +320,7 @@ class _MInOutView extends ConsumerWidget {
           Navigator.of(context).pop();
         }
       }
-    } else if(mInOutState.mInOutType == MInOutType.move) {
+    } else if (mInOutState.mInOutType == MInOutType.move) {
       mInOutNotifier.getMovementAndLine(ref);
     } else {
       mInOutNotifier.getMInOutAndLine(ref);
@@ -330,7 +332,9 @@ class _MInOutView extends ConsumerWidget {
     final confirmStatusId = mInOutState.mInOutConfirm?.docStatus.id.toString();
 
     if (mInOutState.mInOutType != MInOutType.shipment &&
-        mInOutState.mInOutType != MInOutType.receipt) {
+        mInOutState.mInOutType != MInOutType.receipt &&
+        mInOutState.mInOutType != MInOutType.move &&
+        mInOutState.mInOutType != MInOutType.moveConfirm) {
       if (confirmStatusId == 'IP') {
         return themeColorWarningLight;
       } else if (confirmStatusId == 'CO') {
@@ -726,8 +730,10 @@ class _MInOutView extends ConsumerWidget {
                     return GestureDetector(
                       onTap: () {
                         MInOutType.moveConfirm == mInOutState.mInOutType
-                            ? mInOutNotifier.getMovementConfirmAndLine(item.id!, ref)
-                            : mInOutNotifier.getMInOutConfirmAndLine(item.id!, ref);
+                            ? mInOutNotifier.getMovementConfirmAndLine(
+                                item.id!, ref)
+                            : mInOutNotifier.getMInOutConfirmAndLine(
+                                item.id!, ref);
                         Navigator.of(context).pop();
                       },
                       child: Column(

@@ -1,143 +1,120 @@
 import 'package:monalisa_app_001/features/auth/domain/entities/role.dart';
 
 class RolesApp {
+  static final Map<String, bool> _roles = {
+
+    // SHIPMENT
+    'APP_SHIPMENT': false,
+    'APP_SHIPMENT_QTY': false,
+    'APP_SHIPMENT_MANUAL': false,
+    'APP_SHIPMENT_LOWQTY': false,
+    'APP_SHIPMENT_PREPARE': false,
+    'APP_SHIPMENT_COMPLETE': false,
+
+    // RECEIPT
+    'APP_RECEIPT': false,
+    'APP_RECEIPT_QTY': false,
+    'APP_RECEIPT_MANUAL': false,
+    'APP_RECEIPT_PREPARE': false,
+    'APP_RECEIPT_COMPLETE': false,
+
+    // SHIPMENT CONFIRM
+    'APP_SHIPMENTCONFIRM': false,
+    'APP_SHIPMENTCONFIRM_QTY': false,
+    'APP_SHIPMENTCONFIRM_MANUAL': false,
+    'APP_SHIPMENTCONFIRM_COMPLETE': false,
+
+    // RECEIPT CONFIRM
+    'APP_RECEIPTCONFIRM': false,
+    'APP_RECEIPTCONFIRM_QTY': false,
+    'APP_RECEIPTCONFIRM_MANUAL': false,
+    'APP_RECEIPTCONFIRM_COMPLETE': false,
+
+    // PICK CONFIRM
+    'APP_PICKCONFIRM': false,
+    'APP_PICKCONFIRM_QTY': false,
+    'APP_PICKCONFIRM_MANUAL': false,
+    'APP_PICKCONFIRM_COMPLETE': false,
+
+    // QA CONFIRM
+    'APP_QACONFIRM': false,
+    'APP_QACONFIRM_QTY': false,
+    'APP_QACONFIRM_MANUAL': false,
+    'APP_QACONFIRM_COMPLETE': false,
+
+    // MOVEMENT
+    'APP_MOVEMENT': false,
+    'APP_MOVEMENT_COMPLETE': false,
+
+    // MOVEMENT CONFIRM
+    'APP_MOVEMENTCONFIRM': false,
+    'APP_MOVEMENTCONFIRM_COMPLETE': false,
+
+    // INVENTORY
+    'APP_INVENTORY': false,
+    'APP_INVENTORY_QTY': false,
+    'APP_INVENTORY_COMPLETE': false,
+  };
+
   // SHIPMENT
-  static bool appShipment = false;
-  static bool appShipmentQty = false;
-  static bool appShipmentManual = false;
-  static bool appShipmentLowqty = false;
-  static bool appShipmentPrepare = false;
-  static bool appShipmentComplete = false;
+  static bool get appShipment => _roles['APP_SHIPMENT']!;
+  static bool get appShipmentQty => _roles['APP_SHIPMENT_QTY']!;
+  static bool get appShipmentManual => _roles['APP_SHIPMENT_MANUAL']!;
+  static bool get appShipmentLowqty => _roles['APP_SHIPMENT_LOWQTY']!;
+  static bool get appShipmentPrepare => _roles['APP_SHIPMENT_PREPARE']!;
+  static bool get appShipmentComplete => _roles['APP_SHIPMENT_COMPLETE']!;
 
   // RECEIPT
-  static bool appReceipt = false;
-  static bool appReceiptQty = false;
-  static bool appReceiptManual = false;
-  static bool appReceiptPrepare = false;
-  static bool appReceiptComplete = false;
+  static bool get appReceipt => _roles['APP_RECEIPT']!;
+  static bool get appReceiptQty => _roles['APP_RECEIPT_QTY']!;
+  static bool get appReceiptManual => _roles['APP_RECEIPT_MANUAL']!;
+  static bool get appReceiptPrepare => _roles['APP_RECEIPT_PREPARE']!;
+  static bool get appReceiptComplete => _roles['APP_RECEIPT_COMPLETE']!;
 
   // SHIPMENT CONFIRM
-  static bool appShipmentconfirm = false;
-  static bool appShipmentconfirmQty = false;
-  static bool appShipmentconfirmManual = false;
-  static bool appShipmentconfirmComplete = false;
+  static bool get appShipmentconfirm => _roles['APP_SHIPMENTCONFIRM']!;
+  static bool get appShipmentconfirmQty => _roles['APP_SHIPMENTCONFIRM_QTY']!;
+  static bool get appShipmentconfirmManual => _roles['APP_SHIPMENTCONFIRM_MANUAL']!;
+  static bool get appShipmentconfirmComplete => _roles['APP_SHIPMENTCONFIRM_COMPLETE']!;
 
   // RECEIPT CONFIRM
-  static bool appReceiptconfirm = false;
-  static bool appReceiptconfirmQty = false;
-  static bool appReceiptconfirmManual = false;
-  static bool appReceiptconfirmComplete = false;
+  static bool get appReceiptconfirm => _roles['APP_RECEIPTCONFIRM']!;
+  static bool get appReceiptconfirmQty => _roles['APP_RECEIPTCONFIRM_QTY']!;
+  static bool get appReceiptconfirmManual => _roles['APP_RECEIPTCONFIRM_MANUAL']!;
+  static bool get appReceiptconfirmComplete => _roles['APP_RECEIPTCONFIRM_COMPLETE']!;
 
   // PICK CONFIRM
-  static bool appPickconfirm = false;
-  static bool appPickconfirmQty = false;
-  static bool appPickconfirmManual = false;
-  static bool appPickconfirmComplete = false;
+  static bool get appPickconfirm => _roles['APP_PICKCONFIRM']!;
+  static bool get appPickconfirmQty => _roles['APP_PICKCONFIRM_QTY']!;
+  static bool get appPickconfirmManual => _roles['APP_PICKCONFIRM_MANUAL']!;
+  static bool get appPickconfirmComplete => _roles['APP_PICKCONFIRM_COMPLETE']!;
 
   // QA CONFIRM
-  static bool appQaconfirm = false;
-  static bool appQaconfirmQty = false;
-  static bool appQaconfirmManual = false;
-  static bool appQaconfirmComplete = false;
+  static bool get appQaconfirm => _roles['APP_QACONFIRM']!;
+  static bool get appQaconfirmQty => _roles['APP_QACONFIRM_QTY']!;
+  static bool get appQaconfirmManual => _roles['APP_QACONFIRM_MANUAL']!;
+  static bool get appQaconfirmComplete => _roles['APP_QACONFIRM_COMPLETE']!;
 
-  static set(List<Role> roles) {
+  // MOVEMENT
+  static bool get appMovement => _roles['APP_MOVEMENT']!;
+  static bool get appMovementComplete => _roles['APP_MOVEMENT_COMPLETE']!;
+
+  // MOVEMENT CONFIRM
+  static bool get appMovementconfirm => _roles['APP_MOVEMENTCONFIRM']!;
+  static bool get appMovementconfirmComplete => _roles['APP_MOVEMENTCONFIRM_COMPLETE']!;
+
+  // INVENTORY
+  static bool get appInventory => _roles['APP_INVENTORY']!;
+  static bool get appInventoryQty => _roles['APP_INVENTORY_QTY']!;
+  static bool get appInventoryComplete => _roles['APP_INVENTORY_COMPLETE']!;
+
+  static void set(List<Role> roles) {
     for (var role in roles) {
-      //SHIPMENT
-      if (role.name.toUpperCase() == 'APP_SHIPMENT') {
-        appShipment = true;
-      }
-      if (role.name.toUpperCase() == 'APP_SHIPMENT_QTY') {
-        appShipmentQty = true;
-      }
-      if (role.name.toUpperCase() == 'APP_SHIPMENT_MANUAL') {
-        appShipmentManual = true;
-      }
-      if (role.name.toUpperCase() == 'APP_SHIPMENT_LOWQTY') {
-        appShipmentLowqty = true;
-      }
-      if (role.name.toUpperCase() == 'APP_SHIPMENT_PREPARE') {
-        appShipmentPrepare = true;
-      }
-      if (role.name.toUpperCase() == 'APP_SHIPMENT_COMPLETE') {
-        appShipmentComplete = true;
-      }
-
-      //RECEIPT
-      if (role.name.toUpperCase() == 'APP_RECEIPT') {
-        appReceipt = true;
-      }
-      if (role.name.toUpperCase() == 'APP_RECEIPT_QTY') {
-        appReceiptQty = true;
-      }
-      if (role.name.toUpperCase() == 'APP_RECEIPT_MANUAL') {
-        appReceiptManual = true;
-      }
-      if (role.name.toUpperCase() == 'APP_RECEIPT_PREPARE') {
-        appReceiptPrepare = true;
-      }
-      if (role.name.toUpperCase() == 'APP_RECEIPT_COMPLETE') {
-        appReceiptComplete = true;
-      }
-
-      //SHIPMENT CONFIRM
-      if (role.name.toUpperCase() == 'APP_SHIPMENTCONFIRM') {
-        appShipmentconfirm = true;
-      }
-      if (role.name.toUpperCase() == 'APP_SHIPMENTCONFIRM_QTY') {
-        appShipmentconfirmQty = true;
-      }
-      if (role.name.toUpperCase() == 'APP_SHIPMENTCONFIRM_MANUAL') {
-        appShipmentconfirmManual = true;
-      }
-      if (role.name.toUpperCase() == 'APP_SHIPMENTCONFIRM_COMPLETE') {
-        appShipmentconfirmComplete = true;
-      }
-
-      //RECEIPT CONFIRM
-      if (role.name.toUpperCase() == 'APP_RECEIPTCONFIRM') {
-        appReceiptconfirm = true;
-      }
-      if (role.name.toUpperCase() == 'APP_RECEIPTCONFIRM_QTY') {
-        appReceiptconfirmQty = true;
-      }
-      if (role.name.toUpperCase() == 'APP_RECEIPTCONFIRM_MANUAL') {
-        appReceiptconfirmManual = true;
-      }
-      if (role.name.toUpperCase() == 'APP_RECEIPTCONFIRM_COMPLETE') {
-        appReceiptconfirmComplete = true;
-      }
-
-      //PICK CONFIRM
-      if (role.name.toUpperCase() == 'APP_PICKCONFIRM') {
-        appPickconfirm = true;
-      }
-      if (role.name.toUpperCase() == 'APP_PICKCONFIRM_QTY') {
-        appPickconfirmQty = true;
-      }
-      if (role.name.toUpperCase() == 'APP_PICKCONFIRM_MANUAL') {
-        appPickconfirmManual = true;
-      }
-      if (role.name.toUpperCase() == 'APP_PICKCONFIRM_COMPLETE') {
-        appPickconfirmComplete = true;
-      }
-
-      //QA CONFIRM
-      if (role.name.toUpperCase() == 'APP_QACONFIRM') {
-        appQaconfirm = true;
-      }
-      if (role.name.toUpperCase() == 'APP_QACONFIRM_QTY') {
-        appQaconfirmQty = true;
-      }
-      if (role.name.toUpperCase() == 'APP_QACONFIRM_MANUAL') {
-        appQaconfirmManual = true;
-      }
-      if (role.name.toUpperCase() == 'APP_QACONFIRM_COMPLETE') {
-        appQaconfirmComplete = true;
-      }
+      _roles[role.name.toUpperCase()] = true;
     }
   }
 
   static String getString() {
-    return 'RolesApp{appShipment: $appShipment, appShipmentQty: $appShipmentQty, appShipmentManual: $appShipmentManual, appShipmentLowqty: $appShipmentLowqty, appShipmentComplete: $appShipmentPrepare, appShipmentComplete: $appShipmentComplete, appReceipt: $appReceipt, appReceiptQty: $appReceiptQty, appReceiptManual: $appReceiptManual, appReceiptComplete: $appReceiptPrepare, appReceiptComplete: $appReceiptComplete, appShipmentconfirm: $appShipmentconfirm, appShipmentconfirmQty: $appShipmentconfirmQty, appShipmentconfirmManual: $appShipmentconfirmManual, appShipmentconfirmComplete: $appShipmentconfirmComplete, appReceiptconfirm: $appReceiptconfirm, appReceiptconfirmQty: $appReceiptconfirmQty, appReceiptconfirmManual: $appReceiptconfirmManual, appReceiptconfirmComplete: $appReceiptconfirmComplete, appPickconfirm: $appPickconfirm, appPickconfirmQty: $appPickconfirmQty, appPickconfirmManual: $appPickconfirmManual, appPickconfirmComplete: $appPickconfirmComplete, appQaconfirm: $appQaconfirm, appQaconfirmQty: $appQaconfirmQty, appQaconfirmManual: $appQaconfirmManual, appQaconfirmComplete: $appQaconfirmComplete}';
+    return 'RolesApp{${_roles.entries.map((e) => '${e.key}: ${e.value}').join(', ')}}';
   }
 }

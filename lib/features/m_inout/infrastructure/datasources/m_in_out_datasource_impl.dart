@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/line_confirm.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/locate.dart';
 import 'package:monalisa_app_001/features/shared/domain/entities/model_crud.dart';
@@ -117,7 +118,7 @@ class MInOutDataSourceImpl implements MInOutDataSource {
 
     try {
       final String url =
-          "/api/v1/models/m_movement?\$filter=M_Warehouse_ID%20eq%20$warehouseID%20AND%20(DocStatus%20eq%20'DR'%20OR%20DocStatus%20eq%20'IP')";
+          "/api/v1/models/m_movement?\$filter=(M_Warehouse_ID%20eq%20$warehouseID%20OR%20M_Warehouse_ID%20eq%20null)%20AND%20(DocStatus%20eq%20'DR'%20OR%20DocStatus%20eq%20'IP')";
 
       final response = await dio.get(url);
 
@@ -221,7 +222,7 @@ class MInOutDataSourceImpl implements MInOutDataSource {
     final int warehouseID = ref.read(authProvider).selectedWarehouse!.id;
     try {
       final String url =
-          "/api/v1/models/m_movement?\$expand=m_movementline&\$filter=DocumentNo%20eq%20'${movementDoc.toString()}'%20AND%20M_Warehouse_ID%20eq%20$warehouseID";
+          "/api/v1/models/m_movement?\$expand=m_movementline&\$filter=DocumentNo%20eq%20'${movementDoc.toString()}'%20AND%20(M_Warehouse_ID%20eq%20$warehouseID%20OR%20M_Warehouse_ID%20eq%20null)";
       final response = await dio.get(url);
 
       if (response.statusCode == 200) {
@@ -248,7 +249,8 @@ class MInOutDataSourceImpl implements MInOutDataSource {
   }
 
   @override
-  Future<List<MInOutConfirm>> getMovementConfirmList(int movementId, WidgetRef ref) async {
+  Future<List<MInOutConfirm>> getMovementConfirmList(
+      int movementId, WidgetRef ref) async {
     await _dioInitialized;
     final mInOutState = ref.watch(mInOutProvider);
 
@@ -281,7 +283,8 @@ class MInOutDataSourceImpl implements MInOutDataSource {
   }
 
   @override
-  Future<MInOutConfirm> getMovementConfirmAndLine(int movementConfirmId, WidgetRef ref) async {
+  Future<MInOutConfirm> getMovementConfirmAndLine(
+      int movementConfirmId, WidgetRef ref) async {
     await _dioInitialized;
     final mInOutState = ref.watch(mInOutProvider);
     try {
@@ -316,8 +319,11 @@ class MInOutDataSourceImpl implements MInOutDataSource {
   Future<MInOut> setDocAction(WidgetRef ref) async {
     await _dioInitialized;
     final mInOutState = ref.watch(mInOutProvider);
+
     final isConfirm = mInOutState.mInOutType != MInOutType.shipment &&
-        mInOutState.mInOutType != MInOutType.receipt;
+        mInOutState.mInOutType != MInOutType.receipt &&
+        mInOutState.mInOutType != MInOutType.move;
+
     final currentStatus = isConfirm
         ? mInOutState.mInOutConfirm?.docStatus.id?.toString() ?? 'DR'
         : mInOutState.mInOut?.docStatus.id?.toString() ?? 'DR';
@@ -332,16 +338,33 @@ class MInOutDataSourceImpl implements MInOutDataSource {
       final String url =
           "/ADInterface/services/rest/model_adservice/set_docaction";
       final authData = ref.read(authProvider);
+
+      final serviceType = isConfirm
+          ? (mInOutState.mInOutType == MInOutType.moveConfirm
+              ? 'SetDocumentActionMovementConfirm'
+              : 'SetDocumentActionInOutConfirm')
+          : (mInOutState.mInOutType == MInOutType.move
+              ? 'SetDocumentActionMovement'
+              : 'SetDocumentActionShipment');
+
+      final tableName = isConfirm
+          ? (mInOutState.mInOutType == MInOutType.moveConfirm
+              ? 'M_MovementConfirm'
+              : 'M_InOutConfirm')
+          : (mInOutState.mInOutType == MInOutType.move
+              ? 'M_Movement'
+              : 'M_InOut');
+
+      final recordId = isConfirm
+          ? mInOutState.mInOutConfirm?.id ?? 0
+          : mInOutState.mInOut?.id ?? 0;
+
       final request = {
         'ModelSetDocActionRequest': ModelSetDocActionRequest(
           modelSetDocAction: ModelSetDocAction(
-            serviceType: isConfirm
-                ? 'SetDocumentActionInOutConfirm'
-                : 'SetDocumentActionShipment',
-            tableName: isConfirm ? 'M_InOutConfirm' : 'M_InOut',
-            recordId: isConfirm
-                ? mInOutState.mInOutConfirm!.id
-                : mInOutState.mInOut!.id,
+            serviceType: serviceType,
+            tableName: tableName,
+            recordId: recordId,
             docAction: status,
           ),
           adLoginRequest: AdLoginRequest(
@@ -363,16 +386,15 @@ class MInOutDataSourceImpl implements MInOutDataSource {
         final standardResponse =
             StandardResponse.fromJson(response.data['StandardResponse']);
         if (standardResponse.isError == false) {
-          if (isConfirm) {
-            return mInOutState.mInOut!;
+          final mInOutResponse = mInOutState.mInOutType == MInOutType.move
+              ? await getMovementAndLine(
+                  mInOutState.mInOut!.documentNo!.toString(), ref)
+              : await getMInOutAndLine(
+                  mInOutState.mInOut!.documentNo!.toString(), ref);
+          if (mInOutResponse.id == mInOutState.mInOut!.id) {
+            return mInOutResponse;
           } else {
-            final mInOutResponse = await getMInOutAndLine(
-                mInOutState.mInOut!.documentNo!.toString(), ref);
-            if (mInOutResponse.id == mInOutState.mInOut!.id) {
-              return mInOutResponse;
-            } else {
-              throw Exception('Error al confirmar el ${mInOutState.title}');
-            }
+            throw Exception('Error al confirmar el ${mInOutState.title}');
           }
         } else {
           throw Exception(standardResponse.error ?? 'Unknown error');
@@ -397,11 +419,21 @@ class MInOutDataSourceImpl implements MInOutDataSource {
           "/ADInterface/services/rest/model_adservice/update_data";
 
       final authData = ref.read(authProvider);
+      final mInOutData = ref.read(mInOutProvider);
+
+      String serviceType = 'UpdateInOutLineConfirm';
+      String tableName = 'M_InOutLineConfirm';
+
+      if (mInOutData.mInOutType == MInOutType.moveConfirm) {
+        serviceType = 'UpdateMovementLineConfirm';
+        tableName = 'M_MovementLineConfirm';
+      }
+
       final request = {
         'ModelCRUDRequest': ModelCrudRequest(
           modelCrud: ModelCrud(
-            serviceType: 'UpdateInOutLineConfirm',
-            tableName: 'M_InOutLineConfirm',
+            serviceType: serviceType,
+            tableName: tableName,
             recordId: line.confirmId,
             action: "Update",
             dataRow: {
@@ -409,10 +441,11 @@ class MInOutDataSourceImpl implements MInOutDataSource {
                 FieldCrud(
                     column: 'ConfirmedQty', val: line.confirmedQty.toString()),
                 FieldCrud(
-                    column: 'DifferenceQty',
-                    val: line.differenceQty.toString()),
-                FieldCrud(
                     column: 'ScrappedQty', val: line.scrappedQty.toString()),
+                FieldCrud(
+                    column: 'Description',
+                    val:
+                        '${DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now())} --> ${authData.userName} --> ${(line.manualQty ?? 0) > 0 ? 'Manual Confirm' : 'Scanner Confirm'} }'),
               ].map((field) => field.toJson()).toList(),
             },
           ),
@@ -493,19 +526,33 @@ class MInOutDataSourceImpl implements MInOutDataSource {
           "/ADInterface/services/rest/model_adservice/update_data";
 
       final authData = ref.read(authProvider);
+      final mInOutData = ref.read(mInOutProvider);
+
+      String serviceType = 'UpdateInOutLine';
+      String tableName = 'M_InOutLine';
+      String locator = 'M_Locator_ID';
+
+      if (mInOutData.mInOutType == MInOutType.move ||
+          mInOutData.mInOutType == MInOutType.moveConfirm) {
+        serviceType = 'UpdateMovementLine';
+        tableName = 'M_MovementLine';
+        locator = 'M_LocatorTo_ID';
+      }
+
       final request = {
         'ModelCRUDRequest': ModelCrudRequest(
           modelCrud: ModelCrud(
-            serviceType: 'UpdateInOutLine',
-            tableName: 'M_InOutLine',
+            serviceType: serviceType,
+            tableName: tableName,
             recordId: line.id,
             action: "Update",
             dataRow: {
               'field': [
                 FieldCrud(
-                    column: 'Description', val: line.mLocatorId!.identifier),
-                FieldCrud(
-                    column: 'M_Locator_ID', val: line.editLocator.toString()),
+                    column: 'Description',
+                    val:
+                        '${DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now())} --> ${authData.userName} --> ${line.mLocatorId!.identifier} --> ${line.editLocator.toString()}'),
+                FieldCrud(column: locator, val: line.editLocator.toString()),
               ].map((field) => field.toJson()).toList(),
             },
           ),
