@@ -32,7 +32,13 @@ class CustomDropDown<T> extends ConsumerWidget {
       children: [
         Padding(
           padding: EdgeInsets.only(left: themeBorderRadius / 2),
-          child: Text(label, style: TextStyle(fontSize: themeFontSizeSmall)),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: themeFontSizeSmall,
+              fontWeight: FontWeight.normal,
+            ),
+          ),
         ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -65,6 +71,7 @@ class CustomDropDown<T> extends ConsumerWidget {
                             maxLines: 1,
                             style: TextStyle(
                               fontSize: themeFontSizeNormal,
+                              fontWeight: FontWeight.normal,
                             ),
                           ),
                         ),

@@ -7,6 +7,9 @@ import 'package:monalisa_app_001/features/shared/shared.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/line.dart';
 import 'package:monalisa_app_001/features/m_inout/presentation/widgets/barcode_list.dart';
 import 'package:intl/intl.dart';
+import '../../../auth/domain/entities/warehouse.dart';
+import '../../../shared/presentation/widgets/container_action_buttons.dart';
+import '../../../shared/presentation/widgets/custom_drop_down.dart';
 import '../../domain/entities/barcode.dart';
 import '../providers/m_in_out_providers.dart';
 import '../widgets/enter_barcode_button.dart';
@@ -86,7 +89,7 @@ class MInOutScreenState extends ConsumerState<MInOutScreen> {
               ),
               actions: mInOutState.viewMInOut &&
                       !mInOutState.isComplete &&
-                      mInOutState.mInOut?.docStatus.id.toString() != 'CO'
+                      mInOutState.mInOut?.docStatus?.id.toString() != 'CO'
                   ? [
                       IconButton(
                         onPressed: mInOutNotifier.isRolComplete()
@@ -110,7 +113,19 @@ class MInOutScreenState extends ConsumerState<MInOutScreen> {
                         ),
                       ),
                     ]
-                  : null,
+                  : mInOutState.mInOutType == MInOutType.move &&
+                          !mInOutState.viewMInOut
+                      ? [
+                          IconButton(
+                            onPressed: () =>
+                                mInOutNotifier.showNewInventoryMove(ref),
+                            icon: Icon(
+                              Icons.add,
+                              color: themeColorPrimary,
+                            ),
+                          ),
+                        ]
+                      : null,
             ),
             body: TabBarView(
               children: [
@@ -216,63 +231,62 @@ class _MInOutView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SafeArea(
-      child: !mInOutState.viewMInOut
-          ? Column(
-              children: [
-                SizedBox(height: 4),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: CustomTextFormField(
-                    keyboardType: TextInputType.text,
-                    hint: 'Ingresar documento',
-                    onChanged: mInOutNotifier.onDocChange,
-                    onFieldSubmitted: (value) async {
-                      await _loadMInOutAndLine(context, ref);
-                    },
-                    prefixIcon: Icon(Icons.qr_code_scanner_rounded),
-                    suffixIcon: IconButton(
-                      icon: Icon(Icons.send_rounded),
-                      color: themeColorPrimary,
-                      onPressed: () async {
-                        await _loadMInOutAndLine(context, ref);
-                      },
-                    ),
-                  ),
-                ),
-                SizedBox(height: 8),
-                if (mInOutState.mInOutList.isNotEmpty) Divider(height: 0),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: ListView(
-                      children: [
-                        _buildMInOutList(ref),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            )
-          : mInOutState.isLoading
-              ? SizedBox(
-                  child: const Center(child: CircularProgressIndicator()),
-                )
-              : ListView(
+      child: mInOutState.viewNewInventoryMove
+          ? _buildNewInventoryMove(context, ref)
+          : !mInOutState.viewMInOut
+              ? Column(
                   children: [
-                    _buildMInOutHeader(context, ref),
-                    const SizedBox(height: 5),
-                    _buildActionOrderList(mInOutNotifier),
-                    const SizedBox(height: 5),
-                    _buildMInOutLineList(mInOutState, ref),
-                    mInOutState.linesOver.isNotEmpty
-                        ? _buildListOver(
+                    SizedBox(height: 4),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: CustomTextFormField(
+                        keyboardType: TextInputType.text,
+                        hint: 'Ingresar documento',
+                        onChanged: mInOutNotifier.onDocChange,
+                        onFieldSubmitted: (value) async {
+                          await _loadMInOutAndLine(context, ref);
+                        },
+                        prefixIcon: Icon(Icons.qr_code_scanner_rounded),
+                        suffixIcon: IconButton(
+                          icon: Icon(Icons.send_rounded),
+                          color: themeColorPrimary,
+                          onPressed: () async {
+                            await _loadMInOutAndLine(context, ref);
+                          },
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    if (mInOutState.mInOutList.isNotEmpty) Divider(height: 0),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: ListView(
+                          children: [
+                            _buildMInOutList(ref),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : mInOutState.isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView(
+                      children: [
+                        _buildMInOutHeader(context, ref),
+                        const SizedBox(height: 5),
+                        _buildActionOrderList(mInOutNotifier),
+                        const SizedBox(height: 5),
+                        _buildMInOutLineList(mInOutState, ref),
+                        if (mInOutState.linesOver.isNotEmpty)
+                          _buildListOver(
                             context,
                             mInOutState.linesOver,
                             mInOutNotifier,
-                          )
-                        : SizedBox(),
-                  ],
-                ),
+                          ),
+                      ],
+                    ),
     );
   }
 
@@ -328,7 +342,7 @@ class _MInOutView extends ConsumerWidget {
   }
 
   Color _getHeaderBackgroundColor(MInOutStatus mInOutState) {
-    final docStatusId = mInOutState.mInOut?.docStatus.id.toString();
+    final docStatusId = mInOutState.mInOut?.docStatus?.id.toString();
     final confirmStatusId = mInOutState.mInOutConfirm?.docStatus.id.toString();
 
     if (mInOutState.mInOutType != MInOutType.shipment &&
@@ -348,6 +362,73 @@ class _MInOutView extends ConsumerWidget {
       }
     }
     return themeBackgroundColorLight;
+  }
+
+  Widget _buildNewInventoryMove(BuildContext context, WidgetRef ref) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: ListView(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: Text('Del Almacén',
+                style: TextStyle(fontSize: themeFontSizeSmall)),
+          ),
+          CustomTextFormField(
+            initialValue: mInOutState.fromWarehouse!.name,
+            readOnly: true,
+          ),
+          const SizedBox(height: 4),
+          CustomDropDown<Warehouse>(
+            label: 'Al Almacén',
+            value: mInOutState.toWarehouse,
+            options: mInOutState.warehouseList,
+            onChanged: (warehouse) =>
+                mInOutNotifier.changedToWarehouse(warehouse!),
+          ),
+          const SizedBox(height: 4),
+          CustomTextFormField(
+            labelTop: 'Al Estante',
+            initialValue: '',
+            onChanged: mInOutNotifier.onEditLocatorChange,
+            autofocus: true,
+          ),
+          const SizedBox(height: 4),
+          CheckboxListTile(
+            title: Text('Ask Locator',
+                style: TextStyle(fontSize: themeFontSizeNormal)),
+            value: mInOutState.askLocator,
+            onChanged: (value) => mInOutNotifier.setAskLocator(),
+            controlAffinity: ListTileControlAffinity.leading,
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+          ),
+          const SizedBox(height: 16),
+          ContainerActionButtons(
+            center: true,
+            children: [
+              CustomFilledButton(
+                onPressed: () {
+                  mInOutNotifier.createNewInventoryMove(ref);
+                },
+                label: 'Continuar',
+                icon: const Icon(Icons.check),
+              ),
+              CustomFilledButton(
+                onPressed: () {
+                  // mInOutNotifier.cancelNewInventoryMove(context);
+                },
+                label: 'Cancelar',
+                icon: const Icon(Icons.close),
+                labelColor: Colors.white,
+                buttonColor: themeColorGray,
+              )
+            ],
+          ),
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
   }
 
   Widget _buildMInOutHeader(BuildContext context, WidgetRef ref) {
@@ -376,7 +457,8 @@ class _MInOutView extends ConsumerWidget {
                     if (mInOutState.mInOutType == MInOutType.shipmentConfirm ||
                         mInOutState.mInOutType == MInOutType.receiptConfirm ||
                         mInOutState.mInOutType == MInOutType.pickConfirm ||
-                        mInOutState.mInOutType == MInOutType.qaConfirm)
+                        mInOutState.mInOutType == MInOutType.qaConfirm ||
+                        mInOutState.mInOutType == MInOutType.moveConfirm)
                       Text(
                         'Confirm No.: ',
                         style: const TextStyle(
@@ -391,20 +473,24 @@ class _MInOutView extends ConsumerWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Text(
-                      'Order: ',
-                      style: const TextStyle(
-                        fontSize: themeFontSizeSmall,
-                        fontWeight: FontWeight.bold,
+                    if (mInOutState.mInOutType != MInOutType.move &&
+                        mInOutState.mInOutType != MInOutType.moveConfirm)
+                      Text(
+                        'Order: ',
+                        style: const TextStyle(
+                          fontSize: themeFontSizeSmall,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    Text(
-                      'O. Date: ',
-                      style: const TextStyle(
-                        fontSize: themeFontSizeSmall,
-                        fontWeight: FontWeight.bold,
+                    if (mInOutState.mInOutType != MInOutType.move &&
+                        mInOutState.mInOutType != MInOutType.moveConfirm)
+                      Text(
+                        'O. Date: ',
+                        style: const TextStyle(
+                          fontSize: themeFontSizeSmall,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
                     Text(
                       'Org.: ',
                       style: const TextStyle(
@@ -413,14 +499,20 @@ class _MInOutView extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      'Whs.: ',
+                      mInOutState.mInOutType == MInOutType.move ||
+                              mInOutState.mInOutType == MInOutType.moveConfirm
+                          ? 'From Whs.: '
+                          : 'Whs.: ',
                       style: const TextStyle(
                         fontSize: themeFontSizeSmall,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
-                      'BP: ',
+                      mInOutState.mInOutType == MInOutType.move ||
+                              mInOutState.mInOutType == MInOutType.moveConfirm
+                          ? 'To Whs.: '
+                          : 'BP: ',
                       style: const TextStyle(
                         fontSize: themeFontSizeSmall,
                         fontWeight: FontWeight.bold,
@@ -438,7 +530,8 @@ class _MInOutView extends ConsumerWidget {
                     if (mInOutState.mInOutType == MInOutType.shipmentConfirm ||
                         mInOutState.mInOutType == MInOutType.receiptConfirm ||
                         mInOutState.mInOutType == MInOutType.pickConfirm ||
-                        mInOutState.mInOutType == MInOutType.qaConfirm)
+                        mInOutState.mInOutType == MInOutType.qaConfirm ||
+                        mInOutState.mInOutType == MInOutType.moveConfirm)
                       Text(
                         'Confirm Status: ',
                         style: const TextStyle(
@@ -453,57 +546,66 @@ class _MInOutView extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      mInOutState.mInOut!.documentNo ?? '',
+                      mInOutState.mInOut?.documentNo ?? '',
                       style: TextStyle(fontSize: themeFontSizeSmall),
                     ),
                     if (mInOutState.mInOutType == MInOutType.shipmentConfirm ||
                         mInOutState.mInOutType == MInOutType.receiptConfirm ||
                         mInOutState.mInOutType == MInOutType.pickConfirm ||
-                        mInOutState.mInOutType == MInOutType.qaConfirm)
+                        mInOutState.mInOutType == MInOutType.qaConfirm ||
+                        mInOutState.mInOutType == MInOutType.moveConfirm)
                       Text(
-                        mInOutState.mInOutConfirm!.documentNo ?? '',
+                        mInOutState.mInOutConfirm?.documentNo ?? '',
                         style: TextStyle(fontSize: themeFontSizeSmall),
                       ),
                     Text(
-                      mInOutState.mInOut!.movementDate != null
+                      mInOutState.mInOut?.movementDate != null
                           ? DateFormat('dd/MM/yyyy')
                               .format(mInOutState.mInOut!.movementDate!)
                           : '',
                       style: TextStyle(fontSize: themeFontSizeSmall),
                     ),
+                    if (mInOutState.mInOutType != MInOutType.move &&
+                        mInOutState.mInOutType != MInOutType.moveConfirm)
+                      Text(
+                        mInOutState.mInOut?.cOrderId?.identifier ?? '',
+                        style: TextStyle(fontSize: themeFontSizeSmall),
+                      ),
+                    if (mInOutState.mInOutType != MInOutType.move &&
+                        mInOutState.mInOutType != MInOutType.moveConfirm)
+                      Text(
+                        mInOutState.mInOut?.dateOrdered != null
+                            ? DateFormat('dd/MM/yyyy')
+                                .format(mInOutState.mInOut!.dateOrdered!)
+                            : '',
+                        style: TextStyle(fontSize: themeFontSizeSmall),
+                      ),
                     Text(
-                      mInOutState.mInOut!.cOrderId.identifier ?? '',
+                      mInOutState.mInOut?.adOrgId?.identifier ?? '',
                       style: TextStyle(fontSize: themeFontSizeSmall),
                     ),
                     Text(
-                      mInOutState.mInOut!.dateOrdered != null
-                          ? DateFormat('dd/MM/yyyy')
-                              .format(mInOutState.mInOut!.dateOrdered!)
-                          : '',
+                      mInOutState.mInOut?.mWarehouseId?.identifier ?? '',
                       style: TextStyle(fontSize: themeFontSizeSmall),
                     ),
                     Text(
-                      mInOutState.mInOut!.adOrgId.identifier ?? '',
+                      mInOutState.mInOutType == MInOutType.move ||
+                              mInOutState.mInOutType == MInOutType.moveConfirm
+                          ? mInOutState.mInOut?.mWarehouseToId?.identifier ?? ''
+                          : mInOutState.mInOut?.cBPartnerId?.identifier ?? '',
                       style: TextStyle(fontSize: themeFontSizeSmall),
                     ),
                     Text(
-                      mInOutState.mInOut!.mWarehouseId.identifier ?? '',
-                      style: TextStyle(fontSize: themeFontSizeSmall),
-                    ),
-                    Text(
-                      mInOutState.mInOut!.cBPartnerId.identifier ?? '',
-                      style: TextStyle(fontSize: themeFontSizeSmall),
-                    ),
-                    Text(
-                      mInOutState.mInOut!.docStatus.identifier ?? '',
+                      mInOutState.mInOut?.docStatus?.identifier ?? '',
                       style: TextStyle(fontSize: themeFontSizeSmall),
                     ),
                     if (mInOutState.mInOutType == MInOutType.shipmentConfirm ||
                         mInOutState.mInOutType == MInOutType.receiptConfirm ||
                         mInOutState.mInOutType == MInOutType.pickConfirm ||
-                        mInOutState.mInOutType == MInOutType.qaConfirm)
+                        mInOutState.mInOutType == MInOutType.qaConfirm ||
+                        mInOutState.mInOutType == MInOutType.moveConfirm)
                       Text(
-                        mInOutState.mInOutConfirm!.docStatus.identifier ?? '',
+                        mInOutState.mInOutConfirm?.docStatus.identifier ?? '',
                         style: TextStyle(fontSize: themeFontSizeSmall),
                       ),
                   ],
@@ -636,7 +738,7 @@ class _MInOutView extends ConsumerWidget {
                       children: [
                         Divider(height: 0),
                         Container(
-                          color: item.docStatus.id == 'IP'
+                          color: item.docStatus?.id == 'IP'
                               ? themeColorWarningLight
                               : null,
                           child: Row(
@@ -866,7 +968,7 @@ class _MInOutView extends ConsumerWidget {
                       style: TextStyle(fontSize: themeFontSizeSmall),
                     ),
                     Text(
-                      mInOut.cOrderId.identifier ?? '',
+                      mInOut.cOrderId?.identifier ?? '',
                       style: TextStyle(fontSize: themeFontSizeSmall),
                     ),
                     Text(
@@ -876,19 +978,19 @@ class _MInOutView extends ConsumerWidget {
                       style: TextStyle(fontSize: themeFontSizeSmall),
                     ),
                     Text(
-                      mInOut.adOrgId.identifier ?? '',
+                      mInOut.adOrgId?.identifier ?? '',
                       style: TextStyle(fontSize: themeFontSizeSmall),
                     ),
                     Text(
-                      mInOut.mWarehouseId.identifier ?? '',
+                      mInOut.mWarehouseId?.identifier ?? '',
                       style: TextStyle(fontSize: themeFontSizeSmall),
                     ),
                     Text(
-                      mInOut.cBPartnerId.identifier ?? '',
+                      mInOut.cBPartnerId?.identifier ?? '',
                       style: TextStyle(fontSize: themeFontSizeSmall),
                     ),
                     Text(
-                      mInOut.docStatus.identifier ?? '',
+                      mInOut.docStatus?.identifier ?? '',
                       style: TextStyle(fontSize: themeFontSizeSmall),
                     ),
                   ],

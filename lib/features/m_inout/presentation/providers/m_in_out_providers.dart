@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:monalisa_app_001/features/auth/domain/entities/warehouse.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/line.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/m_in_out.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/m_in_out_confirm.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/repositories/m_in_out_repositiry.dart';
+import 'package:monalisa_app_001/features/shared/domain/entities/ad_entity_id.dart';
 import '../../../../config/constants/roles_app.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/barcode.dart';
 import '../../domain/entities/line_confirm.dart';
 import '../../infrastructure/repositories/m_in_out_repository_impl.dart';
@@ -25,8 +28,10 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
           scanBarcodeListTotal: [],
           scanBarcodeListUnique: [],
           linesOver: [],
+          warehouseList: [],
           uniqueView: false,
           viewMInOut: false,
+          viewNewInventoryMove: false,
           isComplete: false,
         ));
 
@@ -36,7 +41,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
         isSOTrx: true,
         mInOutType: MInOutType.shipment,
         title: 'Shipment',
-        rolShowQty: state.mInOut?.docStatus.id.toString() == 'IP'
+        rolShowQty: state.mInOut?.docStatus?.id.toString() == 'IP'
             ? true
             : RolesApp.appShipmentQty,
         rolManualQty: RolesApp.appShipmentManual,
@@ -78,7 +83,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
         isSOTrx: false,
         mInOutType: MInOutType.receipt,
         title: 'Receipt',
-        rolShowQty: state.mInOut?.docStatus.id.toString() == 'IP'
+        rolShowQty: state.mInOut?.docStatus?.id.toString() == 'IP'
             ? true
             : RolesApp.appReceiptQty,
         rolManualQty: RolesApp.appReceiptManual,
@@ -233,6 +238,55 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       );
       return [];
     }
+  }
+
+  void showNewInventoryMove(WidgetRef ref) {
+    final authDataState = ref.watch(authProvider);
+    state = state.copyWith(
+      warehouseList: [...authDataState.warehouses],
+      fromWarehouse: authDataState.selectedWarehouse,
+      toWarehouse: authDataState.warehouses[1],
+      viewNewInventoryMove: true,
+    );
+  }
+
+  void changedFromWarehouse(Warehouse value) {
+    state = state.copyWith(fromWarehouse: value);
+  }
+
+  void changedToWarehouse(Warehouse value) {
+    state = state.copyWith(toWarehouse: value);
+  }
+
+  void setAskLocator() {
+    state = state.copyWith(askLocator: !state.askLocator);
+  }
+
+  void createNewInventoryMove(WidgetRef ref) {
+    AdEntityId fromWarehouse = AdEntityId(
+      id: state.fromWarehouse?.id.toString() ?? '',
+      propertyLabel: 'Warehouse',
+      identifier: state.fromWarehouse?.name ?? '',
+      modelName: 'm_warehouse',
+    );
+
+    AdEntityId toWarehouse = AdEntityId(
+      id: state.toWarehouse?.id.toString() ?? '',
+      propertyLabel: 'Warehouse',
+      identifier: state.toWarehouse?.name ?? '',
+      modelName: 'm_warehouse',
+    );
+
+    MInOut mInOut = MInOut(
+      mWarehouseId: fromWarehouse,
+      mWarehouseToId: toWarehouse,
+      lines: [],
+    );
+    state = state.copyWith(
+      mInOut: mInOut,
+      viewNewInventoryMove: false,
+      viewMInOut: true,
+    );
   }
 
   void onDocChange(String value) {
@@ -421,7 +475,9 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       scanBarcodeListTotal: [],
       scanBarcodeListUnique: [],
       linesOver: [],
+      warehouseList: [],
       viewMInOut: false,
+      viewNewInventoryMove: false,
       uniqueView: false,
       orderBy: 'line',
       errorMessage: '',
@@ -505,10 +561,10 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
   bool isRolComplete() {
     if (state.mInOutType == MInOutType.shipment ||
         state.mInOutType == MInOutType.receipt) {
-      if (state.mInOut?.docStatus.id.toString() == 'DR' &&
+      if (state.mInOut?.docStatus?.id.toString() == 'DR' &&
           (state.rolPrepare || state.rolComplete)) {
         return true;
-      } else if (state.mInOut?.docStatus.id.toString() == 'IP' &&
+      } else if (state.mInOut?.docStatus?.id.toString() == 'IP' &&
           state.rolComplete) {
         return true;
       } else {
@@ -526,7 +582,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
   bool isConfirmMInOut() {
     if (((state.mInOutType == MInOutType.shipment ||
                 state.mInOutType == MInOutType.receipt) &&
-            state.mInOut?.docStatus.id.toString() == 'IP') ||
+            state.mInOut?.docStatus?.id.toString() == 'IP') ||
         state.mInOutType == MInOutType.move) {
       return true;
     }
@@ -895,7 +951,12 @@ class MInOutStatus {
   final List<Barcode> scanBarcodeListTotal;
   final List<Barcode> scanBarcodeListUnique;
   final List<Barcode> linesOver;
+  final List<Warehouse> warehouseList;
+  final Warehouse? fromWarehouse;
+  final Warehouse? toWarehouse;
+  final bool askLocator;
   final bool viewMInOut;
+  final bool viewNewInventoryMove;
   final bool uniqueView;
   final String orderBy;
   final double manualQty;
@@ -927,7 +988,12 @@ class MInOutStatus {
     required this.scanBarcodeListTotal,
     required this.scanBarcodeListUnique,
     this.linesOver = const [],
+    this.warehouseList = const [],
+    this.fromWarehouse,
+    this.toWarehouse,
+    this.askLocator = false,
     this.viewMInOut = false,
+    this.viewNewInventoryMove = false,
     this.uniqueView = false,
     this.orderBy = '',
     this.manualQty = 0,
@@ -958,7 +1024,12 @@ class MInOutStatus {
     List<Barcode>? scanBarcodeListTotal,
     List<Barcode>? scanBarcodeListUnique,
     List<Barcode>? linesOver,
+    List<Warehouse>? warehouseList,
+    Warehouse? fromWarehouse,
+    Warehouse? toWarehouse,
+    bool? askLocator,
     bool? viewMInOut,
+    bool? viewNewInventoryMove,
     bool? uniqueView,
     String? orderBy,
     double? manualQty,
@@ -989,7 +1060,12 @@ class MInOutStatus {
         scanBarcodeListUnique:
             scanBarcodeListUnique ?? this.scanBarcodeListUnique,
         linesOver: linesOver ?? this.linesOver,
+        warehouseList: warehouseList ?? this.warehouseList,
+        fromWarehouse: fromWarehouse ?? this.fromWarehouse,
+        toWarehouse: toWarehouse ?? this.toWarehouse,
+        askLocator: askLocator ?? this.askLocator,
         viewMInOut: viewMInOut ?? this.viewMInOut,
+        viewNewInventoryMove: viewNewInventoryMove ?? this.viewNewInventoryMove,
         orderBy: orderBy ?? this.orderBy,
         manualQty: manualQty ?? this.manualQty,
         scrappedQty: scrappedQty ?? this.scrappedQty,

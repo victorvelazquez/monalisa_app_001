@@ -326,7 +326,7 @@ class MInOutDataSourceImpl implements MInOutDataSource {
 
     final currentStatus = isConfirm
         ? mInOutState.mInOutConfirm?.docStatus.id?.toString() ?? 'DR'
-        : mInOutState.mInOut?.docStatus.id?.toString() ?? 'DR';
+        : mInOutState.mInOut?.docStatus?.id?.toString() ?? 'DR';
 
     final status = isConfirm
         ? 'CO'

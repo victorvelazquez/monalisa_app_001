@@ -4,29 +4,29 @@ import 'line.dart';
 class MInOut {
   int? id;
   DateTime? movementDate;
-  AdEntityId adOrgId;
+  AdEntityId? adOrgId;
   bool? isSoTrx;
   String? documentNo;
-  AdEntityId cBPartnerId;
-  AdEntityId mWarehouseId;
-  AdEntityId mWarehouseToId;
-  AdEntityId cOrderId;
+  AdEntityId? cBPartnerId;
+  AdEntityId? mWarehouseId;
+  AdEntityId? mWarehouseToId;
+  AdEntityId? cOrderId;
   DateTime? dateOrdered;
-  AdEntityId docStatus;
+  AdEntityId? docStatus;
   List<Line> lines;
 
   MInOut({
     this.id,
-    required this.movementDate,
-    required this.adOrgId,
+    this.movementDate,
+    this.adOrgId,
     this.isSoTrx,
     this.documentNo,
-    required this.cBPartnerId,
-    required this.mWarehouseId,
-    required this.mWarehouseToId,
-    required this.cOrderId,
-    required this.dateOrdered,
-    required this.docStatus,
+    this.cBPartnerId,
+    this.mWarehouseId,
+    this.mWarehouseToId,
+    this.cOrderId,
+    this.dateOrdered,
+    this.docStatus,
     this.lines = const [],
   });
 
