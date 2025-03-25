@@ -26,14 +26,25 @@ class MInOutRepositoryImpl implements MInOutRepository {
   }
 
   @override
-  Future<MInOut> getMInOutAndLine(String mInOutDoc, WidgetRef ref) {
-    return dataSource.getMInOutAndLine(mInOutDoc, ref);
+  Future<MInOut> getMInOut(String mInOutDoc, WidgetRef ref) {
+    return dataSource.getMInOut(mInOutDoc, ref);
   }
 
   @override
-  Future<MInOutConfirm> getMInOutConfirmAndLine(
+  Future<List<Line>> getLinesMInOut(int mInOutId, WidgetRef ref) {
+    return dataSource.getLinesMInOut(mInOutId, ref);
+  }
+
+  @override
+  Future<MInOutConfirm> getMInOutConfirm(
       int mInOutConfirmId, WidgetRef ref) {
-    return dataSource.getMInOutConfirmAndLine(mInOutConfirmId, ref);
+    return dataSource.getMInOutConfirm(mInOutConfirmId, ref);
+  }
+
+  @override
+  Future<List<LineConfirm>> getLinesMInOutConfirm(
+      int mInOutConfirmId, WidgetRef ref) {
+    return dataSource.getLinesMInOutConfirm(mInOutConfirmId, ref);
   }
 
   @override
@@ -42,8 +53,13 @@ class MInOutRepositoryImpl implements MInOutRepository {
   }
 
   @override
-  Future<MInOut> getMovementAndLine(String movementDoc, WidgetRef ref) {
-    return dataSource.getMovementAndLine(movementDoc, ref);
+  Future<MInOut> getMovement(String movementDoc, WidgetRef ref) {
+    return dataSource.getMovement(movementDoc, ref);
+  }
+
+  @override
+  Future<List<Line>> getLinesMovement(int movementId, WidgetRef ref) {
+    return dataSource.getLinesMovement(movementId, ref);
   }
 
   @override
@@ -53,9 +69,15 @@ class MInOutRepositoryImpl implements MInOutRepository {
   }
 
   @override
-  Future<MInOutConfirm> getMovementConfirmAndLine(
+  Future<MInOutConfirm> getMovementConfirm(
       int movementConfirmId, WidgetRef ref) {
-    return dataSource.getMovementConfirmAndLine(movementConfirmId, ref);
+    return dataSource.getMovementConfirm(movementConfirmId, ref);
+  }
+
+  @override
+  Future<List<LineConfirm>> getLinesMovementConfirm(
+      int movementConfirmId, WidgetRef ref) {
+    return dataSource.getLinesMovementConfirm(movementConfirmId, ref);
   }
 
   @override

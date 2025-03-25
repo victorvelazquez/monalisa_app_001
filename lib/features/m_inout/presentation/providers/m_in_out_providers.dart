@@ -255,7 +255,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
 
     try {
       final mInOutResponse =
-          await mInOutRepository.getMInOutAndLine(state.doc, ref);
+          await mInOutRepository.getMInOut(state.doc, ref);
       final filteredLines = mInOutResponse.lines
           .where((line) => line.mProductId?.id != null)
           .toList();
@@ -290,7 +290,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     state = state.copyWith(isLoading: true, viewMInOut: true, errorMessage: '');
     try {
       final mInOutConfirmResponse =
-          await mInOutRepository.getMInOutConfirmAndLine(mInOutConfirmId, ref);
+          await mInOutRepository.getMInOutConfirm(mInOutConfirmId, ref);
 
       final updatedLines = state.mInOut!.lines.map((line) {
         final matchingConfirmLine =
@@ -340,7 +340,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
 
     try {
       final mInOutResponse =
-          await mInOutRepository.getMovementAndLine(state.doc, ref);
+          await mInOutRepository.getMovement(state.doc, ref);
       final filteredLines = mInOutResponse.lines
           .where((line) => line.mProductId?.id != null)
           .toList();
@@ -373,7 +373,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     state = state.copyWith(isLoading: true, viewMInOut: true, errorMessage: '');
     try {
       final mInOutConfirmResponse = await mInOutRepository
-          .getMovementConfirmAndLine(movementConfirmId, ref);
+          .getMovementConfirm(movementConfirmId, ref);
 
       final updatedLines = state.mInOut!.lines.map((line) {
         final matchingConfirmLine =
