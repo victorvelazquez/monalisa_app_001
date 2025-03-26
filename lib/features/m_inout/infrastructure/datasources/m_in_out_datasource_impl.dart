@@ -145,7 +145,7 @@ class MInOutDataSourceImpl implements MInOutDataSource {
   }
 
   @override
-  Future<MInOut> getMInOutAndLine(
+  Future<MInOut> getMInOut(
     String mInOutDoc,
     WidgetRef ref,
   ) async {
@@ -154,7 +154,7 @@ class MInOutDataSourceImpl implements MInOutDataSource {
     final int warehouseID = ref.read(authProvider).selectedWarehouse!.id;
     try {
       final String url =
-          "/api/v1/models/m_inout?\$expand=m_inoutline&\$filter=DocumentNo%20eq%20'${mInOutDoc.toString()}'%20AND%20IsSOTrx%20eq%20${mInOutState.isSOTrx}%20AND%20M_Warehouse_ID%20eq%20$warehouseID";
+          "/api/v1/models/m_inout?\$filter=DocumentNo%20eq%20'${mInOutDoc.toString()}'%20AND%20IsSOTrx%20eq%20${mInOutState.isSOTrx}%20AND%20M_Warehouse_ID%20eq%20$warehouseID";
       final response = await dio.get(url);
 
       if (response.statusCode == 200) {
@@ -163,6 +163,10 @@ class MInOutDataSourceImpl implements MInOutDataSource {
 
         if (responseApi.records != null && responseApi.records!.isNotEmpty) {
           final mInOut = responseApi.records!.first;
+
+          final lines = await getLinesMInOut(mInOut.id!, ref);
+          mInOut.lines = lines;
+
           return mInOut;
         } else {
           throw Exception(
@@ -181,7 +185,53 @@ class MInOutDataSourceImpl implements MInOutDataSource {
   }
 
   @override
-  Future<MInOutConfirm> getMInOutConfirmAndLine(
+  Future<List<Line>> getLinesMInOut(
+    int mInOutId,
+    WidgetRef ref,
+  ) async {
+    await _dioInitialized;
+    final mInOutState = ref.watch(mInOutProvider);
+    final List<Line> allLines = [];
+    int skip = 0;
+    bool hasMoreRecords = true;
+
+    try {
+      while (hasMoreRecords) {
+        final String url =
+            "/api/v1/models/m_inoutline?\$filter=M_InOut_ID%20eq%20$mInOutId&\$skip=$skip";
+        final response = await dio.get(url);
+
+        if (response.statusCode != 200) {
+          throw Exception(
+              'Error loading ${mInOutState.title} data: ${response.statusCode}');
+        }
+
+        final responseApi =
+            ResponseApi<Line>.fromJson(response.data, Line.fromJson);
+
+        if (responseApi.records == null || responseApi.records!.isEmpty) {
+          if (skip == 0) {
+            throw Exception('No records found for ${mInOutState.title}');
+          }
+          break;
+        }
+
+        allLines.addAll(responseApi.records!);
+        skip += responseApi.records!.length;
+        hasMoreRecords = responseApi.rowCount! > skip;
+      }
+
+      return allLines;
+    } on DioException catch (e) {
+      final authDataNotifier = ref.read(authProvider.notifier);
+      throw CustomErrorDioException(e, authDataNotifier);
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future<MInOutConfirm> getMInOutConfirm(
     int mInOutConfirmId,
     WidgetRef ref,
   ) async {
@@ -189,7 +239,7 @@ class MInOutDataSourceImpl implements MInOutDataSource {
     final mInOutState = ref.watch(mInOutProvider);
     try {
       final String url =
-          "/api/v1/models/m_inoutconfirm?\$expand=m_inoutlineconfirm&\$filter=M_InOutConfirm_ID%20eq%20$mInOutConfirmId";
+          "/api/v1/models/m_inoutconfirm?\$filter=M_InOutConfirm_ID%20eq%20$mInOutConfirmId";
       final response = await dio.get(url);
 
       if (response.statusCode == 200) {
@@ -198,6 +248,10 @@ class MInOutDataSourceImpl implements MInOutDataSource {
 
         if (responseApi.records != null && responseApi.records!.isNotEmpty) {
           final mInOutConfirm = responseApi.records!.first;
+
+          final lines = await getLinesMInOutConfirm(mInOutConfirm.id!, ref);
+          mInOutConfirm.linesConfirm = lines;
+
           return mInOutConfirm;
         } else {
           throw Exception(
@@ -216,13 +270,59 @@ class MInOutDataSourceImpl implements MInOutDataSource {
   }
 
   @override
-  Future<MInOut> getMovementAndLine(String movementDoc, WidgetRef ref) async {
+  Future<List<LineConfirm>> getLinesMInOutConfirm(
+    int mInOutConfirmId,
+    WidgetRef ref,
+  ) async {
+    await _dioInitialized;
+    final mInOutState = ref.watch(mInOutProvider);
+    final List<LineConfirm> allLines = [];
+    int skip = 0;
+    bool hasMoreRecords = true;
+
+    try {
+      while (hasMoreRecords) {
+        final String url =
+            "/api/v1/models/m_inoutlineconfirm?\$filter=M_InOutConfirm_ID%20eq%20$mInOutConfirmId&\$skip=$skip";
+        final response = await dio.get(url);
+
+        if (response.statusCode != 200) {
+          throw Exception(
+              'Error loading ${mInOutState.title} data: ${response.statusCode}');
+        }
+
+        final responseApi = ResponseApi<LineConfirm>.fromJson(
+            response.data, LineConfirm.fromJson);
+
+        if (responseApi.records == null || responseApi.records!.isEmpty) {
+          if (skip == 0) {
+            throw Exception('No records found for ${mInOutState.title}');
+          }
+          break;
+        }
+
+        allLines.addAll(responseApi.records!);
+        skip += responseApi.records!.length;
+        hasMoreRecords = responseApi.rowCount! > skip;
+      }
+
+      return allLines;
+    } on DioException catch (e) {
+      final authDataNotifier = ref.read(authProvider.notifier);
+      throw CustomErrorDioException(e, authDataNotifier);
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future<MInOut> getMovement(String movementDoc, WidgetRef ref) async {
     await _dioInitialized;
     final mInOutState = ref.watch(mInOutProvider);
     final int warehouseID = ref.read(authProvider).selectedWarehouse!.id;
     try {
       final String url =
-          "/api/v1/models/m_movement?\$expand=m_movementline&\$filter=DocumentNo%20eq%20'${movementDoc.toString()}'%20AND%20(M_Warehouse_ID%20eq%20$warehouseID%20OR%20M_Warehouse_ID%20eq%20null)";
+          "/api/v1/models/m_movement?\$filter=DocumentNo%20eq%20'${movementDoc.toString()}'%20AND%20(M_Warehouse_ID%20eq%20$warehouseID%20OR%20M_Warehouse_ID%20eq%20null)";
       final response = await dio.get(url);
 
       if (response.statusCode == 200) {
@@ -231,6 +331,10 @@ class MInOutDataSourceImpl implements MInOutDataSource {
 
         if (responseApi.records != null && responseApi.records!.isNotEmpty) {
           final mInOut = responseApi.records!.first;
+
+          final lines = await getLinesMovement(mInOut.id!, ref);
+          mInOut.lines = lines;
+
           return mInOut;
         } else {
           throw Exception(
@@ -240,6 +344,52 @@ class MInOutDataSourceImpl implements MInOutDataSource {
         throw Exception(
             'Error al cargar los datos del ${mInOutState.title}: ${response.statusCode}');
       }
+    } on DioException catch (e) {
+      final authDataNotifier = ref.read(authProvider.notifier);
+      throw CustomErrorDioException(e, authDataNotifier);
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future<List<Line>> getLinesMovement(
+    int movementId,
+    WidgetRef ref,
+  ) async {
+    await _dioInitialized;
+    final mInOutState = ref.watch(mInOutProvider);
+    final List<Line> allLines = [];
+    int skip = 0;
+    bool hasMoreRecords = true;
+
+    try {
+      while (hasMoreRecords) {
+        final String url =
+            "/api/v1/models/m_movementline?\$filter=M_Movement_ID%20eq%20$movementId&\$skip=$skip";
+        final response = await dio.get(url);
+
+        if (response.statusCode != 200) {
+          throw Exception(
+              'Error loading ${mInOutState.title} data: ${response.statusCode}');
+        }
+
+        final responseApi =
+            ResponseApi<Line>.fromJson(response.data, Line.fromJson);
+
+        if (responseApi.records == null || responseApi.records!.isEmpty) {
+          if (skip == 0) {
+            throw Exception('No records found for ${mInOutState.title}');
+          }
+          break;
+        }
+
+        allLines.addAll(responseApi.records!);
+        skip += responseApi.records!.length;
+        hasMoreRecords = responseApi.rowCount! > skip;
+      }
+
+      return allLines;
     } on DioException catch (e) {
       final authDataNotifier = ref.read(authProvider.notifier);
       throw CustomErrorDioException(e, authDataNotifier);
@@ -283,13 +433,13 @@ class MInOutDataSourceImpl implements MInOutDataSource {
   }
 
   @override
-  Future<MInOutConfirm> getMovementConfirmAndLine(
+  Future<MInOutConfirm> getMovementConfirm(
       int movementConfirmId, WidgetRef ref) async {
     await _dioInitialized;
     final mInOutState = ref.watch(mInOutProvider);
     try {
       final String url =
-          "/api/v1/models/m_movementConfirm?\$expand=m_movementlineconfirm&\$filter=M_MovementConfirm_ID%20eq%20$movementConfirmId";
+          "/api/v1/models/m_movementConfirm?\$filter=M_MovementConfirm_ID%20eq%20$movementConfirmId";
       final response = await dio.get(url);
 
       if (response.statusCode == 200) {
@@ -298,6 +448,10 @@ class MInOutDataSourceImpl implements MInOutDataSource {
 
         if (responseApi.records != null && responseApi.records!.isNotEmpty) {
           final mInOutConfirm = responseApi.records!.first;
+
+          final lines = await getLinesMovementConfirm(mInOutConfirm.id!, ref);
+          mInOutConfirm.linesConfirm = lines;
+
           return mInOutConfirm;
         } else {
           throw Exception(
@@ -307,6 +461,52 @@ class MInOutDataSourceImpl implements MInOutDataSource {
         throw Exception(
             'Error al cargar los datos del ${mInOutState.title}: ${response.statusCode}');
       }
+    } on DioException catch (e) {
+      final authDataNotifier = ref.read(authProvider.notifier);
+      throw CustomErrorDioException(e, authDataNotifier);
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future<List<LineConfirm>> getLinesMovementConfirm(
+    int movementConfirmId,
+    WidgetRef ref,
+  ) async {
+    await _dioInitialized;
+    final mInOutState = ref.watch(mInOutProvider);
+    final List<LineConfirm> allLines = [];
+    int skip = 0;
+    bool hasMoreRecords = true;
+
+    try {
+      while (hasMoreRecords) {
+        final String url =
+            "/api/v1/models/m_movementlineconfirm?\$filter=M_MovementConfirm_ID%20eq%20$movementConfirmId&\$skip=$skip";
+        final response = await dio.get(url);
+
+        if (response.statusCode != 200) {
+          throw Exception(
+              'Error loading ${mInOutState.title} data: ${response.statusCode}');
+        }
+
+        final responseApi = ResponseApi<LineConfirm>.fromJson(
+            response.data, LineConfirm.fromJson);
+
+        if (responseApi.records == null || responseApi.records!.isEmpty) {
+          if (skip == 0) {
+            throw Exception('No records found for ${mInOutState.title}');
+          }
+          break;
+        }
+
+        allLines.addAll(responseApi.records!);
+        skip += responseApi.records!.length;
+        hasMoreRecords = responseApi.rowCount! > skip;
+      }
+
+      return allLines;
     } on DioException catch (e) {
       final authDataNotifier = ref.read(authProvider.notifier);
       throw CustomErrorDioException(e, authDataNotifier);
@@ -387,9 +587,9 @@ class MInOutDataSourceImpl implements MInOutDataSource {
             StandardResponse.fromJson(response.data['StandardResponse']);
         if (standardResponse.isError == false) {
           final mInOutResponse = mInOutState.mInOutType == MInOutType.move
-              ? await getMovementAndLine(
+              ? await getMovement(
                   mInOutState.mInOut!.documentNo!.toString(), ref)
-              : await getMInOutAndLine(
+              : await getMInOut(
                   mInOutState.mInOut!.documentNo!.toString(), ref);
           if (mInOutResponse.id == mInOutState.mInOut!.id) {
             return mInOutResponse;
