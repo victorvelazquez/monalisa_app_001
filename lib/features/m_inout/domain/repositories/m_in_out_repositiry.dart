@@ -4,6 +4,8 @@ import '../entities/line.dart';
 import '../entities/line_confirm.dart';
 import '../entities/m_in_out.dart';
 import '../entities/m_in_out_confirm.dart';
+import '../entities/product.dart';
+import '../entities/storage_on_hand.dart';
 
 abstract class MInOutRepository {
   Future<List<MInOut>> getMInOutList(WidgetRef ref);
@@ -22,4 +24,6 @@ abstract class MInOutRepository {
   Future<LineConfirm> updateLineConfirm(Line line, WidgetRef ref);
   Future<int> getLocator(String value, WidgetRef ref);
   Future<bool> updateLocator(Line line, WidgetRef ref);
+  Future<Product> getProductByUpc(String upc, WidgetRef ref);
+  Future<List<StorageOnHand>> getStorageOnHand(int productId, WidgetRef ref);
 }

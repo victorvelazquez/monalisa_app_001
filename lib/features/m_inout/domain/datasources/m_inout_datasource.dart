@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/line_confirm.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/m_in_out.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/m_in_out_confirm.dart';
+import 'package:monalisa_app_001/features/m_inout/domain/entities/product.dart';
+import 'package:monalisa_app_001/features/m_inout/domain/entities/storage_on_hand.dart';
 
 import '../entities/line.dart';
 
@@ -22,4 +24,6 @@ abstract class MInOutDataSource {
   Future<LineConfirm> updateLineConfirm(Line line, WidgetRef ref);
   Future<int> getLocator(String value, WidgetRef ref);
   Future<bool> updateLocator(Line line, WidgetRef ref);
+  Future<Product> getProductByUpc(String upc, WidgetRef ref);
+  Future<List<StorageOnHand>> getStorageOnHand(int productId, WidgetRef ref);
 }

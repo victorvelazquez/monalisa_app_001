@@ -4,6 +4,8 @@ import 'package:monalisa_app_001/features/auth/domain/entities/warehouse.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/line.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/m_in_out.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/m_in_out_confirm.dart';
+import 'package:monalisa_app_001/features/m_inout/domain/entities/product.dart';
+import 'package:monalisa_app_001/features/m_inout/domain/entities/storage_on_hand.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/repositories/m_in_out_repositiry.dart';
 import 'package:monalisa_app_001/features/shared/domain/entities/ad_entity_id.dart';
 import '../../../../config/constants/roles_app.dart';
@@ -32,6 +34,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
           uniqueView: false,
           viewMInOut: false,
           viewNewInventoryMove: false,
+          createNewInventoryMove: false,
           isComplete: false,
         ));
 
@@ -245,8 +248,12 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     state = state.copyWith(
       warehouseList: [...authDataState.warehouses],
       fromWarehouse: authDataState.selectedWarehouse,
-      toWarehouse: authDataState.warehouses[1],
+      toWarehouse: authDataState.warehouses.firstWhere(
+        (warehouse) => warehouse.id != authDataState.selectedWarehouse?.id,
+        orElse: () => authDataState.warehouses[0],
+      ),
       viewNewInventoryMove: true,
+      createNewInventoryMove: false,
     );
   }
 
@@ -262,7 +269,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     state = state.copyWith(askLocator: !state.askLocator);
   }
 
-  void createNewInventoryMove(WidgetRef ref) {
+  void createNewInventoryMove(WidgetRef ref) async {
     AdEntityId fromWarehouse = AdEntityId(
       id: state.fromWarehouse?.id.toString() ?? '',
       propertyLabel: 'Warehouse',
@@ -277,6 +284,17 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       modelName: 'm_warehouse',
     );
 
+    int locatorId = -1;
+    if (state.editLocator.trim().isNotEmpty) {
+      locatorId = await getLocatorId(state.editLocator, ref);
+      if (locatorId == -1) {
+        state = state.copyWith(
+          errorMessage: 'No se encontró el estante ${state.editLocator}',
+        );
+        return;
+      }
+    }
+
     MInOut mInOut = MInOut(
       mWarehouseId: fromWarehouse,
       mWarehouseToId: toWarehouse,
@@ -284,9 +302,36 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     );
     state = state.copyWith(
       mInOut: mInOut,
+      locatorId: locatorId,
       viewNewInventoryMove: false,
+      createNewInventoryMove: true,
       viewMInOut: true,
     );
+  }
+
+  Future<Product> getProductByUPC(String upc, WidgetRef ref) async {
+    try {
+      return await mInOutRepository.getProductByUpc(upc, ref);
+    } catch (e) {
+      state = state.copyWith(
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+      );
+      return Product(
+        id: null,
+      );
+    }
+  }
+
+  Future<List<StorageOnHand>> getStorageOnHand(
+      int productId, WidgetRef ref) async {
+    try {
+      return await mInOutRepository.getStorageOnHand(productId, ref);
+    } catch (e) {
+      state = state.copyWith(
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+      );
+      return [];
+    }
   }
 
   void onDocChange(String value) {
@@ -308,8 +353,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     }
 
     try {
-      final mInOutResponse =
-          await mInOutRepository.getMInOut(state.doc, ref);
+      final mInOutResponse = await mInOutRepository.getMInOut(state.doc, ref);
       final filteredLines = mInOutResponse.lines
           .where((line) => line.mProductId?.id != null)
           .toList();
@@ -393,8 +437,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     }
 
     try {
-      final mInOutResponse =
-          await mInOutRepository.getMovement(state.doc, ref);
+      final mInOutResponse = await mInOutRepository.getMovement(state.doc, ref);
       final filteredLines = mInOutResponse.lines
           .where((line) => line.mProductId?.id != null)
           .toList();
@@ -426,8 +469,8 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       int movementConfirmId, WidgetRef ref) async {
     state = state.copyWith(isLoading: true, viewMInOut: true, errorMessage: '');
     try {
-      final mInOutConfirmResponse = await mInOutRepository
-          .getMovementConfirm(movementConfirmId, ref);
+      final mInOutConfirmResponse =
+          await mInOutRepository.getMovementConfirm(movementConfirmId, ref);
 
       final updatedLines = state.mInOut!.lines.map((line) {
         final matchingConfirmLine =
@@ -478,6 +521,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       warehouseList: [],
       viewMInOut: false,
       viewNewInventoryMove: false,
+      createNewInventoryMove: false,
       uniqueView: false,
       orderBy: 'line',
       errorMessage: '',
@@ -532,6 +576,26 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
 
   void onEditLocatorChange(String value) {
     state = state.copyWith(editLocator: value, errorMessage: '');
+  }
+
+  Future<int> getLocatorId(String value, ref) async {
+    if (value.trim().isEmpty) {
+      state = state.copyWith(
+          errorMessage: 'Ingrese un valor válido para la ubicación');
+      return -1;
+    }
+    try {
+      final idLocator = await mInOutRepository.getLocator(value, ref);
+      if (idLocator <= 0) {
+        state = state.copyWith(errorMessage: 'La ubicación no existe');
+        return -1;
+      }
+      return idLocator;
+    } catch (e) {
+      state = state.copyWith(
+          errorMessage: 'Error al obtener la ubicación: ${e.toString()}');
+      return -1; // Add explicit return for error case
+    }
   }
 
   Future<void> confirmEditLocator(Line line, WidgetRef ref) async {
@@ -957,11 +1021,13 @@ class MInOutStatus {
   final bool askLocator;
   final bool viewMInOut;
   final bool viewNewInventoryMove;
+  final bool createNewInventoryMove;
   final bool uniqueView;
   final String orderBy;
   final double manualQty;
   final double scrappedQty;
   final String editLocator;
+  final int locatorId;
   final String errorMessage;
   final bool isLoading;
   final bool isLoadingMInOutList;
@@ -994,11 +1060,13 @@ class MInOutStatus {
     this.askLocator = false,
     this.viewMInOut = false,
     this.viewNewInventoryMove = false,
+    this.createNewInventoryMove = false,
     this.uniqueView = false,
     this.orderBy = '',
     this.manualQty = 0,
     this.scrappedQty = 0,
     this.editLocator = '',
+    this.locatorId = 0,
     this.errorMessage = '',
     this.isLoading = false,
     this.isLoadingMInOutList = false,
@@ -1030,11 +1098,13 @@ class MInOutStatus {
     bool? askLocator,
     bool? viewMInOut,
     bool? viewNewInventoryMove,
+    bool? createNewInventoryMove,
     bool? uniqueView,
     String? orderBy,
     double? manualQty,
     double? scrappedQty,
     String? editLocator,
+    int? locatorId,
     String? errorMessage,
     bool? isLoading,
     bool? isLoadingMInOutList,
@@ -1066,10 +1136,13 @@ class MInOutStatus {
         askLocator: askLocator ?? this.askLocator,
         viewMInOut: viewMInOut ?? this.viewMInOut,
         viewNewInventoryMove: viewNewInventoryMove ?? this.viewNewInventoryMove,
+        createNewInventoryMove:
+            createNewInventoryMove ?? this.createNewInventoryMove,
         orderBy: orderBy ?? this.orderBy,
         manualQty: manualQty ?? this.manualQty,
         scrappedQty: scrappedQty ?? this.scrappedQty,
         editLocator: editLocator ?? this.editLocator,
+        locatorId: locatorId ?? this.locatorId,
         uniqueView: uniqueView ?? this.uniqueView,
         errorMessage: errorMessage ?? this.errorMessage,
         isLoading: isLoading ?? this.isLoading,

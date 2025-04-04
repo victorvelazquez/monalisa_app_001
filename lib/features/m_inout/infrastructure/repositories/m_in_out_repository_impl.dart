@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/line_confirm.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/m_in_out.dart';
+import 'package:monalisa_app_001/features/m_inout/domain/entities/product.dart';
+import 'package:monalisa_app_001/features/m_inout/domain/entities/storage_on_hand.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/repositories/m_in_out_repositiry.dart';
 
 import '../../domain/datasources/m_inout_datasource.dart';
@@ -98,5 +100,15 @@ class MInOutRepositoryImpl implements MInOutRepository {
   @override
   Future<bool> updateLocator(Line line, WidgetRef ref) {
     return dataSource.updateLocator(line, ref);
+  }
+
+  @override
+  Future<Product> getProductByUpc(String upc, WidgetRef ref) {
+    return dataSource.getProductByUpc(upc, ref);
+  }
+
+  @override
+  Future<List<StorageOnHand>> getStorageOnHand(int productId, WidgetRef ref) {
+    return dataSource.getStorageOnHand(productId, ref);
   }
 }

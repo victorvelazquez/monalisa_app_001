@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/line_confirm.dart';
 import 'package:monalisa_app_001/features/m_inout/domain/entities/locate.dart';
+import 'package:monalisa_app_001/features/m_inout/domain/entities/product.dart';
+import 'package:monalisa_app_001/features/m_inout/domain/entities/storage_on_hand.dart';
 import 'package:monalisa_app_001/features/shared/domain/entities/model_crud.dart';
 import 'package:monalisa_app_001/features/shared/domain/entities/model_crud_request.dart';
 import 'package:monalisa_app_001/features/shared/domain/entities/response_api.dart';
@@ -783,6 +785,65 @@ class MInOutDataSourceImpl implements MInOutDataSource {
       } else {
         throw Exception(
             'Error al cargar los datos de la línea ${line.line}: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      final authDataNotifier = ref.read(authProvider.notifier);
+      throw CustomErrorDioException(e, authDataNotifier);
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future<Product> getProductByUpc(String upc, WidgetRef ref) async {
+    await _dioInitialized;
+    try {
+      final String url = "/api/v1/models/m_product?\$filter=UPC%20eq%20'$upc'";
+      final response = await dio.get(url);
+
+      if (response.statusCode == 200) {
+        final responseApi =
+            ResponseApi<Product>.fromJson(response.data, Product.fromJson);
+
+        if (responseApi.records != null && responseApi.records!.isNotEmpty) {
+          return responseApi.records!.first;
+        } else {
+          throw Exception('No se encontró el producto con UPC $upc');
+        }
+      } else {
+        throw Exception(
+            'Error al cargar los datos del producto: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      final authDataNotifier = ref.read(authProvider.notifier);
+      throw CustomErrorDioException(e, authDataNotifier);
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future<List<StorageOnHand>> getStorageOnHand(
+      int productId, WidgetRef ref) async {
+    await _dioInitialized;
+    try {
+      final String url =
+          "/api/v1/models/m_storageonhand?\$filter=M_Product_ID%20eq%20$productId";
+      final response = await dio.get(url);
+
+      if (response.statusCode == 200) {
+        final responseApi = ResponseApi<StorageOnHand>.fromJson(
+            response.data, StorageOnHand.fromJson);
+
+        if (responseApi.records != null && responseApi.records!.isNotEmpty) {
+          return responseApi.records!;
+        } else {
+          throw Exception(
+              'Stock no disponible para el producto $productId. Por favor verifique el inventario.');
+        }
+      } else {
+        throw Exception(
+            'Error al cargar los datos del producto: ${response.statusCode}');
       }
     } on DioException catch (e) {
       final authDataNotifier = ref.read(authProvider.notifier);
