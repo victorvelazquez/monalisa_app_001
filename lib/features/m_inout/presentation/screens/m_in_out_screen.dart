@@ -1353,7 +1353,17 @@ Future<void> showInsertManualLine(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(themeBorderRadius),
         ),
-        title: const Text('Confirmar Manual'),
+        title: Column(
+          children: [
+            Text('Confirmar Manual'),
+            upc != null
+                ? Text(
+                    'UPC:  $upc',
+                    style: TextStyle(fontSize: 16),
+                  )
+                : SizedBox(),
+          ],
+        ),
         content: Row(
           children: [
             Expanded(
