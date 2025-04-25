@@ -1412,11 +1412,10 @@ class _ScanViewState extends ConsumerState<_ScanView> {
   final FocusNode _barcodeFocusNode = FocusNode();
 
   Color _highlightColor = themeBackgroundColorLight;
-  final Color _flashColor = themeColorSuccessfulLight;
 
-  void _triggerHighlight() {
+  void _triggerHighlight(Color flashColor) {
     setState(() {
-      _highlightColor = _flashColor;
+      _highlightColor = flashColor;
     });
     Future.delayed(const Duration(milliseconds: 500), () {
       setState(() {
@@ -1426,10 +1425,15 @@ class _ScanViewState extends ConsumerState<_ScanView> {
   }
 
   void _handleBarcodeSubmit() {
-    widget.mInOutNotifier.addBarcode();
+    int result = widget.mInOutNotifier.addBarcode();
     _barcodeController.clear();
     _barcodeFocusNode.requestFocus();
-    _triggerHighlight();
+    if (result == -1) {
+      _triggerHighlight(themeColorWarningLight);
+      _showLinesOver(context);
+    } else if (result == 1) {
+      _triggerHighlight(themeColorSuccessfulLight);
+    }
   }
 
   @override
@@ -1487,6 +1491,31 @@ class _ScanViewState extends ConsumerState<_ScanView> {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _showLinesOver(BuildContext context) {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(themeBorderRadius),
+          ),
+          title: const Text('Separar Producto'),
+          content: const Text(
+              'Este producto no se encuentra en el documento. Por favor, sepárelo.'),
+          actions: <Widget>[
+            CustomFilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              label: 'Cerrar',
+              icon: const Icon(Icons.close_rounded),
+              buttonColor: themeColorWarning,
+              labelColor: Colors.black,
+            ),
+          ],
+        );
+      },
     );
   }
 

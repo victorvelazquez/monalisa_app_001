@@ -633,8 +633,9 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     }
   }
 
-  void addBarcode() {
-    if (state.barcode.isEmpty) return;
+  int addBarcode() {
+    if (state.barcode.isEmpty) return 0;
+    int result = 0;
     final List<Barcode> updatedTotalList = [...state.scanBarcodeListTotal];
     final existingBarcodes = updatedTotalList
         .where((barcode) => barcode.code == state.barcode)
@@ -663,9 +664,10 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       ));
     }
 
-    updatedBarcodeList(
+    result = updatedBarcodeList(
         updatedTotalList: updatedTotalList, barcode: state.barcode);
     moveScrollToBottom();
+    return result;
   }
 
   void removeBarcode({required Barcode barcode, bool isOver = false}) {
@@ -694,7 +696,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     moveScrollToBottom();
   }
 
-  void updatedBarcodeList(
+  int updatedBarcodeList(
       {required List<Barcode> updatedTotalList, required String barcode}) {
     for (int i = 0; i < updatedTotalList.length; i++) {
       updatedTotalList[i] = updatedTotalList[i].copyWith(index: i + 1);
@@ -718,10 +720,11 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       scanBarcodeListTotal: updatedTotalList,
       scanBarcodeListUnique: updatedUniqueList,
     );
-    updatedMInOutLine(barcode);
+    return updatedMInOutLine(barcode);
   }
 
-  void updatedMInOutLine(String barcode) {
+  int updatedMInOutLine(String barcode) {
+    int result = 0;
     if (state.mInOut != null && state.viewMInOut) {
       List<Line> lines = state.mInOut!.lines;
       List<Barcode> linesOver = [];
@@ -748,14 +751,17 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
               barcode.repetitions.toDouble(),
               line.manualQty ?? 0,
               line.scrappedQty ?? 0);
+          result = 1;
         } else {
           linesOver.add(barcode.copyWith(index: linesOver.length + 1));
+          result = -1;
         }
       }
 
       state = state.copyWith(
           mInOut: state.mInOut!.copyWith(lines: lines), linesOver: linesOver);
     }
+    return result;
   }
 
   void moveScrollToBottom() {
