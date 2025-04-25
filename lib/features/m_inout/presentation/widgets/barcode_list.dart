@@ -6,11 +6,13 @@ class BarcodeList extends StatefulWidget {
   final Barcode barcode;
   final VoidCallback onPressedrepetitions;
   final VoidCallback onPressedDelete;
+  final VoidCallback onPressedBarcode;
   const BarcodeList({
     super.key,
     required this.barcode,
     required this.onPressedrepetitions,
     required this.onPressedDelete,
+    required this.onPressedBarcode,
   });
 
   @override
@@ -41,19 +43,22 @@ class ScrollingTextWidgetState extends State<BarcodeList> {
                 padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
                 child: Text(
                   widget.barcode.index.toString(),
-                  style:
-                      TextStyle(fontSize: themeFontSizeSmall, color: themeColorGray),
+                  style: TextStyle(
+                      fontSize: themeFontSizeSmall, color: themeColorGray),
                 ),
               ),
               Expanded(
                   child: SingleChildScrollView(
                 controller: _scrollController,
                 scrollDirection: Axis.horizontal,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text(
-                    widget.barcode.code.toString(),
-                    style: TextStyle(fontSize: themeFontSizeLarge),
+                child: GestureDetector(
+                  onTap: widget.onPressedBarcode,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Text(
+                      widget.barcode.code.toString(),
+                      style: TextStyle(fontSize: themeFontSizeLarge),
+                    ),
                   ),
                 ),
               )),
@@ -63,7 +68,9 @@ class ScrollingTextWidgetState extends State<BarcodeList> {
                   padding: const EdgeInsets.all(8),
                   child: Text(
                     widget.barcode.repetitions.toString(),
-                    style: TextStyle(fontSize: themeFontSizeLarge, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        fontSize: themeFontSizeLarge,
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
               ),

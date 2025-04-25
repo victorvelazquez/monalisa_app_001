@@ -1131,7 +1131,8 @@ class _MInOutView extends ConsumerWidget {
                   } else {
                     mInOutNotifier.onManualQuantityChange('0');
                     mInOutNotifier.onManualScrappedChange('0');
-                    _showInsertManualLine(context, mInOutState, item);
+                    showInsertManualLine(
+                        context, mInOutNotifier, mInOutState, item, null);
                   }
                 },
                 label: (item.verifiedStatus?.contains('manually') ?? false)
@@ -1160,62 +1161,6 @@ class _MInOutView extends ConsumerWidget {
               icon: const Icon(Icons.close_rounded),
               expand: true,
               small: true,
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _showInsertManualLine(
-      BuildContext context, MInOutStatus mInOutState, Line item) {
-    return showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(themeBorderRadius),
-          ),
-          title: const Text('Confirmar Manual'),
-          content: Row(
-            children: [
-              Expanded(
-                child: CustomTextFormField(
-                  label: 'Confirmar',
-                  textAlign: TextAlign.center,
-                  initialValue: '',
-                  onChanged: mInOutNotifier.onManualQuantityChange,
-                  autofocus: true,
-                  keyboardType: TextInputType.number,
-                ),
-              ),
-              if (mInOutState.rolManualScrap) SizedBox(width: 8),
-              if (mInOutState.rolManualScrap)
-                Expanded(
-                  child: CustomTextFormField(
-                    label: 'Desechar',
-                    textAlign: TextAlign.center,
-                    initialValue: '',
-                    onChanged: mInOutNotifier.onManualScrappedChange,
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-            ],
-          ),
-          actions: <Widget>[
-            CustomFilledButton(
-              onPressed: () {
-                mInOutNotifier.confirmManualLine(item);
-                Navigator.of(context).pop();
-              },
-              label: 'Confirmar',
-              icon: const Icon(Icons.check),
-            ),
-            CustomFilledButton(
-              onPressed: () => Navigator.of(context).pop(),
-              label: 'Cancelar',
-              icon: const Icon(Icons.close_rounded),
-              buttonColor: themeColorGray,
             ),
           ],
         );
@@ -1307,6 +1252,7 @@ class _MInOutView extends ConsumerWidget {
           children: barcodeList.map((barcode) {
             return BarcodeList(
               barcode: barcode,
+              onPressedBarcode: () {},
               onPressedDelete: () =>
                   _showConfirmDeleteItemOver(context, mInOutNotifier, barcode),
               onPressedrepetitions: () =>
@@ -1394,6 +1340,66 @@ TableRow _buildTableRow(String label, String value, bool alignRight) {
   );
 }
 
+Future<void> showInsertManualLine(
+    BuildContext context,
+    MInOutNotifier mInOutNotifier,
+    MInOutStatus mInOutState,
+    Line? line,
+    String? upc) {
+  return showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(themeBorderRadius),
+        ),
+        title: const Text('Confirmar Manual'),
+        content: Row(
+          children: [
+            Expanded(
+              child: CustomTextFormField(
+                label: 'Confirmar',
+                textAlign: TextAlign.center,
+                initialValue: '',
+                onChanged: mInOutNotifier.onManualQuantityChange,
+                autofocus: true,
+                keyboardType: TextInputType.number,
+              ),
+            ),
+            if (mInOutState.rolManualScrap) SizedBox(width: 8),
+            if (mInOutState.rolManualScrap)
+              Expanded(
+                child: CustomTextFormField(
+                  label: 'Desechar',
+                  textAlign: TextAlign.center,
+                  initialValue: '',
+                  onChanged: mInOutNotifier.onManualScrappedChange,
+                  keyboardType: TextInputType.number,
+                ),
+              ),
+          ],
+        ),
+        actions: <Widget>[
+          CustomFilledButton(
+            onPressed: () {
+              mInOutNotifier.confirmManualLine(line, upc);
+              Navigator.of(context).pop();
+            },
+            label: 'Confirmar',
+            icon: const Icon(Icons.check),
+          ),
+          CustomFilledButton(
+            onPressed: () => Navigator.of(context).pop(),
+            label: 'Cancelar',
+            icon: const Icon(Icons.close_rounded),
+            buttonColor: themeColorGray,
+          ),
+        ],
+      );
+    },
+  );
+}
+
 class _ScanView extends ConsumerStatefulWidget {
   final MInOutStatus mInOutState;
   final MInOutNotifier mInOutNotifier;
@@ -1456,7 +1462,8 @@ class _ScanViewState extends ConsumerState<_ScanView> {
           _buildActionFilterList(widget.mInOutNotifier),
           const SizedBox(height: 8),
           const Divider(height: 0),
-          _buildBarcodeList(barcodeList, widget.mInOutNotifier),
+          _buildBarcodeList(
+              barcodeList, widget.mInOutNotifier, widget.mInOutState),
           _buildBarcodeInputScan(),
         ],
       ),
@@ -1581,8 +1588,8 @@ class _ScanViewState extends ConsumerState<_ScanView> {
     );
   }
 
-  Widget _buildBarcodeList(
-      List<Barcode> barcodeList, MInOutNotifier mInOutNotifier) {
+  Widget _buildBarcodeList(List<Barcode> barcodeList,
+      MInOutNotifier mInOutNotifier, MInOutStatus mInOutState) {
     return Flexible(
       child: ListView.builder(
         controller: mInOutNotifier.scanBarcodeListScrollController,
@@ -1591,6 +1598,14 @@ class _ScanViewState extends ConsumerState<_ScanView> {
           final barcode = barcodeList[index];
           return BarcodeList(
             barcode: barcode,
+            onPressedBarcode: mInOutState.rolManualQty
+                ? () {
+                    mInOutNotifier.onManualQuantityChange('0');
+                    mInOutNotifier.onManualScrappedChange('0');
+                    showInsertManualLine(context, mInOutNotifier, mInOutState,
+                        null, barcode.code);
+                  }
+                : () {},
             onPressedDelete: () =>
                 _showConfirmDeleteItem(context, mInOutNotifier, barcode),
             onPressedrepetitions: () =>

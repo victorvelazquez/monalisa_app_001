@@ -438,22 +438,43 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     state = state.copyWith(scrappedQty: parsedValue.toDouble());
   }
 
-  void confirmManualLine(Line line) {
-    line = line.copyWith(
-      verifiedStatus: 'manually',
-    );
-    final List<Line> updatedLines = state.mInOut!.lines;
-    final int index = updatedLines.indexWhere((l) => l.id == line.id);
-    if (index != -1) {
-      final Line verifyLine = _verifyLineStatusQty(
-          line,
-          line.scanningQty?.toDouble() ?? 0.0,
-          state.manualQty,
-          state.scrappedQty);
-      updatedLines[index] = verifyLine;
-      state =
-          state.copyWith(mInOut: state.mInOut!.copyWith(lines: updatedLines));
-      updatedMInOutLine('');
+  void confirmManualLine(Line? line, String? upc) {
+    Line? updatedLine = line;
+    if (updatedLine != null) {
+      updatedLine = updatedLine.copyWith(verifiedStatus: 'manually');
+    } else if (upc != null) {
+      final lineIndex = state.mInOut!.lines.indexWhere((l) => l.upc == upc);
+      if (lineIndex != -1) {
+        updatedLine =
+            state.mInOut!.lines[lineIndex].copyWith(verifiedStatus: 'manually');
+      }
+    }
+    line = updatedLine;
+    if (line != null) {
+      final List<Line> updatedLines = state.mInOut!.lines;
+      final int index = updatedLines.indexWhere((l) => l.id == line!.id);
+      if (index != -1) {
+        final Line verifyLine = _verifyLineStatusQty(
+            line,
+            line.scanningQty?.toDouble() ?? 0.0,
+            state.manualQty,
+            state.scrappedQty);
+        updatedLines[index] = verifyLine;
+        state =
+            state.copyWith(mInOut: state.mInOut!.copyWith(lines: updatedLines));
+        updatedMInOutLine('');
+      }
+    } else if (upc != null) {
+      final int index = state.linesOver.indexWhere((l) => l.code == upc);
+      if (index != -1) {
+        final Barcode barcodeLine =
+            state.linesOver[index].copyWith(repetitions: state.manualQty.toInt());
+        state = state.copyWith(
+          linesOver: state.linesOver
+              .map((l) => l.code == upc? barcodeLine : l)
+              .toList(),
+        );
+      }
     }
   }
 
