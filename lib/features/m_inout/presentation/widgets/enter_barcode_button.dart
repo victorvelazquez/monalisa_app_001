@@ -57,7 +57,7 @@ class EnterBarcodeButtonState extends State<EnterBarcodeButton> {
     // print(event.toString());
     // setState(() {
     //   scannedData =
-    //       'deviceType:${event.deviceType.toString()}|logicalKey:${event.logicalKey.toString()}|physicalKey:${event.physicalKey.toString()}|character:${event.character}';
+    //       'deviceType:${event.deviceType.label.toString()}|logicalKey:${event.logicalKey.keyLabel.toString()}|physicalKey:${event.physicalKey.toString()}|character:${event.character}';
     // });
     // addBarcode();
   }
@@ -80,7 +80,7 @@ class EnterBarcodeButtonState extends State<EnterBarcodeButton> {
           loading = false;
         });
       } else {
-        widget.mInOutNotifier.addBarcode(scannedData);
+        //widget.mInOutNotifier.addBarcode(scannedData);
       }
 
       setState(() {

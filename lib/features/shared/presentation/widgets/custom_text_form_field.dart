@@ -18,7 +18,9 @@ class CustomTextFormField extends StatelessWidget {
   final Widget? suffixIcon;
   final TextAlign textAlign;
   final bool autofocus;
-  final bool readOnly;
+  final TextEditingController? controller;
+  final FocusNode? focusNode;
+  final Color? backgroundColor;
 
   const CustomTextFormField({
     super.key,
@@ -38,7 +40,9 @@ class CustomTextFormField extends StatelessWidget {
     this.suffixIcon,
     this.textAlign = TextAlign.left,
     this.autofocus = false,
-    this.readOnly = false,
+    this.controller,
+    this.focusNode,
+    this.backgroundColor,
   });
 
   @override
@@ -61,7 +65,7 @@ class CustomTextFormField extends StatelessWidget {
             : SizedBox(),
         Container(
           decoration: BoxDecoration(
-            color: border ? themeBackgroundColorLight : themeBackgroundColor,
+            color: backgroundColor ?? themeBackgroundColorLight,
             borderRadius: BorderRadius.circular(themeBorderRadius),
             boxShadow: border
                 ? null
@@ -86,9 +90,10 @@ class CustomTextFormField extends StatelessWidget {
                 fontSize: themeFontSizeNormal,
               ),
               maxLines: maxLines,
-              initialValue: initialValue,
+              initialValue: controller == null ? initialValue : null,
+              controller: controller,
+              focusNode: focusNode,
               autofocus: autofocus,
-              readOnly: readOnly,
               decoration: InputDecoration(
                 floatingLabelBehavior: maxLines > 1
                     ? FloatingLabelBehavior.always

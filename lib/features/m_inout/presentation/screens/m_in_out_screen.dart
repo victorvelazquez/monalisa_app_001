@@ -12,7 +12,6 @@ import '../../../shared/presentation/widgets/container_action_buttons.dart';
 import '../../../shared/presentation/widgets/custom_drop_down.dart';
 import '../../domain/entities/barcode.dart';
 import '../providers/m_in_out_providers.dart';
-import '../widgets/enter_barcode_button.dart';
 
 class MInOutScreen extends ConsumerStatefulWidget {
   final String type;
@@ -1271,7 +1270,8 @@ class _MInOutView extends ConsumerWidget {
                   } else {
                     mInOutNotifier.onManualQuantityChange('0');
                     mInOutNotifier.onManualScrappedChange('0');
-                    _showInsertManualLine(context, mInOutState, item);
+                    showInsertManualLine(
+                        context, mInOutNotifier, mInOutState, item, null);
                   }
                 },
                 label: (item.verifiedStatus?.contains('manually') ?? false)
@@ -1300,62 +1300,6 @@ class _MInOutView extends ConsumerWidget {
               icon: const Icon(Icons.close_rounded),
               expand: true,
               small: true,
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _showInsertManualLine(
-      BuildContext context, MInOutStatus mInOutState, Line item) {
-    return showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(themeBorderRadius),
-          ),
-          title: const Text('Confirmar Manual'),
-          content: Row(
-            children: [
-              Expanded(
-                child: CustomTextFormField(
-                  label: 'Confirmar',
-                  textAlign: TextAlign.center,
-                  initialValue: '',
-                  onChanged: mInOutNotifier.onManualQuantityChange,
-                  autofocus: true,
-                  keyboardType: TextInputType.number,
-                ),
-              ),
-              if (mInOutState.rolManualScrap) SizedBox(width: 8),
-              if (mInOutState.rolManualScrap)
-                Expanded(
-                  child: CustomTextFormField(
-                    label: 'Desechar',
-                    textAlign: TextAlign.center,
-                    initialValue: '',
-                    onChanged: mInOutNotifier.onManualScrappedChange,
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-            ],
-          ),
-          actions: <Widget>[
-            CustomFilledButton(
-              onPressed: () {
-                mInOutNotifier.confirmManualLine(item);
-                Navigator.of(context).pop();
-              },
-              label: 'Confirmar',
-              icon: const Icon(Icons.check),
-            ),
-            CustomFilledButton(
-              onPressed: () => Navigator.of(context).pop(),
-              label: 'Cancelar',
-              icon: const Icon(Icons.close_rounded),
-              buttonColor: themeColorGray,
             ),
           ],
         );
@@ -1447,6 +1391,7 @@ class _MInOutView extends ConsumerWidget {
           children: barcodeList.map((barcode) {
             return BarcodeList(
               barcode: barcode,
+              onPressedBarcode: () {},
               onPressedDelete: () =>
                   _showConfirmDeleteItemOver(context, mInOutNotifier, barcode),
               onPressedrepetitions: () =>
@@ -1534,7 +1479,67 @@ TableRow _buildTableRow(String label, String value, bool alignRight) {
   );
 }
 
-class _ScanView extends ConsumerWidget {
+Future<void> showInsertManualLine(
+    BuildContext context,
+    MInOutNotifier mInOutNotifier,
+    MInOutStatus mInOutState,
+    Line? line,
+    String? upc) {
+  return showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(themeBorderRadius),
+        ),
+        title: const Text('Confirmar Manual'),
+        content: Row(
+          children: [
+            Expanded(
+              child: CustomTextFormField(
+                label: 'Confirmar',
+                textAlign: TextAlign.center,
+                initialValue: '',
+                onChanged: mInOutNotifier.onManualQuantityChange,
+                autofocus: true,
+                keyboardType: TextInputType.number,
+              ),
+            ),
+            if (mInOutState.rolManualScrap) SizedBox(width: 8),
+            if (mInOutState.rolManualScrap)
+              Expanded(
+                child: CustomTextFormField(
+                  label: 'Desechar',
+                  textAlign: TextAlign.center,
+                  initialValue: '',
+                  onChanged: mInOutNotifier.onManualScrappedChange,
+                  keyboardType: TextInputType.number,
+                ),
+              ),
+          ],
+        ),
+        actions: <Widget>[
+          CustomFilledButton(
+            onPressed: () {
+              mInOutNotifier.confirmManualLine(line, upc);
+              Navigator.of(context).pop();
+            },
+            label: 'Confirmar',
+            icon: const Icon(Icons.check),
+          ),
+          CustomFilledButton(
+            onPressed: () => Navigator.of(context).pop(),
+            label: 'Cancelar',
+            icon: const Icon(Icons.close_rounded),
+            buttonColor: themeColorGray,
+          ),
+        ],
+      );
+    },
+  );
+}
+
+class _ScanView extends ConsumerStatefulWidget {
   final MInOutStatus mInOutState;
   final MInOutNotifier mInOutNotifier;
 
@@ -1544,25 +1549,119 @@ class _ScanView extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final barcodeList = mInOutState.uniqueView
-        ? mInOutState.scanBarcodeListUnique
-        : mInOutState.scanBarcodeListTotal;
+  ConsumerState<_ScanView> createState() => _ScanViewState();
+}
+
+class _ScanViewState extends ConsumerState<_ScanView> {
+  final TextEditingController _barcodeController = TextEditingController();
+  final FocusNode _barcodeFocusNode = FocusNode();
+
+  Color _highlightColor = themeBackgroundColorLight;
+
+  void _triggerHighlight(Color flashColor) {
+    setState(() {
+      _highlightColor = flashColor;
+    });
+    Future.delayed(const Duration(milliseconds: 500), () {
+      setState(() {
+        _highlightColor = themeBackgroundColorLight;
+      });
+    });
+  }
+
+  void _handleBarcodeSubmit() {
+    int result = widget.mInOutNotifier.addBarcode();
+    _barcodeController.clear();
+    _barcodeFocusNode.requestFocus();
+    if (result == -1) {
+      _triggerHighlight(themeColorWarningLight);
+      _showLinesOver(context);
+    } else if (result == 1) {
+      _triggerHighlight(themeColorSuccessfulLight);
+    }
+  }
+
+  @override
+  void dispose() {
+    _barcodeController.dispose();
+    _barcodeFocusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final barcodeList = widget.mInOutState.uniqueView
+        ? widget.mInOutState.scanBarcodeListUnique
+        : widget.mInOutState.scanBarcodeListTotal;
 
     return SafeArea(
       child: Column(
         children: [
-          SizedBox(height: 4),
-          _buildActionFilterList(mInOutNotifier),
-          SizedBox(height: 8),
-          Divider(height: 0),
-          _buildBarcodeList(barcodeList, mInOutNotifier),
-          Padding(
-            padding: const EdgeInsets.all(4.0),
-            child: EnterBarcodeButton(mInOutNotifier, mInOutState, ref),
-          ),
+          const SizedBox(height: 4),
+          _buildActionFilterList(widget.mInOutNotifier),
+          const SizedBox(height: 8),
+          const Divider(height: 0),
+          _buildBarcodeList(
+              barcodeList, widget.mInOutNotifier, widget.mInOutState),
+          _buildBarcodeInputScan(),
         ],
       ),
+    );
+  }
+
+  Widget _buildBarcodeInputScan() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        decoration: BoxDecoration(
+          color: _highlightColor,
+          borderRadius: BorderRadius.circular(themeBorderRadius),
+        ),
+        child: CustomTextFormField(
+          backgroundColor: Colors.transparent,
+          controller: _barcodeController,
+          focusNode: _barcodeFocusNode,
+          keyboardType: TextInputType.text,
+          hint: 'Escanear código de barras',
+          autofocus: true,
+          onChanged: widget.mInOutNotifier.onInputBarcodeChange,
+          onFieldSubmitted: (value) {
+            _handleBarcodeSubmit();
+          },
+          prefixIcon: const Icon(Icons.qr_code_scanner_rounded),
+          suffixIcon: IconButton(
+            icon: const Icon(Icons.send_rounded),
+            color: themeColorPrimary,
+            onPressed: _handleBarcodeSubmit,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showLinesOver(BuildContext context) {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(themeBorderRadius),
+          ),
+          title: const Text('Separar Producto'),
+          content: const Text(
+              'Este producto no se encuentra en el documento. Por favor, sepárelo.'),
+          actions: <Widget>[
+            CustomFilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              label: 'Cerrar',
+              icon: const Icon(Icons.close_rounded),
+              buttonColor: themeColorWarning,
+              labelColor: Colors.black,
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -1576,7 +1675,7 @@ class _ScanView extends ConsumerWidget {
           isActive: !mInOutNotifier.getUniqueView(),
           onPressed: () => mInOutNotifier.setUniqueView(false),
         ),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         _buildFilterList(
           text: 'Únicos',
           counting: mInOutNotifier.getUniqueCount().toString(),
@@ -1613,13 +1712,13 @@ class _ScanView extends ConsumerWidget {
           borderRadius: BorderRadius.circular(themeBorderRadius),
           color: isActive ? themeColorPrimaryLight : themeBackgroundColorLight,
         ),
-        padding: EdgeInsets.symmetric(vertical: 2, horizontal: 16),
+        padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
         child: Center(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(text, style: styleText),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Text(counting, style: styleCounting),
             ],
           ),
@@ -1628,8 +1727,8 @@ class _ScanView extends ConsumerWidget {
     );
   }
 
-  Widget _buildBarcodeList(
-      List<Barcode> barcodeList, MInOutNotifier mInOutNotifier) {
+  Widget _buildBarcodeList(List<Barcode> barcodeList,
+      MInOutNotifier mInOutNotifier, MInOutStatus mInOutState) {
     return Flexible(
       child: ListView.builder(
         controller: mInOutNotifier.scanBarcodeListScrollController,
@@ -1638,6 +1737,14 @@ class _ScanView extends ConsumerWidget {
           final barcode = barcodeList[index];
           return BarcodeList(
             barcode: barcode,
+            onPressedBarcode: mInOutState.rolManualQty
+                ? () {
+                    mInOutNotifier.onManualQuantityChange('0');
+                    mInOutNotifier.onManualScrappedChange('0');
+                    showInsertManualLine(context, mInOutNotifier, mInOutState,
+                        null, barcode.code);
+                  }
+                : () {},
             onPressedDelete: () =>
                 _showConfirmDeleteItem(context, mInOutNotifier, barcode),
             onPressedrepetitions: () =>

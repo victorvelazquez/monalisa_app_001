@@ -540,22 +540,43 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     state = state.copyWith(scrappedQty: parsedValue.toDouble());
   }
 
-  void confirmManualLine(Line line) {
-    line = line.copyWith(
-      verifiedStatus: 'manually',
-    );
-    final List<Line> updatedLines = state.mInOut!.lines;
-    final int index = updatedLines.indexWhere((l) => l.id == line.id);
-    if (index != -1) {
-      final Line verifyLine = _verifyLineStatusQty(
-          line,
-          line.scanningQty?.toDouble() ?? 0.0,
-          state.manualQty,
-          state.scrappedQty);
-      updatedLines[index] = verifyLine;
-      state =
-          state.copyWith(mInOut: state.mInOut!.copyWith(lines: updatedLines));
-      updatedMInOutLine('');
+  void confirmManualLine(Line? line, String? upc) {
+    Line? updatedLine = line;
+    if (updatedLine != null) {
+      updatedLine = updatedLine.copyWith(verifiedStatus: 'manually');
+    } else if (upc != null) {
+      final lineIndex = state.mInOut!.lines.indexWhere((l) => l.upc == upc);
+      if (lineIndex != -1) {
+        updatedLine =
+            state.mInOut!.lines[lineIndex].copyWith(verifiedStatus: 'manually');
+      }
+    }
+    line = updatedLine;
+    if (line != null) {
+      final List<Line> updatedLines = state.mInOut!.lines;
+      final int index = updatedLines.indexWhere((l) => l.id == line!.id);
+      if (index != -1) {
+        final Line verifyLine = _verifyLineStatusQty(
+            line,
+            line.scanningQty?.toDouble() ?? 0.0,
+            state.manualQty,
+            state.scrappedQty);
+        updatedLines[index] = verifyLine;
+        state =
+            state.copyWith(mInOut: state.mInOut!.copyWith(lines: updatedLines));
+        updatedMInOutLine('');
+      }
+    } else if (upc != null) {
+      final int index = state.linesOver.indexWhere((l) => l.code == upc);
+      if (index != -1) {
+        final Barcode barcodeLine =
+            state.linesOver[index].copyWith(repetitions: state.manualQty.toInt());
+        state = state.copyWith(
+          linesOver: state.linesOver
+              .map((l) => l.code == upc? barcodeLine : l)
+              .toList(),
+        );
+      }
     }
   }
 
@@ -749,37 +770,47 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     }
   }
 
-  void addBarcode(String code) {
-    if (code.trim().isEmpty) return;
+  void onInputBarcodeChange(String value) {
+    if (value.trim().isNotEmpty) {
+      state = state.copyWith(barcode: value, errorMessage: '');
+    }
+  }
+
+  int addBarcode() {
+    if (state.barcode.isEmpty) return 0;
+    int result = 0;
     final List<Barcode> updatedTotalList = [...state.scanBarcodeListTotal];
-    final existingBarcodes =
-        updatedTotalList.where((barcode) => barcode.code == code).toList();
+    final existingBarcodes = updatedTotalList
+        .where((barcode) => barcode.code == state.barcode)
+        .toList();
 
     if (existingBarcodes.isNotEmpty) {
       final int newRepetitions = existingBarcodes.first.repetitions + 1;
       for (int i = 0; i < updatedTotalList.length; i++) {
-        if (updatedTotalList[i].code == code) {
+        if (updatedTotalList[i].code == state.barcode) {
           updatedTotalList[i] =
               updatedTotalList[i].copyWith(repetitions: newRepetitions);
         }
       }
       updatedTotalList.add(Barcode(
         index: updatedTotalList.length + 1,
-        code: code,
+        code: state.barcode,
         repetitions: newRepetitions,
         coloring: false,
       ));
     } else {
       updatedTotalList.add(Barcode(
         index: updatedTotalList.length + 1,
-        code: code,
+        code: state.barcode,
         repetitions: 1,
         coloring: false,
       ));
     }
 
-    updatedBarcodeList(updatedTotalList: updatedTotalList, barcode: code);
+    result = updatedBarcodeList(
+        updatedTotalList: updatedTotalList, barcode: state.barcode);
     moveScrollToBottom();
+    return result;
   }
 
   void removeBarcode({required Barcode barcode, bool isOver = false}) {
@@ -808,7 +839,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     moveScrollToBottom();
   }
 
-  void updatedBarcodeList(
+  int updatedBarcodeList(
       {required List<Barcode> updatedTotalList, required String barcode}) {
     for (int i = 0; i < updatedTotalList.length; i++) {
       updatedTotalList[i] = updatedTotalList[i].copyWith(index: i + 1);
@@ -832,10 +863,11 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       scanBarcodeListTotal: updatedTotalList,
       scanBarcodeListUnique: updatedUniqueList,
     );
-    updatedMInOutLine(barcode);
+    return updatedMInOutLine(barcode);
   }
 
-  void updatedMInOutLine(String barcode) {
+  int updatedMInOutLine(String barcode) {
+    int result = 0;
     if (state.mInOut != null && state.viewMInOut) {
       List<Line> lines = state.mInOut!.lines;
       List<Barcode> linesOver = [];
@@ -862,14 +894,17 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
               barcode.repetitions.toDouble(),
               line.manualQty ?? 0,
               line.scrappedQty ?? 0);
+          result = 1;
         } else {
           linesOver.add(barcode.copyWith(index: linesOver.length + 1));
+          result = -1;
         }
       }
 
       state = state.copyWith(
           mInOut: state.mInOut!.copyWith(lines: lines), linesOver: linesOver);
     }
+    return result;
   }
 
   void moveScrollToBottom() {
@@ -1006,6 +1041,7 @@ enum MInOutType {
 
 class MInOutStatus {
   final String doc;
+  final String barcode;
   final MInOutType mInOutType;
   final MInOut? mInOut;
   final List<MInOut> mInOutList;
@@ -1045,6 +1081,7 @@ class MInOutStatus {
 
   MInOutStatus({
     this.doc = '',
+    this.barcode = '',
     this.mInOutType = MInOutType.shipment,
     this.mInOut,
     this.mInOutList = const [],
@@ -1083,6 +1120,7 @@ class MInOutStatus {
 
   MInOutStatus copyWith({
     String? doc,
+    String? barcode,
     MInOutType? mInOutType,
     List<MInOut>? mInOutList,
     MInOut? mInOut,
@@ -1120,6 +1158,7 @@ class MInOutStatus {
   }) =>
       MInOutStatus(
         doc: doc ?? this.doc,
+        barcode: barcode ?? this.barcode,
         mInOutType: mInOutType ?? this.mInOutType,
         mInOutList: mInOutList ?? this.mInOutList,
         mInOut: mInOut ?? this.mInOut,
