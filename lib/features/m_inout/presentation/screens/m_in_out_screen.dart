@@ -375,7 +375,6 @@ class _MInOutView extends ConsumerWidget {
           ),
           CustomTextFormField(
             initialValue: mInOutState.fromWarehouse!.name,
-            readOnly: true,
           ),
           const SizedBox(height: 4),
           CustomDropDown<Warehouse>(
