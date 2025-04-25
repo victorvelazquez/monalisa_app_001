@@ -467,11 +467,11 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     } else if (upc != null) {
       final int index = state.linesOver.indexWhere((l) => l.code == upc);
       if (index != -1) {
-        final Barcode barcodeLine =
-            state.linesOver[index].copyWith(repetitions: state.manualQty.toInt());
+        final Barcode barcodeLine = state.linesOver[index]
+            .copyWith(repetitions: state.manualQty.toInt());
         state = state.copyWith(
           linesOver: state.linesOver
-              .map((l) => l.code == upc? barcodeLine : l)
+              .map((l) => l.code == upc ? barcodeLine : l)
               .toList(),
         );
       }
@@ -560,7 +560,8 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
 
     return state.mInOut?.lines.every((line) =>
             line.verifiedStatus != 'pending' &&
-            validStatuses.contains(line.verifiedStatus)) ??
+            validStatuses.contains(line.verifiedStatus) &&
+            state.linesOver.isEmpty) ??
         false;
   }
 
