@@ -254,8 +254,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     }
 
     try {
-      final mInOutResponse =
-          await mInOutRepository.getMInOut(state.doc, ref);
+      final mInOutResponse = await mInOutRepository.getMInOut(state.doc, ref);
       final filteredLines = mInOutResponse.lines
           .where((line) => line.mProductId?.id != null)
           .toList();
@@ -339,8 +338,7 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     }
 
     try {
-      final mInOutResponse =
-          await mInOutRepository.getMovement(state.doc, ref);
+      final mInOutResponse = await mInOutRepository.getMovement(state.doc, ref);
       final filteredLines = mInOutResponse.lines
           .where((line) => line.mProductId?.id != null)
           .toList();
@@ -372,8 +370,8 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
       int movementConfirmId, WidgetRef ref) async {
     state = state.copyWith(isLoading: true, viewMInOut: true, errorMessage: '');
     try {
-      final mInOutConfirmResponse = await mInOutRepository
-          .getMovementConfirm(movementConfirmId, ref);
+      final mInOutConfirmResponse =
+          await mInOutRepository.getMovementConfirm(movementConfirmId, ref);
 
       final updatedLines = state.mInOut!.lines.map((line) {
         final matchingConfirmLine =
@@ -629,36 +627,44 @@ class MInOutNotifier extends StateNotifier<MInOutStatus> {
     }
   }
 
-  void addBarcode(String code) {
-    if (code.trim().isEmpty) return;
+  void onInputBarcodeChange(String value) {
+    if (value.trim().isNotEmpty) {
+      state = state.copyWith(barcode: value, errorMessage: '');
+    }
+  }
+
+  void addBarcode() {
+    if (state.barcode.isEmpty) return;
     final List<Barcode> updatedTotalList = [...state.scanBarcodeListTotal];
-    final existingBarcodes =
-        updatedTotalList.where((barcode) => barcode.code == code).toList();
+    final existingBarcodes = updatedTotalList
+        .where((barcode) => barcode.code == state.barcode)
+        .toList();
 
     if (existingBarcodes.isNotEmpty) {
       final int newRepetitions = existingBarcodes.first.repetitions + 1;
       for (int i = 0; i < updatedTotalList.length; i++) {
-        if (updatedTotalList[i].code == code) {
+        if (updatedTotalList[i].code == state.barcode) {
           updatedTotalList[i] =
               updatedTotalList[i].copyWith(repetitions: newRepetitions);
         }
       }
       updatedTotalList.add(Barcode(
         index: updatedTotalList.length + 1,
-        code: code,
+        code: state.barcode,
         repetitions: newRepetitions,
         coloring: false,
       ));
     } else {
       updatedTotalList.add(Barcode(
         index: updatedTotalList.length + 1,
-        code: code,
+        code: state.barcode,
         repetitions: 1,
         coloring: false,
       ));
     }
 
-    updatedBarcodeList(updatedTotalList: updatedTotalList, barcode: code);
+    updatedBarcodeList(
+        updatedTotalList: updatedTotalList, barcode: state.barcode);
     moveScrollToBottom();
   }
 
@@ -886,6 +892,7 @@ enum MInOutType {
 
 class MInOutStatus {
   final String doc;
+  final String barcode;
   final MInOutType mInOutType;
   final MInOut? mInOut;
   final List<MInOut> mInOutList;
@@ -918,6 +925,7 @@ class MInOutStatus {
 
   MInOutStatus({
     this.doc = '',
+    this.barcode = '',
     this.mInOutType = MInOutType.shipment,
     this.mInOut,
     this.mInOutList = const [],
@@ -949,6 +957,7 @@ class MInOutStatus {
 
   MInOutStatus copyWith({
     String? doc,
+    String? barcode,
     MInOutType? mInOutType,
     List<MInOut>? mInOutList,
     MInOut? mInOut,
@@ -979,6 +988,7 @@ class MInOutStatus {
   }) =>
       MInOutStatus(
         doc: doc ?? this.doc,
+        barcode: barcode ?? this.barcode,
         mInOutType: mInOutType ?? this.mInOutType,
         mInOutList: mInOutList ?? this.mInOutList,
         mInOut: mInOut ?? this.mInOut,

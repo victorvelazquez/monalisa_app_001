@@ -9,7 +9,6 @@ import 'package:monalisa_app_001/features/m_inout/presentation/widgets/barcode_l
 import 'package:intl/intl.dart';
 import '../../domain/entities/barcode.dart';
 import '../providers/m_in_out_providers.dart';
-import '../widgets/enter_barcode_button.dart';
 
 class MInOutScreen extends ConsumerStatefulWidget {
   final String type;
@@ -1395,7 +1394,7 @@ TableRow _buildTableRow(String label, String value, bool alignRight) {
   );
 }
 
-class _ScanView extends ConsumerWidget {
+class _ScanView extends ConsumerStatefulWidget {
   final MInOutStatus mInOutState;
   final MInOutNotifier mInOutNotifier;
 
@@ -1405,24 +1404,88 @@ class _ScanView extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final barcodeList = mInOutState.uniqueView
-        ? mInOutState.scanBarcodeListUnique
-        : mInOutState.scanBarcodeListTotal;
+  ConsumerState<_ScanView> createState() => _ScanViewState();
+}
+
+class _ScanViewState extends ConsumerState<_ScanView> {
+  final TextEditingController _barcodeController = TextEditingController();
+  final FocusNode _barcodeFocusNode = FocusNode();
+
+  Color _highlightColor = themeBackgroundColorLight;
+  final Color _flashColor = themeColorSuccessfulLight;
+
+  void _triggerHighlight() {
+    setState(() {
+      _highlightColor = _flashColor;
+    });
+    Future.delayed(const Duration(milliseconds: 500), () {
+      setState(() {
+        _highlightColor = themeBackgroundColorLight;
+      });
+    });
+  }
+
+  void _handleBarcodeSubmit() {
+    widget.mInOutNotifier.addBarcode();
+    _barcodeController.clear();
+    _barcodeFocusNode.requestFocus();
+    _triggerHighlight();
+  }
+
+  @override
+  void dispose() {
+    _barcodeController.dispose();
+    _barcodeFocusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final barcodeList = widget.mInOutState.uniqueView
+        ? widget.mInOutState.scanBarcodeListUnique
+        : widget.mInOutState.scanBarcodeListTotal;
 
     return SafeArea(
       child: Column(
         children: [
-          SizedBox(height: 4),
-          _buildActionFilterList(mInOutNotifier),
-          SizedBox(height: 8),
-          Divider(height: 0),
-          _buildBarcodeList(barcodeList, mInOutNotifier),
-          Padding(
-            padding: const EdgeInsets.all(4.0),
-            child: EnterBarcodeButton(mInOutNotifier),
-          ),
+          const SizedBox(height: 4),
+          _buildActionFilterList(widget.mInOutNotifier),
+          const SizedBox(height: 8),
+          const Divider(height: 0),
+          _buildBarcodeList(barcodeList, widget.mInOutNotifier),
+          _buildBarcodeInputScan(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildBarcodeInputScan() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        decoration: BoxDecoration(
+          color: _highlightColor,
+          borderRadius: BorderRadius.circular(themeBorderRadius),
+        ),
+        child: CustomTextFormField(
+          backgroundColor: Colors.transparent,
+          controller: _barcodeController,
+          focusNode: _barcodeFocusNode,
+          keyboardType: TextInputType.text,
+          hint: 'Escanear código de barras',
+          autofocus: true,
+          onChanged: widget.mInOutNotifier.onInputBarcodeChange,
+          onFieldSubmitted: (value) {
+            _handleBarcodeSubmit();
+          },
+          prefixIcon: const Icon(Icons.qr_code_scanner_rounded),
+          suffixIcon: IconButton(
+            icon: const Icon(Icons.send_rounded),
+            color: themeColorPrimary,
+            onPressed: _handleBarcodeSubmit,
+          ),
+        ),
       ),
     );
   }
@@ -1437,7 +1500,7 @@ class _ScanView extends ConsumerWidget {
           isActive: !mInOutNotifier.getUniqueView(),
           onPressed: () => mInOutNotifier.setUniqueView(false),
         ),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         _buildFilterList(
           text: 'Únicos',
           counting: mInOutNotifier.getUniqueCount().toString(),
@@ -1474,13 +1537,13 @@ class _ScanView extends ConsumerWidget {
           borderRadius: BorderRadius.circular(themeBorderRadius),
           color: isActive ? themeColorPrimaryLight : themeBackgroundColorLight,
         ),
-        padding: EdgeInsets.symmetric(vertical: 2, horizontal: 16),
+        padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
         child: Center(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(text, style: styleText),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Text(counting, style: styleCounting),
             ],
           ),
