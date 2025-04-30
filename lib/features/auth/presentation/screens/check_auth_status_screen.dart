@@ -5,6 +5,7 @@ class CheckAuthStatusScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     return Scaffold(
       body: Center(
         child: Column(
@@ -12,8 +13,17 @@ class CheckAuthStatusScreen extends StatelessWidget {
           children: [
             SizedBox(
               height: 80,
-              child: Image.asset('assets/images/logo-monalisa.jpg',
-                  fit: BoxFit.contain),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: size.width * 0.5,
+                  ),
+                  child: Image.asset(
+                    'assets/images/newlife/logo.jpg',
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
             ),
             const SizedBox(height: 30),
             const CircularProgressIndicator(strokeWidth: 2),

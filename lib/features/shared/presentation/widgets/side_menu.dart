@@ -41,10 +41,17 @@ class SideMenuState extends ConsumerState<SideMenu> {
           padding: EdgeInsets.only(top: hasNotch ? 30 : 20),
           child: SizedBox(
             width: double.infinity,
-            child: Image.asset(
-              'assets/images/logo-monalisa.jpg',
-              fit: BoxFit.contain,
-            ),
+            child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: size.width * 0.5,
+                  ),
+                  child: Image.asset(
+                    'assets/images/newlife/logo.jpg',
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
           ),
         ),
         const Padding(

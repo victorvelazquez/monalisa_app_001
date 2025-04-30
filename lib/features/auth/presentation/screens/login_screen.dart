@@ -21,9 +21,14 @@ class LoginScreen extends StatelessWidget {
             SizedBox(
               height: size.height - 385,
               child: Center(
-                child: Image.asset(
-                  'assets/images/logo-monalisa.jpg',
-                  fit: BoxFit.contain,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: size.width * 0.5,
+                  ),
+                  child: Image.asset(
+                    'assets/images/newlife/logo.jpg',
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
             ),

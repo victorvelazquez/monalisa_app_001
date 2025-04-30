@@ -36,12 +36,13 @@ flutter:
     - assets/certificates/my_certificate.pem
     - assets/certificates/monalisa_com_py.pem
     - assets/images/
+    - assets/images/newlife/
     - assets/loaders/
     - google_fonts/montserrat_alternates/
 
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/images/icono-monalisa.png"  # Ruta de tu icono
-  adaptive_icon_foreground: "assets/images/icono-monalisa.png"  # Opcional
+  image_path: "assets/images/newlife/icono-512x512.jpg"  # Ruta de tu icono, ejecutar en la terminal -> flutter pub get, flutter pub run flutter_launcher_icons
+  adaptive_icon_foreground: "assets/images/newlife/icono-512x512.jpg"  # Opcional
   adaptive_icon_background: "#ffffff"  # Fondo del icono adaptativo (Android)

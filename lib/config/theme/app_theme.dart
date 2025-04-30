@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 // const themeColorPrimary = Color.fromRGBO(25, 35, 70, 1);
-const themeColorPrimary = Color.fromRGBO(31, 44, 80, 1);
-const themeColorPrimaryLight = Color.fromRGBO(140, 150, 255, 1);
+const themeColorFont = Color.fromRGBO(0, 0, 0, 1);
+
+const themeColorPrimary = Color.fromRGBO(1, 1, 1, 0.89);
+const themeColorPrimaryLight = Color.fromRGBO(0, 0, 0, 0.451);
 
 const themeBackgroundColor = Colors.white;
 const themeBackgroundColorLight = Color.fromRGBO(245, 245, 245, 1);
@@ -54,6 +56,6 @@ class AppTheme {
         color: themeBackgroundColor,
         centerTitle: true,
         titleTextStyle: GoogleFonts.roboto().copyWith(
-            fontSize: themeFontSizeTitle, fontWeight: FontWeight.bold, color: themeColorPrimary),
+            fontSize: themeFontSizeTitle, fontWeight: FontWeight.bold, color: themeColorFont),
       ));
 }
